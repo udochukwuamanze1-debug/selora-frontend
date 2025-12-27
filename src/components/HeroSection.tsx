@@ -7,7 +7,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-4 overflow-hidden bg-background">
+    <section className="relative min-h-screen flex items-center justify-center pt-32 pb-16 px-4 overflow-hidden bg-background">
       {/* Subtle dark cinematic background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
       
@@ -16,6 +16,15 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
 
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         <div className="animate-fade-up">
+          {/* Powered by Sui Tag */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect mb-8 text-sm text-muted-foreground">
+            <svg viewBox="0 0 24 24" className="w-4 h-4">
+              <circle cx="12" cy="12" r="10" fill="hsl(var(--primary))" />
+              <text x="12" y="16" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="sans-serif">S</text>
+            </svg>
+            <span>Powered by Sui</span>
+          </div>
+
           <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-foreground">
             Your health. Your data.{" "}
             <span className="text-primary">Your terms.</span>
