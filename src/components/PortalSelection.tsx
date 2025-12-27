@@ -95,8 +95,10 @@ export const PortalSelection = ({
       navigate("/portal/doctor");
     } else if (portalId === "lab") {
       navigate("/portal/lab");
-    } else {
-      toast.info(`${portalId} portal coming soon`);
+    } else if (portalId === "insurer") {
+      navigate("/portal/insurer");
+    } else if (portalId === "researcher") {
+      navigate("/portal/researcher");
     }
   };
 
