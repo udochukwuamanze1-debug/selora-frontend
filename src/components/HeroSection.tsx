@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Wallet } from "lucide-react";
+import { Wallet, Shield } from "lucide-react";
 
 interface HeroSectionProps {
   onConnectWallet: () => void;
@@ -18,10 +18,7 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
         <div className="animate-fade-up">
           {/* Powered by Sui Tag */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect mb-8 text-sm text-muted-foreground">
-            <svg viewBox="0 0 24 24" className="w-4 h-4">
-              <circle cx="12" cy="12" r="10" fill="hsl(var(--primary))" />
-              <text x="12" y="16" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="sans-serif">S</text>
-            </svg>
+            <Shield className="w-4 h-4 text-primary" />
             <span>Powered by Sui</span>
           </div>
 

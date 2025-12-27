@@ -12,6 +12,8 @@ import Whitepaper from "./pages/Whitepaper";
 import NotFound from "./pages/NotFound";
 import { DoctorPortal } from "./components/portal/doctor/DoctorPortal";
 import { LabPortal } from "./components/portal/lab/LabPortal";
+import { InsurerPortal } from "./components/portal/insurer/InsurerPortal";
+import { ResearcherPortal } from "./components/portal/researcher/ResearcherPortal";
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="selora-theme">
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/whitepaper" element={<Whitepaper />} />
             <Route path="/portal/doctor" element={<DoctorPortal walletAddress="0x1234...5678" onSignOut={() => window.location.href = '/'} />} />
             <Route path="/portal/lab" element={<LabPortal walletAddress="0x1234...5678" onSignOut={() => window.location.href = '/'} />} />
+            <Route path="/portal/insurer" element={<InsurerPortal walletAddress="0x1234...5678" onSignOut={() => window.location.href = '/'} />} />
+            <Route path="/portal/researcher" element={<ResearcherPortal walletAddress="0x1234...5678" onSignOut={() => window.location.href = '/'} />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
