@@ -1,6 +1,6 @@
 ‎
 ‎import { cn } from "@/lib/utils";
-‎import logoImage from "../logo.png";
+‎import logoImage from "@/logo.png";
 ‎
 ‎// ============================================
 ‎// SELORA LOGO CONFIGURATION
@@ -13,7 +13,7 @@
 ‎
 ‎export const LOGO_CONFIG = {
 ‎  text: "Selora",
-‎  showGradientRing: true, // Set to false for simpler logo
+‎  showGradientRing: false, // Set to false for simpler logo
 ‎  primaryColor: "hsl(var(--primary))",
 ‎  secondaryColor: "hsl(var(--secondary))",
 ‎};
