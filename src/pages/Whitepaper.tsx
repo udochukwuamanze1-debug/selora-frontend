@@ -85,10 +85,10 @@ const Whitepaper = () => {
                   5. Roadmap
                 </h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li><strong>Q1 2025:</strong> Mainnet launch with core patient features</li>
-                  <li><strong>Q2 2025:</strong> Doctor and lab portal integration</li>
-                  <li><strong>Q3 2025:</strong> Data staking and reward system</li>
-                  <li><strong>Q4 2025:</strong> Micro-insurance pools and research marketplace</li>
+                  <li><strong>Q1 2026:</strong> Mainnet launch with core patient features</li>
+                  <li><strong>Q2 2026:</strong> Doctor and lab portal integration</li>
+                  <li><strong>Q3 2026:</strong> Data staking and reward system</li>
+                  <li><strong>Q4 2026:</strong> Micro-insurance pools and research marketplace</li>
                 </ul>
               </section>
 
