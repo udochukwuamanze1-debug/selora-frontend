@@ -48,16 +48,16 @@
 
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(227 100% 69% / 0.1) 0%, hsl(32 100% 75% / 0.1) 100%);
-    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.9) 0%, hsl(0 0% 100% / 0.7) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.7) 0%, hsl(0 0% 100% / 0.5) 100%);
     --gradient-button: linear-gradient(135deg, hsl(227 100% 69%) 0%, hsl(227 100% 60%) 100%);
     --gradient-button-hover: linear-gradient(135deg, hsl(227 100% 75%) 0%, hsl(227 100% 69%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(32 100% 75%) 0%, hsl(32 100% 65%) 100%);
 
     /* Shadows */
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
-    --shadow-glow: 0 0 40px hsl(227 100% 69% / 0.3);
-    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
-    --shadow-button: 0 4px 16px hsl(227 100% 69% / 0.25);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    --shadow-glow: 0 0 40px hsl(227 100% 69% / 0.2);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.04);
+    --shadow-button: 0 4px 16px hsl(227 100% 69% / 0.2);
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 20% 10%;
@@ -70,13 +70,13 @@
   }
 
   .dark {
-    --background: 220 20% 8%;
+    --background: 220 25% 6%;
     --foreground: 220 10% 95%;
 
-    --card: 220 20% 12%;
+    --card: 220 25% 10%;
     --card-foreground: 220 10% 95%;
 
-    --popover: 220 20% 12%;
+    --popover: 220 25% 10%;
     --popover-foreground: 220 10% 95%;
 
     --primary: 227 100% 69%;
@@ -85,8 +85,8 @@
     --secondary: 32 100% 75%;
     --secondary-foreground: 220 20% 10%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 220 25% 14%;
+    --muted-foreground: 220 10% 55%;
 
     --accent: 0 100% 75%;
     --accent-foreground: 0 0% 100%;
@@ -94,17 +94,19 @@
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
+    --border: 220 25% 18%;
+    --input: 220 25% 18%;
     --ring: 227 100% 69%;
 
-    --selora-glass: 220 20% 15%;
-    --selora-glass-border: 220 20% 25%;
+    --selora-glass: 220 25% 12%;
+    --selora-glass-border: 220 25% 20%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(227 100% 69% / 0.15) 0%, hsl(32 100% 75% / 0.1) 100%);
-    --gradient-glass: linear-gradient(135deg, hsl(220 20% 15% / 0.9) 0%, hsl(220 20% 12% / 0.7) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(227 100% 69% / 0.08) 0%, hsl(32 100% 75% / 0.05) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(220 25% 12% / 0.8) 0%, hsl(220 25% 8% / 0.6) 100%);
 
-    --sidebar-background: 220 20% 10%;
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+    --sidebar-background: 220 25% 8%;
     --sidebar-foreground: 220 10% 95%;
   }
 }
@@ -124,15 +126,32 @@
 }
 
 @layer components {
+  /* Real glassmorphism effect */
   .glass-card {
-    @apply bg-card/80 dark:bg-card/60 
-           backdrop-blur-md border border-border/50 
-           shadow-sm rounded-2xl;
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: var(--shadow-glass);
+    @apply rounded-2xl;
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300 ease-out
-           hover:border-primary/20;
+    @apply glass-card transition-all duration-300 ease-out;
+  }
+  
+  .glass-card-hover:hover {
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: var(--shadow-glass), 0 0 20px hsl(var(--primary) / 0.1);
+  }
+
+  /* Lighter glass effect for tags/badges */
+  .glass-effect {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border: 1px solid hsl(var(--border) / 0.4);
+    @apply rounded-full;
   }
 
   .glass-button {
@@ -145,8 +164,7 @@
   .glass-button-secondary {
     @apply glass-card text-foreground font-medium
            px-6 py-3 rounded-xl
-           transition-all duration-200 ease-out
-           hover:bg-card/95;
+           transition-all duration-200 ease-out;
   }
 
   .animate-fade-up {
@@ -156,6 +174,10 @@
   .animate-fade-in {
     animation: fade-in 0.4s ease-out forwards;
   }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -164,8 +186,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(227 100% 69% / 0.2); }
-  50% { box-shadow: 0 0 40px hsl(227 100% 69% / 0.4); }
+  0%, 100% { box-shadow: 0 0 20px hsl(227 100% 69% / 0.15); }
+  50% { box-shadow: 0 0 30px hsl(227 100% 69% / 0.25); }
 }
 
 @keyframes fade-up {
@@ -189,13 +211,13 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-muted;
+  @apply bg-muted/50;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/30 rounded-full;
+  @apply bg-primary/20 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/50;
+  @apply bg-primary/30;
 }

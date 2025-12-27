@@ -1,38 +1,77 @@
 import { cn } from "@/lib/utils";
 
+// ============================================
+// SELORA LOGO CONFIGURATION
+// ============================================
+// To change the logo:
+// 1. Replace the SVG in LogoIcon component below
+// 2. Or import an image: import logoImage from "@/assets/logo.png"
+// 3. Or use any icon from lucide-react
+// ============================================
+
+export const LOGO_CONFIG = {
+  text: "Selora",
+  showGradientRing: true, // Set to false for simpler logo
+  primaryColor: "hsl(var(--primary))",
+  secondaryColor: "hsl(var(--secondary))",
+};
+
+// Logo icon component - replace this to change the logo icon
+const LogoIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={cn("w-5 h-5 text-primary", className)}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M17 6C17 6 15 4 12 4C9 4 7 6 7 8C7 10 9 11 12 12C15 13 17 14 17 16C17 18 15 20 12 20C9 20 7 18 7 18" />
+  </svg>
+);
+
 interface LogoProps {
   className?: string;
   showText?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
-export const Logo = ({ className, showText = true }: LogoProps) => {
+export const Logo = ({ className, showText = true, size = "md" }: LogoProps) => {
+  const sizeClasses = {
+    sm: "w-8 h-8",
+    md: "w-10 h-10",
+    lg: "w-12 h-12",
+  };
+
+  const textSizes = {
+    sm: "text-xl",
+    md: "text-2xl",
+    lg: "text-3xl",
+  };
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="relative w-10 h-10">
-        {/* Outer ring with gradient */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-secondary opacity-20 blur-sm" />
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/80 to-secondary/60 p-[2px]">
-          <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-            {/* Inner S shape */}
-            <svg
-              viewBox="0 0 24 24"
-              className="w-5 h-5 text-primary"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M17 6C17 6 15 4 12 4C9 4 7 6 7 8C7 10 9 11 12 12C15 13 17 14 17 16C17 18 15 20 12 20C9 20 7 18 7 18" />
-            </svg>
+      <div className={cn("relative", sizeClasses[size])}>
+        {LOGO_CONFIG.showGradientRing ? (
+          <>
+            {/* Gradient ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/80 to-secondary/60 p-[2px]">
+              <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
+                <LogoIcon />
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Simple version */
+          <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center">
+            <LogoIcon />
           </div>
-        </div>
-        {/* Glow effect */}
-        <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl opacity-50 animate-pulse-glow" />
+        )}
       </div>
       {showText && (
-        <span className="font-heading text-2xl font-bold tracking-tight text-foreground">
-          Selora
+        <span className={cn("font-heading font-bold tracking-tight text-foreground", textSizes[size])}>
+          {LOGO_CONFIG.text}
         </span>
       )}
     </div>
