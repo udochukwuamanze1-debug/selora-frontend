@@ -1,6 +1,4 @@
-‎
-‎import { cn } from "@/lib/utils";
-‎import logoImage from "@/logo.png";
+‎‎import { cn } from "@/lib/utils";
 ‎
 ‎// ============================================
 ‎// SELORA LOGO CONFIGURATION
@@ -21,7 +19,7 @@
 ‎// Logo icon component - replace this to change the logo icon
 ‎const LogoIcon = ({ className }: { className?: string }) => (
 ‎  <img
-‎    src={logoImage}
+‎    src="/logo.png"
 ‎    alt="Selora logo"
 ‎    className={cn("w-5 h-5 object-contain", className)}
 ‎  />
