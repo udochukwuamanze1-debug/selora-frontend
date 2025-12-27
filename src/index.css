@@ -125,40 +125,28 @@
 
 @layer components {
   .glass-card {
-    @apply bg-gradient-to-br from-white/90 to-white/70 dark:from-selora-glass/90 dark:to-selora-glass/70 
-           backdrop-blur-xl border border-selora-glass-border/50 
-           shadow-glass rounded-2xl;
+    @apply bg-card/80 dark:bg-card/60 
+           backdrop-blur-md border border-border/50 
+           shadow-sm rounded-2xl;
   }
 
   .glass-card-hover {
     @apply glass-card transition-all duration-300 ease-out
-           hover:scale-[1.02] hover:shadow-glow hover:border-primary/30;
+           hover:border-primary/20;
   }
 
   .glass-button {
-    @apply bg-gradient-button text-primary-foreground font-semibold
-           shadow-button rounded-xl px-6 py-3
-           transition-all duration-300 ease-out
-           hover:shadow-glow hover:scale-105;
+    @apply bg-primary text-primary-foreground font-semibold
+           rounded-xl px-6 py-3
+           transition-all duration-200 ease-out
+           hover:bg-primary/90;
   }
 
   .glass-button-secondary {
     @apply glass-card text-foreground font-medium
            px-6 py-3 rounded-xl
-           transition-all duration-300 ease-out
-           hover:bg-white/95 dark:hover:bg-selora-glass/95 hover:scale-105;
-  }
-
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+           transition-all duration-200 ease-out
+           hover:bg-card/95;
   }
 
   .animate-fade-up {

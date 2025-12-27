@@ -10,6 +10,7 @@ import Terms from "./pages/Terms";
 import Documentation from "./pages/Documentation";
 import Whitepaper from "./pages/Whitepaper";
 import NotFound from "./pages/NotFound";
+import { DoctorPortal } from "./components/portal/doctor/DoctorPortal";
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="selora-theme">
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/documentation" element={<Documentation />} />
             <Route path="/whitepaper" element={<Whitepaper />} />
+            <Route path="/portal/doctor" element={<DoctorPortal walletAddress="0x1234...5678" onSignOut={() => window.location.href = '/'} />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
