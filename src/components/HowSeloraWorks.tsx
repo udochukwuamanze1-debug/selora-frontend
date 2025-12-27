@@ -31,35 +31,32 @@ const steps = [
 export const HowSeloraWorks = () => {
   return (
     <section className="py-24 px-4 relative bg-background">
-      {/* Dark background overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
-      
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
-          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4">
-            How <span className="text-gradient">Selora</span> Works
+          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-foreground">
+            How <span className="text-primary">Selora</span> Works
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             A simple, secure process to take control of your health data
           </p>
         </div>
 
-        <div className="space-y-16 md:space-y-24">
+        <div className="space-y-12 md:space-y-20">
           {steps.map((step, index) => (
             <div
               key={step.title}
               className={`flex flex-col ${
                 index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-              } gap-8 md:gap-16 items-center`}
+              } gap-8 md:gap-12 items-center`}
             >
               {/* Content */}
               <div className="flex-1 text-center md:text-left">
                 <div className="inline-flex items-center gap-3 mb-4">
-                  <span className="text-4xl font-heading font-bold text-primary/30">
+                  <span className="text-3xl font-heading font-bold text-primary/30">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3 className="font-heading text-2xl md:text-3xl font-bold mb-4">
+                <h3 className="font-heading text-2xl md:text-3xl font-bold mb-4 text-foreground">
                   {step.title}
                 </h3>
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
@@ -69,19 +66,8 @@ export const HowSeloraWorks = () => {
 
               {/* Illustration */}
               <div className="flex-1 flex justify-center">
-                <div className="relative group">
-                  {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
-                  {/* Glass card with icon */}
-                  <div className="glass-card p-12 md:p-16 rounded-3xl relative overflow-hidden group-hover:border-primary/30 transition-colors">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
-                    <step.icon className="w-20 h-20 md:w-24 md:h-24 text-primary relative z-10" />
-                    
-                    {/* Decorative elements */}
-                    <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary/10 animate-pulse" />
-                    <div className="absolute bottom-4 left-4 w-6 h-6 rounded-full bg-secondary/10 animate-pulse" style={{ animationDelay: "1s" }} />
-                  </div>
+                <div className="glass-card p-10 md:p-14 rounded-2xl transition-colors hover:border-primary/20">
+                  <step.icon className="w-16 h-16 md:w-20 md:h-20 text-primary/80" />
                 </div>
               </div>
             </div>
