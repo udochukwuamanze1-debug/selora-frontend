@@ -1,27 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
+import { HowSeloraWorks } from "@/components/HowSeloraWorks";
+import { NeonDivider } from "@/components/NeonDivider";
 import { BuiltOnSui } from "@/components/BuiltOnSui";
 import { Footer } from "@/components/Footer";
-import { WalletConnectModal } from "@/components/WalletConnectModal";
 import { PortalSelection } from "@/components/PortalSelection";
 import { PatientPortal } from "@/components/portal/PatientPortal";
+import { useCurrentAccount, ConnectModal } from "@mysten/dapp-kit";
 
 type AppState = "landing" | "portal-selection" | "patient-portal";
 
 const Index = () => {
   const [appState, setAppState] = useState<AppState>("landing");
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const currentAccount = useCurrentAccount();
+  const walletAddress = currentAccount?.address || null;
+
+  // When wallet connects, move to portal selection
+  useEffect(() => {
+    if (walletAddress && appState === "landing") {
+      setAppState("portal-selection");
+    }
+    if (!walletAddress && appState !== "landing") {
+      setAppState("landing");
+    }
+  }, [walletAddress, appState]);
 
   const handleConnectWallet = () => {
-    setWalletModalOpen(true);
-  };
-
-  const handleWalletConnected = (address: string) => {
-    setWalletAddress(address);
-    setAppState("portal-selection");
+    if (walletAddress) {
+      setAppState("portal-selection");
+    } else {
+      setConnectModalOpen(true);
+    }
   };
 
   const handleSelectPortal = (portalId: string) => {
@@ -32,7 +44,6 @@ const Index = () => {
   };
 
   const handleDisconnect = () => {
-    setWalletAddress(null);
     setAppState("landing");
   };
 
@@ -66,13 +77,16 @@ const Index = () => {
       />
       <HeroSection onConnectWallet={handleConnectWallet} />
       <FeaturesSection />
+      <NeonDivider />
+      <HowSeloraWorks />
+      <NeonDivider />
       <BuiltOnSui />
       <Footer />
 
-      <WalletConnectModal
-        open={walletModalOpen}
-        onOpenChange={setWalletModalOpen}
-        onConnect={handleWalletConnected}
+      <ConnectModal
+        trigger={<></>}
+        open={connectModalOpen}
+        onOpenChange={(open) => setConnectModalOpen(open)}
       />
     </div>
   );
