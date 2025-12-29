@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
+import { UserCountDisplay } from "@/components/UserCountDisplay";
 
 interface HeroSectionProps {
   onConnectWallet: () => void;
@@ -9,6 +10,21 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [userCount, setUserCount] = useState(0);
+
+  useEffect(() => {
+    // Get user count from localStorage (simulating on-chain user count)
+    const storedCount = localStorage.getItem("selora_user_count");
+    if (storedCount) {
+      setUserCount(parseInt(storedCount, 10));
+    } else {
+      // Initialize with a starting count
+      const initialCount = 47; // Starting users
+      localStorage.setItem("selora_user_count", initialCount.toString());
+      setUserCount(initialCount);
+    }
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-32 pb-16 px-4 overflow-hidden bg-background">
       {/* Subtle dark cinematic background */}
@@ -43,6 +59,11 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
             Get Started
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Button>
+
+          {/* User count display */}
+          <div className="flex justify-center">
+            <UserCountDisplay count={userCount} />
+          </div>
 
           <AuthModal
             open={authModalOpen}

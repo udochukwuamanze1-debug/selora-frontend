@@ -27,7 +27,7 @@ const menuItems = [
   { id: "network", label: "Care Network", icon: Users },
   { id: "exchange", label: "Data Exchange", icon: ArrowLeftRight },
   { id: "contacts", label: "Trusted Contacts", icon: UserCheck },
-  { id: "prescriptions", label: "Medication & Prescriptions", icon: Pill },
+  { id: "prescriptions", label: "Prescriptions", icon: Pill },
   { id: "assistant", label: "Health Guide", icon: Bot },
   { id: "profile", label: "Profile & Preferences", icon: Settings },
 ];
@@ -60,7 +60,7 @@ export const PatientSidebar = ({
     >
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
-        <Logo showText={!collapsed} />
+        <Logo showText={!collapsed} role={collapsed ? undefined : "PATIENT"} />
         <Button
           variant="ghost"
           size="icon"
