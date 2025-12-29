@@ -18,6 +18,17 @@ import {
 } from "@/lib/walrus";
 import { toast } from "sonner";
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timeoutId: number | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) window.clearTimeout(timeoutId);
+  }) as Promise<T>;
+}
+
 export type { StoredRecord };
 
 export function useWalrusStorage(walletAddress: string | undefined) {
@@ -57,8 +68,8 @@ export function useWalrusStorage(walletAddress: string | undefined) {
         let blobId: string;
 
         try {
-          // Try uploading to Walrus
-          const result = await uploadToWalrus(encryptedBlob);
+          // Try uploading to Walrus (with timeout)
+          const result = await withTimeout(uploadToWalrus(encryptedBlob), 15000, "Walrus upload");
           blobId = result.blobId;
           toast.success("File uploaded to Walrus");
         } catch (error) {
@@ -115,8 +126,8 @@ export function useWalrusStorage(walletAddress: string | undefined) {
         // Retrieve from local storage
         encryptedBlob = await getEncryptedBlobLocally(record.id);
       } else {
-        // Download from Walrus
-        encryptedBlob = await downloadFromWalrus(record.blobId);
+        // Download from Walrus (with timeout)
+        encryptedBlob = await withTimeout(downloadFromWalrus(record.blobId), 15000, "Walrus download");
       }
 
       if (!encryptedBlob) {

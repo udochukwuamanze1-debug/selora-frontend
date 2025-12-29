@@ -29,7 +29,7 @@ export const HealthArchive = ({ walletAddress, onRecordUploaded }: HealthArchive
 
   useEffect(() => {
     loadRecords();
-  }, [walletAddress]);
+  }, [loadRecords]);
 
   const getRecordType = (mimeType: string): string => {
     if (mimeType.startsWith("image/")) return "Imaging";

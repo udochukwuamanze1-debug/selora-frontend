@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 
 interface VaultProps {
   walletAddress: string;
+  externalSearchQuery?: string;
 }
 
 type FileCategory = "all" | "images" | "documents" | "videos" | "audio" | "other";
@@ -92,7 +93,7 @@ function recordToVaultFile(r: StoredRecord): VaultFile {
   };
 }
 
-export const Vault = ({ walletAddress }: VaultProps) => {
+export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<FileCategory>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -102,6 +103,12 @@ export const Vault = ({ walletAddress }: VaultProps) => {
 
   const { records, uploadFile, downloadFile, isUploading, isDownloading, loadRecords, deleteRecord } =
     useWalrusStorage(walletAddress);
+
+  // Keep Vault search synced to the global header search (Patient portal)
+  useEffect(() => {
+    if (typeof externalSearchQuery !== "string") return;
+    setSearchQuery(externalSearchQuery);
+  }, [externalSearchQuery]);
 
   // Hydrate files from persisted records on mount
   useEffect(() => {

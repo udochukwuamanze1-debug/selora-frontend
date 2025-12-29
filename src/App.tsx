@@ -24,15 +24,17 @@ function ProtectedPortal({ portal }: { portal: "doctor" | "lab" | "insurer" | "r
   const walletAddress = currentAccount?.address;
 
   const handleSignOut = () => {
+    // Disable auto-connect for this tab/session so the user stays signed out.
+    window.sessionStorage.setItem("selora_disable_autoconnect", "1");
+
     // Clear all user-specific localStorage
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (
-        key.startsWith("selora_") ||
-        key.startsWith("sui-dapp-kit") ||
-        key.includes("wallet")
-      )) {
+      if (
+        key &&
+        (key.startsWith("selora_") || key.startsWith("sui-dapp-kit") || key.startsWith("dapp-kit") || key.includes("wallet"))
+      ) {
         keysToRemove.push(key);
       }
     }
