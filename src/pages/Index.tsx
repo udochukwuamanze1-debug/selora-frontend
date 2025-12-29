@@ -12,18 +12,44 @@ import { useCurrentAccount, ConnectModal, useDisconnectWallet } from "@mysten/da
 
 type AppState = "landing" | "portal-selection" | "patient-portal";
 
+const APP_STATE_KEY = "selora_app_state";
+const LAST_PORTAL_KEY = "selora_last_portal";
+const DISABLE_AUTOCONNECT_KEY = "selora_disable_autoconnect";
+
 const Index = () => {
-  const [appState, setAppState] = useState<AppState>("landing");
+  const [appState, setAppState] = useState<AppState>(() => {
+    if (typeof window === "undefined") return "landing";
+    const saved = window.sessionStorage.getItem(APP_STATE_KEY) as AppState | null;
+    return saved ?? "landing";
+  });
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const currentAccount = useCurrentAccount();
   const { mutate: disconnect } = useDisconnectWallet();
   const walletAddress = currentAccount?.address || null;
 
-  // When wallet connects, move to portal selection
+  // Restore the last portal page on refresh (when wallet is connected)
   useEffect(() => {
-    if (walletAddress && appState === "landing") {
+    if (!walletAddress) return;
+
+    // Once a user is connected again, allow auto-connect in the future.
+    window.sessionStorage.removeItem(DISABLE_AUTOCONNECT_KEY);
+
+    const lastPortal = window.sessionStorage.getItem(LAST_PORTAL_KEY);
+    if (lastPortal === "patient") {
+      setAppState("patient-portal");
+    } else if (appState === "landing") {
       setAppState("portal-selection");
     }
+  }, [walletAddress]);
+
+  // Persist app state for refresh behavior
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.setItem(APP_STATE_KEY, appState);
+  }, [appState]);
+
+  // When wallet disconnects, move back to landing
+  useEffect(() => {
     if (!walletAddress && appState !== "landing") {
       setAppState("landing");
     }
@@ -39,21 +65,26 @@ const Index = () => {
 
   const handleSelectPortal = (portalId: string) => {
     if (portalId === "patient") {
+      window.sessionStorage.setItem(LAST_PORTAL_KEY, "patient");
       setAppState("patient-portal");
     }
     // Other portals can be added here
   };
 
   const handleDisconnect = () => {
+    // Disable auto-connect for this tab/session so the user stays signed out.
+    window.sessionStorage.setItem(DISABLE_AUTOCONNECT_KEY, "1");
+    window.sessionStorage.removeItem(APP_STATE_KEY);
+    window.sessionStorage.removeItem(LAST_PORTAL_KEY);
+
     // Clear all user-specific localStorage
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (
-        key.startsWith("selora_") ||
-        key.startsWith("sui-dapp-kit") ||
-        key.includes("wallet")
-      )) {
+      if (
+        key &&
+        (key.startsWith("selora_") || key.startsWith("sui-dapp-kit") || key.startsWith("dapp-kit") || key.includes("wallet"))
+      ) {
         keysToRemove.push(key);
       }
     }

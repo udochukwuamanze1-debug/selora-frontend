@@ -43,7 +43,7 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
           />
         );
       case "vault":
-        return <Vault walletAddress={walletAddress} />;
+        return <Vault walletAddress={walletAddress} externalSearchQuery={searchQuery} />;
       case "prescriptions":
         return <Prescriptions />;
       case "exchange":

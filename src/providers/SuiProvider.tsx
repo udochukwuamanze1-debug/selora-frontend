@@ -17,12 +17,14 @@ interface SuiProviderProps {
 }
 
 export function SuiProvider({ children }: SuiProviderProps) {
+  const disableAutoConnect =
+    typeof window !== "undefined" &&
+    window.sessionStorage.getItem("selora_disable_autoconnect") === "1";
+
   return (
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="devnet">
-        <WalletProvider autoConnect>
-          {children}
-        </WalletProvider>
+        <WalletProvider autoConnect={!disableAutoConnect}>{children}</WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>
   );
