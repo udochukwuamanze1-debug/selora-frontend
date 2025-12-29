@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      doctor_profiles: {
+        Row: {
+          accepts_new_patients: boolean
+          city: string
+          clinic_name: string | null
+          country: string
+          created_at: string
+          full_name: string
+          id: string
+          lat: number | null
+          license_number: string | null
+          lon: number | null
+          specialty: string
+          updated_at: string
+          verified: boolean
+          wallet_address: string
+        }
+        Insert: {
+          accepts_new_patients?: boolean
+          city: string
+          clinic_name?: string | null
+          country: string
+          created_at?: string
+          full_name: string
+          id?: string
+          lat?: number | null
+          license_number?: string | null
+          lon?: number | null
+          specialty: string
+          updated_at?: string
+          verified?: boolean
+          wallet_address: string
+        }
+        Update: {
+          accepts_new_patients?: boolean
+          city?: string
+          clinic_name?: string | null
+          country?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          lat?: number | null
+          license_number?: string | null
+          lon?: number | null
+          specialty?: string
+          updated_at?: string
+          verified?: boolean
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

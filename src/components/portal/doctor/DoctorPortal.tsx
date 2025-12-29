@@ -8,6 +8,7 @@ import { PrescriptionCreation } from "./PrescriptionCreation";
 import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
+import { DoctorProfileForm } from "./DoctorProfileForm";
 import { cn } from "@/lib/utils";
 
 interface DoctorPortalProps {
@@ -48,6 +49,8 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
         return <HealthAssistant walletAddress={walletAddress} />;
       case "profile":
         return <ProfilePreferences walletAddress={walletAddress} />;
+      case "doctor-profile":
+        return <DoctorProfileForm walletAddress={walletAddress} />;
       default:
         return <CareWorkspace isNewUser={true} />;
     }
@@ -67,3 +70,4 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
     </div>
   );
 };
+

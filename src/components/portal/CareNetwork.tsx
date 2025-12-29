@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { MapPin, Navigation, Search, Stethoscope, X, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -23,9 +24,6 @@ type Doctor = {
 };
 
 const MILES_RADIUS = 2;
-
-// Empty array - doctors will appear when they create profiles
-const registeredDoctors: Doctor[] = [];
 
 function milesBetween(aLat: number, aLon: number, bLat: number, bLon: number) {
   const toRad = (x: number) => (x * Math.PI) / 180;
@@ -64,6 +62,41 @@ export function CareNetwork() {
     country: "",
     postalCode: "",
   });
+  const [registeredDoctors, setRegisteredDoctors] = useState<Doctor[]>([]);
+  const [doctorsLoading, setDoctorsLoading] = useState(true);
+
+  // Fetch verified doctors from database
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setDoctorsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("doctor_profiles")
+          .select("id, full_name, specialty, lat, lon, accepts_new_patients, verified")
+          .eq("verified", true);
+
+        if (error) {
+          console.error("Error fetching doctors:", error);
+        } else if (data) {
+          setRegisteredDoctors(
+            data.map((d: any) => ({
+              id: d.id,
+              name: d.full_name,
+              specialty: d.specialty,
+              lat: d.lat ?? 0,
+              lon: d.lon ?? 0,
+              acceptsNewPatients: d.accepts_new_patients,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch doctors:", err);
+      } finally {
+        setDoctorsLoading(false);
+      }
+    };
+    fetchDoctors();
+  }, []);
 
   // Load saved location from localStorage
   useEffect(() => {
@@ -98,7 +131,7 @@ export function CareNetwork() {
       })
       .filter((d) => (d.distance == null ? true : d.distance <= MILES_RADIUS))
       .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
-  }, [query, location]);
+  }, [query, location, registeredDoctors]);
 
   const handleUseLocation = () => {
     // Check if user has saved location in profile
