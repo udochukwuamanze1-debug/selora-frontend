@@ -1,0 +1,4 @@
+# Cloudflare Pages headers / cache control
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff

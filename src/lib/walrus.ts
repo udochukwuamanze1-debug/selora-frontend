@@ -101,8 +101,15 @@ export function getLocalRecords(): StoredRecord[] {
  */
 export function deleteLocalRecord(id: string): void {
   const records = getLocalRecords();
-  const filtered = records.filter(r => r.id !== id);
-  localStorage.setItem('selora_records', JSON.stringify(filtered));
+  const filtered = records.filter((r) => r.id !== id);
+  localStorage.setItem("selora_records", JSON.stringify(filtered));
+}
+
+/**
+ * Delete local blob associated with a record
+ */
+export function deleteLocalBlob(id: string): void {
+  localStorage.removeItem(`selora_blob_${id}`);
 }
 
 /**
