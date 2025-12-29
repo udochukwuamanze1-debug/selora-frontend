@@ -8,6 +8,10 @@ import { DataExchange } from "./DataExchange";
 import { Vault } from "./Vault";
 import { PortalHeader } from "./PortalHeader";
 import { PortalFooter } from "./PortalFooter";
+import { HealthAssistant } from "./HealthAssistant";
+import { ProfilePreferences } from "./ProfilePreferences";
+import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import { OnboardingTutorial } from "./OnboardingTutorial";
 import { cn } from "@/lib/utils";
 
 interface PatientPortalProps {
@@ -32,15 +36,15 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "exchange":
         return <DataExchange />;
       case "coverage":
-        return <ComingSoon title="Coverage & Protection" />;
+        return <AnalyticsDashboard walletAddress={walletAddress} />;
       case "network":
         return <ComingSoon title="Care Network" />;
       case "contacts":
         return <ComingSoon title="Trusted Contacts" />;
       case "assistant":
-        return <ComingSoon title="Health Guide" />;
+        return <HealthAssistant walletAddress={walletAddress} />;
       case "profile":
-        return <ComingSoon title="Profile & Preferences" />;
+        return <ProfilePreferences walletAddress={walletAddress} />;
       default:
         return <PatientHome onNavigate={setActiveTab} />;
     }
@@ -48,6 +52,7 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
 
   return (
     <div className="min-h-screen bg-background">
+      <OnboardingTutorial walletAddress={walletAddress} onComplete={() => {}} />
       <PatientSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}

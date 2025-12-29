@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Wallet, Shield } from "lucide-react";
+import { Shield, ArrowRight } from "lucide-react";
+import { AuthModal } from "@/components/AuthModal";
 
 interface HeroSectionProps {
   onConnectWallet: () => void;
 }
 
 export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-32 pb-16 px-4 overflow-hidden bg-background">
       {/* Subtle dark cinematic background */}
@@ -32,14 +35,20 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
           </p>
 
           <Button
-            variant="default"
+            variant="hero"
             size="xl"
-            onClick={onConnectWallet}
-            className="gap-3"
+            onClick={() => setAuthModalOpen(true)}
+            className="gap-3 group"
           >
-            <Wallet className="w-5 h-5" />
-            Connect Wallet
+            Get Started
+            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Button>
+
+          <AuthModal
+            open={authModalOpen}
+            onOpenChange={setAuthModalOpen}
+            onSuccess={onConnectWallet}
+          />
 
           {/* Trust Statement - calm and minimal */}
           <div className="flex flex-wrap justify-center gap-8 mt-12 text-sm text-muted-foreground">
