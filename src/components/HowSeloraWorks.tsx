@@ -30,8 +30,8 @@ const steps = [
 
 export const HowSeloraWorks = () => {
   return (
-    <section className="py-24 px-4 relative bg-background">
-      <div className="max-w-7xl mx-auto relative z-10">
+    <section className="py-24 px-6 md:px-12 lg:px-16 relative bg-background">
+      <div className="max-w-5xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-foreground">
             How <span className="text-primary">Selora</span> Works

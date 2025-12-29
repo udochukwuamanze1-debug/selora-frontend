@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X, Wallet, Rocket } from "lucide-react";
+import { Menu, X, Wallet, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 import { AuthModal } from "@/components/AuthModal";
@@ -55,10 +55,10 @@ export const Navbar = ({ onConnectWallet, walletAddress }: NavbarProps) => {
                 <Button
                   variant="hero"
                   onClick={handleConnectClick}
-                  className="gap-2"
+                  className="gap-2 group"
                 >
-                  <Rocket className="w-4 h-4" />
                   Get Started
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               )}
             </div>
@@ -105,10 +105,10 @@ export const Navbar = ({ onConnectWallet, walletAddress }: NavbarProps) => {
               <Button
                 variant="hero"
                 onClick={handleConnectClick}
-                className="w-full gap-2"
+                className="w-full gap-2 group"
               >
-                <Rocket className="w-4 h-4" />
                 Get Started
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Button>
             )}
           </div>

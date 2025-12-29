@@ -57,7 +57,6 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               </div>
               <div className="text-left">
                 <div className="font-medium">Continue with Google</div>
-                <div className="text-xs text-muted-foreground">Easiest for beginners</div>
               </div>
             </Button>
 
@@ -77,9 +76,6 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               <div className="text-left">
                 <div className="font-medium">
                   {isMobile ? "Connect Mobile Wallet" : "Connect Wallet"}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {isMobile ? "Sui Wallet, Suiet, etc." : "Browser extension"}
                 </div>
               </div>
             </Button>
