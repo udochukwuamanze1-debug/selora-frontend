@@ -3,120 +3,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
-  Check, 
-  X, 
   Clock, 
   FileText,
-  AlertCircle,
-  CheckCircle,
+  FlaskConical,
 } from "lucide-react";
 
-type PrescriptionStatus = "pending" | "processing" | "ready" | "completed" | "rejected";
-
-interface Prescription {
-  id: string;
-  patientAddress: string;
-  doctorAddress: string;
-  medication: string;
-  dosage: string;
-  frequency: string;
-  status: PrescriptionStatus;
-  createdAt: string;
-  paid: boolean;
+interface DiagnosticsHubProps {
+  isNewUser?: boolean;
 }
 
-const mockPrescriptions: Prescription[] = [
-  {
-    id: "RX-001",
-    patientAddress: "0x7a3b...9c4d",
-    doctorAddress: "0x1234...5678",
-    medication: "Amoxicillin",
-    dosage: "500mg",
-    frequency: "Three times daily",
-    status: "pending",
-    createdAt: "2024-01-15 10:30",
-    paid: true,
-  },
-  {
-    id: "RX-002",
-    patientAddress: "0x8b4c...2e5f",
-    doctorAddress: "0x1234...5678",
-    medication: "Ibuprofen",
-    dosage: "400mg",
-    frequency: "As needed",
-    status: "processing",
-    createdAt: "2024-01-15 09:15",
-    paid: true,
-  },
-  {
-    id: "RX-003",
-    patientAddress: "0x9c5d...3f6a",
-    doctorAddress: "0x5678...9abc",
-    medication: "Omeprazole",
-    dosage: "20mg",
-    frequency: "Once daily",
-    status: "ready",
-    createdAt: "2024-01-14 16:45",
-    paid: true,
-  },
-  {
-    id: "RX-004",
-    patientAddress: "0x2d6e...4a7b",
-    doctorAddress: "0x1234...5678",
-    medication: "Metformin",
-    dosage: "850mg",
-    frequency: "Twice daily",
-    status: "pending",
-    createdAt: "2024-01-15 11:00",
-    paid: false,
-  },
-  {
-    id: "RX-005",
-    patientAddress: "0x3e7f...5b8c",
-    doctorAddress: "0x9abc...def0",
-    medication: "Lisinopril",
-    dosage: "10mg",
-    frequency: "Once daily",
-    status: "completed",
-    createdAt: "2024-01-13 14:20",
-    paid: true,
-  },
-];
-
-const statusConfig = {
-  pending: { label: "Pending", color: "bg-yellow-500/10 text-yellow-600", icon: Clock },
-  processing: { label: "Processing", color: "bg-blue-500/10 text-blue-600", icon: Clock },
-  ready: { label: "Ready", color: "bg-green-500/10 text-green-600", icon: CheckCircle },
-  completed: { label: "Completed", color: "bg-muted text-muted-foreground", icon: Check },
-  rejected: { label: "Rejected", color: "bg-red-500/10 text-red-600", icon: X },
-};
-
-export const DiagnosticsHub = () => {
-  const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
+export const DiagnosticsHub = ({ isNewUser = false }: DiagnosticsHubProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState<PrescriptionStatus | "all">("all");
+  const [filter, setFilter] = useState<string>("all");
 
-  const filteredPrescriptions = prescriptions.filter((p) => {
-    const matchesSearch = 
-      p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.medication.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.patientAddress.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === "all" || p.status === filter;
-    return matchesSearch && matchesFilter;
-  });
-
-  const handleStatusChange = (id: string, newStatus: PrescriptionStatus) => {
-    setPrescriptions(prev => 
-      prev.map(p => p.id === id ? { ...p, status: newStatus } : p)
-    );
-  };
-
-  const stats = {
-    pending: prescriptions.filter(p => p.status === "pending").length,
-    processing: prescriptions.filter(p => p.status === "processing").length,
-    ready: prescriptions.filter(p => p.status === "ready").length,
-    completed: prescriptions.filter(p => p.status === "completed").length,
-  };
+  const stats = isNewUser
+    ? {
+        pending: 0,
+        processing: 0,
+        ready: 0,
+        completed: 0,
+      }
+    : {
+        pending: 0,
+        processing: 0,
+        ready: 0,
+        completed: 0,
+      };
 
   return (
     <div className="space-y-6">
@@ -125,7 +37,7 @@ export const DiagnosticsHub = () => {
           Diagnostics Hub
         </h1>
         <p className="text-muted-foreground">
-          Manage prescription fulfillment and diagnostics
+          {isNewUser ? "Prescriptions will appear here when doctors send them" : "Manage prescription fulfillment and diagnostics"}
         </p>
       </div>
 
@@ -175,79 +87,44 @@ export const DiagnosticsHub = () => {
         </div>
       </div>
 
-      {/* Prescriptions Table */}
-      <div className="glass-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">ID</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Medication</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Patient</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Payment</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPrescriptions.map((rx) => {
-                const StatusIcon = statusConfig[rx.status].icon;
-                return (
-                  <tr key={rx.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="p-4 font-medium text-foreground font-mono">{rx.id}</td>
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium text-foreground">{rx.medication}</p>
-                        <p className="text-xs text-muted-foreground">{rx.dosage} • {rx.frequency}</p>
-                      </div>
-                    </td>
-                    <td className="p-4 text-muted-foreground font-mono text-sm">{rx.patientAddress}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs rounded-full ${statusConfig[rx.status].color}`}>
-                        <StatusIcon className="w-3 h-3" />
-                        {statusConfig[rx.status].label}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      {rx.paid ? (
-                        <span className="text-green-600 text-sm flex items-center gap-1">
-                          <CheckCircle className="w-3.5 h-3.5" /> Paid
-                        </span>
-                      ) : (
-                        <span className="text-yellow-600 text-sm flex items-center gap-1">
-                          <AlertCircle className="w-3.5 h-3.5" /> Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
-                        {rx.status === "pending" && rx.paid && (
-                          <Button size="sm" onClick={() => handleStatusChange(rx.id, "processing")}>
-                            Start
-                          </Button>
-                        )}
-                        {rx.status === "processing" && (
-                          <Button size="sm" onClick={() => handleStatusChange(rx.id, "ready")}>
-                            Ready
-                          </Button>
-                        )}
-                        {rx.status === "ready" && (
-                          <Button size="sm" onClick={() => handleStatusChange(rx.id, "completed")}>
-                            Complete
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm">
-                          <FileText className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {isNewUser ? (
+        <div className="glass-card p-12 text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <FlaskConical className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="font-heading text-xl font-semibold mb-2 text-foreground">
+            No Prescriptions Yet
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            When doctors create prescriptions for patients, they'll appear here for fulfillment.
+            You'll be able to process, prepare, and complete prescription orders.
+          </p>
         </div>
-      </div>
+      ) : (
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">ID</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Medication</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Patient</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Payment</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                    No prescriptions to display
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

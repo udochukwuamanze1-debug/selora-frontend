@@ -140,7 +140,7 @@ export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
               onClick={() => onNavigate("assistant")}
             >
               <Award className="w-6 h-6 text-primary" />
-              <span>Health Guide</span>
+              <span>Selora AI</span>
             </Button>
           </div>
         </div>

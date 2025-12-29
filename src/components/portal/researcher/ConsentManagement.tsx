@@ -44,7 +44,11 @@ const pendingApprovals = [
   { id: "3", participantId: "P-7654", dataTypes: ["Demographics", "Medical History", "Lab Results"], requestDate: "2024-01-18" },
 ];
 
-export const ConsentManagement = () => {
+interface ConsentManagementProps {
+  isNewUser?: boolean;
+}
+
+export const ConsentManagement = ({ isNewUser = false }: ConsentManagementProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const getStatusColor = (status: string) => {

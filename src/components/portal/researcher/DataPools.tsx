@@ -48,7 +48,11 @@ const dataPools = [
   },
 ];
 
-export const DataPools = () => {
+interface DataPoolsProps {
+  isNewUser?: boolean;
+}
+
+export const DataPools = ({ isNewUser = false }: DataPoolsProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredPools = dataPools.filter(

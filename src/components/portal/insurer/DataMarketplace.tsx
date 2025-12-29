@@ -52,7 +52,11 @@ const datasets = [
   },
 ];
 
-export const DataMarketplace = () => {
+interface DataMarketplaceProps {
+  isNewUser?: boolean;
+}
+
+export const DataMarketplace = ({ isNewUser = false }: DataMarketplaceProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [purchasing, setPurchasing] = useState<string | null>(null);
 

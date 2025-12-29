@@ -1,21 +1,24 @@
 import { Activity, Users, FileText, Clock } from "lucide-react";
 
-const stats = [
-  { label: "Active Patients", value: "24", icon: Users, change: "+3 this week" },
-  { label: "Pending Reviews", value: "8", icon: FileText, change: "2 urgent" },
-  { label: "Prescriptions Today", value: "12", icon: Activity, change: "+4 from yesterday" },
-  { label: "Avg. Response Time", value: "2.4h", icon: Clock, change: "-0.5h improvement" },
-];
+interface CareWorkspaceProps {
+  isNewUser?: boolean;
+}
 
-const recentActivity = [
-  { patient: "Patient #1842", action: "Uploaded lab results", time: "10 min ago", type: "upload" },
-  { patient: "Patient #2391", action: "Requested access permission", time: "25 min ago", type: "permission" },
-  { patient: "Patient #1567", action: "Prescription fulfilled", time: "1 hour ago", type: "prescription" },
-  { patient: "Patient #3102", action: "New health record shared", time: "2 hours ago", type: "share" },
-  { patient: "Patient #2845", action: "Emergency access triggered", time: "3 hours ago", type: "emergency" },
-];
+export const CareWorkspace = ({ isNewUser = false }: CareWorkspaceProps) => {
+  const stats = isNewUser
+    ? [
+        { label: "Active Patients", value: "0", icon: Users, change: "No patients yet" },
+        { label: "Pending Reviews", value: "0", icon: FileText, change: "No reviews pending" },
+        { label: "Prescriptions Today", value: "0", icon: Activity, change: "No prescriptions yet" },
+        { label: "Avg. Response Time", value: "--", icon: Clock, change: "N/A" },
+      ]
+    : [
+        { label: "Active Patients", value: "24", icon: Users, change: "+3 this week" },
+        { label: "Pending Reviews", value: "8", icon: FileText, change: "2 urgent" },
+        { label: "Prescriptions Today", value: "12", icon: Activity, change: "+4 from yesterday" },
+        { label: "Avg. Response Time", value: "2.4h", icon: Clock, change: "-0.5h improvement" },
+      ];
 
-export const CareWorkspace = () => {
   return (
     <div className="space-y-6">
       <div>
@@ -23,7 +26,7 @@ export const CareWorkspace = () => {
           Care Workspace
         </h1>
         <p className="text-muted-foreground">
-          Overview of your patients and recent activity
+          {isNewUser ? "Welcome! Start by connecting with patients" : "Overview of your patients and recent activity"}
         </p>
       </div>
 
@@ -48,20 +51,16 @@ export const CareWorkspace = () => {
         <h2 className="font-heading text-lg font-semibold mb-4 text-foreground">
           Recent Activity
         </h2>
-        <div className="space-y-4">
-          {recentActivity.map((activity, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between py-3 border-b border-border last:border-0"
-            >
-              <div>
-                <p className="font-medium text-foreground">{activity.patient}</p>
-                <p className="text-sm text-muted-foreground">{activity.action}</p>
-              </div>
-              <span className="text-xs text-muted-foreground">{activity.time}</span>
-            </div>
-          ))}
-        </div>
+        {isNewUser ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No recent activity yet.</p>
+            <p className="text-sm text-muted-foreground mt-2">Patient activity will appear here once you start caring for patients.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-muted-foreground text-center py-4">Activity will appear here</p>
+          </div>
+        )}
       </div>
 
       {/* Quick Actions */}
