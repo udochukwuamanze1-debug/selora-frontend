@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import avatar1 from "@/assets/avatar-1.jpg";
+import avatar2 from "@/assets/avatar-2.jpg";
+import avatar3 from "@/assets/avatar-3.jpg";
 
 interface UserCountDisplayProps {
   count: number;
@@ -16,26 +18,23 @@ const formatUserCount = (count: number): string => {
 export const UserCountDisplay = ({ count }: UserCountDisplayProps) => {
   const displayText = formatUserCount(count);
   
-  // Mock avatars for display
-  const avatarColors = [
-    "bg-primary",
-    "bg-secondary", 
-    "bg-accent",
-  ];
+  const avatars = [avatar1, avatar2, avatar3];
 
   return (
     <div className="flex items-center gap-3 mt-8">
-      {/* Overlapping circles */}
+      {/* Overlapping avatar circles */}
       <div className="flex -space-x-3">
-        {avatarColors.map((color, index) => (
+        {avatars.map((avatar, index) => (
           <div
             key={index}
-            className={`w-10 h-10 rounded-full ${color} border-2 border-background flex items-center justify-center`}
-            style={{ zIndex: avatarColors.length - index }}
+            className="w-10 h-10 rounded-full border-2 border-background overflow-hidden"
+            style={{ zIndex: avatars.length - index }}
           >
-            <span className="text-xs font-medium text-white">
-              {String.fromCharCode(65 + index)}
-            </span>
+            <img
+              src={avatar}
+              alt={`User ${index + 1}`}
+              className="w-full h-full object-cover"
+            />
           </div>
         ))}
         <div

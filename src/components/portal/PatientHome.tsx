@@ -6,34 +6,35 @@ import {
   Bell,
   FileText,
   Shield,
-  TrendingUp,
-  Clock,
 } from "lucide-react";
+import { useUserStats, formatRelativeTime } from "@/hooks/useUserStats";
 
 interface PatientHomeProps {
   onNavigate: (tab: string) => void;
 }
 
 export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
-  const stats = [
-    { label: "Health Records", value: "12", icon: FileText, color: "primary" },
-    { label: "Staked Datasets", value: "3", icon: Database, color: "secondary" },
-    { label: "Rewards Earned", value: "156", icon: Award, color: "accent" },
-    { label: "Active Guardians", value: "2", icon: Shield, color: "primary" },
+  const { stats, activities } = useUserStats();
+
+  const statCards = [
+    { label: "Health Records", value: stats.healthRecords.toString(), icon: FileText, color: "primary" },
+    { label: "Staked Datasets", value: stats.stakedDatasets.toString(), icon: Database, color: "secondary" },
+    { label: "Rewards Earned", value: stats.rewardsEarned.toString(), icon: Award, color: "accent" },
+    { label: "Active Guardians", value: stats.activeGuardians.toString(), icon: Shield, color: "primary" },
   ];
 
-  const recentActivity = [
-    { action: "Uploaded lab report", time: "2 hours ago", type: "upload" },
-    { action: "Granted access to Dr. Smith", time: "1 day ago", type: "access" },
-    { action: "Earned 50 reward points", time: "3 days ago", type: "reward" },
-    { action: "Prescription fulfilled", time: "1 week ago", type: "prescription" },
-  ];
+  // Get recent activities with formatted time
+  const recentActivities = activities.slice(0, 4).map(activity => ({
+    ...activity,
+    time: formatRelativeTime(activity.timestamp),
+  }));
 
-  const notifications = [
-    { message: "New access request from Research Lab", urgent: true },
-    { message: "Prescription ready for pickup", urgent: false },
-    { message: "Insurance coverage renewal reminder", urgent: false },
-  ];
+  // Show empty state if no activities
+  const displayActivities = recentActivities.length > 0 
+    ? recentActivities 
+    : [
+        { id: "empty", action: "No activity yet", time: "", type: "info" as const, timestamp: 0 }
+      ];
 
   return (
     <div className="space-y-8">
@@ -63,7 +64,7 @@ export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <div key={stat.label} className="glass-card-hover p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className={`p-2 rounded-lg bg-${stat.color}/10`}>
@@ -82,12 +83,11 @@ export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-heading text-xl font-semibold">Recent Activity</h2>
-            <Clock className="w-5 h-5 text-muted-foreground" />
           </div>
           <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
+            {displayActivities.map((activity) => (
               <div
-                key={index}
+                key={activity.id}
                 className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
               >
                 <div className="p-2 rounded-lg bg-primary/10">
@@ -95,86 +95,54 @@ export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
                   {activity.type === "access" && <Shield className="w-4 h-4 text-secondary" />}
                   {activity.type === "reward" && <Award className="w-4 h-4 text-accent" />}
                   {activity.type === "prescription" && <FileText className="w-4 h-4 text-primary" />}
+                  {activity.type === "stake" && <Database className="w-4 h-4 text-secondary" />}
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium">{activity.action}</p>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  {activity.time && <p className="text-xs text-muted-foreground">{activity.time}</p>}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Notifications */}
+        {/* Quick Actions */}
         <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-heading text-xl font-semibold">Notifications</h2>
-            <div className="relative">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full" />
-            </div>
+          <h2 className="font-heading text-xl font-semibold mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="glass"
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => onNavigate("archive")}
+            >
+              <FileText className="w-6 h-6 text-primary" />
+              <span>View Records</span>
+            </Button>
+            <Button
+              variant="glass"
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => onNavigate("prescriptions")}
+            >
+              <Database className="w-6 h-6 text-secondary" />
+              <span>Prescriptions</span>
+            </Button>
+            <Button
+              variant="glass"
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => onNavigate("contacts")}
+            >
+              <Shield className="w-6 h-6 text-accent" />
+              <span>Guardians</span>
+            </Button>
+            <Button
+              variant="glass"
+              className="h-auto flex-col gap-2 py-6"
+              onClick={() => onNavigate("assistant")}
+            >
+              <Award className="w-6 h-6 text-primary" />
+              <span>Health Guide</span>
+            </Button>
           </div>
-          <div className="space-y-4">
-            {notifications.map((notification, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-xl border ${
-                  notification.urgent
-                    ? "border-accent/30 bg-accent/5"
-                    : "border-border bg-muted/50"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  {notification.urgent && (
-                    <span className="w-2 h-2 mt-2 rounded-full bg-accent shrink-0" />
-                  )}
-                  <p className="text-sm">{notification.message}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <Button variant="ghost" className="w-full mt-4 text-muted-foreground">
-            View all notifications
-          </Button>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="glass-card p-6">
-        <h2 className="font-heading text-xl font-semibold mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button
-            variant="glass"
-            className="h-auto flex-col gap-2 py-6"
-            onClick={() => onNavigate("archive")}
-          >
-            <FileText className="w-6 h-6 text-primary" />
-            <span>View Records</span>
-          </Button>
-          <Button
-            variant="glass"
-            className="h-auto flex-col gap-2 py-6"
-            onClick={() => onNavigate("prescriptions")}
-          >
-            <TrendingUp className="w-6 h-6 text-secondary" />
-            <span>Prescriptions</span>
-          </Button>
-          <Button
-            variant="glass"
-            className="h-auto flex-col gap-2 py-6"
-            onClick={() => onNavigate("contacts")}
-          >
-            <Shield className="w-6 h-6 text-accent" />
-            <span>Guardians</span>
-          </Button>
-          <Button
-            variant="glass"
-            className="h-auto flex-col gap-2 py-6"
-            onClick={() => onNavigate("assistant")}
-          >
-            <Award className="w-6 h-6 text-primary" />
-            <span>Health Guide</span>
-          </Button>
         </div>
       </div>
     </div>

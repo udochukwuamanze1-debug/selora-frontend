@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Search,
-  Filter,
   FileText,
   Image,
   Pill,
@@ -11,94 +10,106 @@ import {
   Eye,
   Download,
   Database,
+  Upload,
 } from "lucide-react";
+import { useWalrusStorage } from "@/hooks/useWalrusStorage";
+import { toast } from "sonner";
 
-const mockRecords = [
-  {
-    id: "1",
-    name: "Blood Test Results",
-    type: "Lab Report",
-    date: "Dec 15, 2024",
-    status: "available",
-    icon: FileText,
-  },
-  {
-    id: "2",
-    name: "Chest X-Ray",
-    type: "Imaging",
-    date: "Dec 10, 2024",
-    status: "staked",
-    icon: Image,
-  },
-  {
-    id: "3",
-    name: "Prescription - Antibiotics",
-    type: "Prescription",
-    date: "Dec 5, 2024",
-    status: "shared",
-    icon: Pill,
-  },
-  {
-    id: "4",
-    name: "Insurance Coverage",
-    type: "Insurance",
-    date: "Nov 28, 2024",
-    status: "available",
-    icon: Shield,
-  },
-  {
-    id: "5",
-    name: "MRI Scan Report",
-    type: "Imaging",
-    date: "Nov 20, 2024",
-    status: "staked",
-    icon: Image,
-  },
-  {
-    id: "6",
-    name: "Annual Physical",
-    type: "Lab Report",
-    date: "Nov 15, 2024",
-    status: "available",
-    icon: FileText,
-  },
-];
+interface HealthArchiveProps {
+  walletAddress: string;
+  onRecordUploaded?: () => void;
+}
 
-export const HealthArchive = () => {
+export const HealthArchive = ({ walletAddress, onRecordUploaded }: HealthArchiveProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { records, isUploading, uploadFile, downloadFile, loadRecords } = useWalrusStorage(walletAddress);
 
-  const filteredRecords = mockRecords.filter((record) => {
-    const matchesSearch = record.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = !filterType || record.type === filterType;
+  useEffect(() => {
+    loadRecords();
+  }, [walletAddress]);
+
+  const getRecordType = (mimeType: string): string => {
+    if (mimeType.startsWith("image/")) return "Imaging";
+    if (mimeType.includes("pdf")) return "Lab Report";
+    return "Document";
+  };
+
+  const getRecordIcon = (mimeType: string) => {
+    if (mimeType.startsWith("image/")) return Image;
+    if (mimeType.includes("pdf")) return FileText;
+    return FileText;
+  };
+
+  const filteredRecords = records.filter((record) => {
+    const matchesSearch = record.originalName.toLowerCase().includes(searchQuery.toLowerCase());
+    const recordType = getRecordType(record.mimeType);
+    const matchesFilter = !filterType || recordType === filterType;
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "staked":
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-secondary/20 text-secondary-foreground">
-            Staked
-          </span>
-        );
-      case "shared":
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-primary/20 text-primary">
-            Shared
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground">
-            Available
-          </span>
-        );
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (const file of Array.from(files)) {
+      const result = await uploadFile(file);
+      if (result) {
+        onRecordUploaded?.();
+      }
     }
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDownload = async (record: typeof records[0]) => {
+    const blob = await downloadFile(record);
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = record.originalName;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("File downloaded");
+    }
+  };
+
+  const handleView = async (record: typeof records[0]) => {
+    const blob = await downloadFile(record);
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
     <div className="space-y-6">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        multiple
+        accept="image/*,.pdf,.doc,.docx"
+      />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -109,9 +120,22 @@ export const HealthArchive = () => {
             All your encrypted health records in one place
           </p>
         </div>
-        <Button className="gap-2">
-          <Database className="w-4 h-4" />
-          Upload New Record
+        <Button 
+          className="gap-2" 
+          onClick={handleUploadClick}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <>
+              <Upload className="w-4 h-4 animate-pulse" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Database className="w-4 h-4" />
+              Upload New Record
+            </>
+          )}
         </Button>
       </div>
 
@@ -128,7 +152,7 @@ export const HealthArchive = () => {
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {["Lab Report", "Imaging", "Prescription", "Insurance"].map((type) => (
+            {["Lab Report", "Imaging", "Document"].map((type) => (
               <Button
                 key={type}
                 variant={filterType === type ? "default" : "glass"}
@@ -150,49 +174,56 @@ export const HealthArchive = () => {
               <tr className="border-b border-border">
                 <th className="text-left p-4 font-medium text-muted-foreground">Record</th>
                 <th className="text-left p-4 font-medium text-muted-foreground hidden md:table-cell">Type</th>
+                <th className="text-left p-4 font-medium text-muted-foreground hidden lg:table-cell">Size</th>
                 <th className="text-left p-4 font-medium text-muted-foreground hidden lg:table-cell">Date</th>
-                <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
                 <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredRecords.map((record) => (
-                <tr
-                  key={record.id}
-                  className="border-b border-border/50 hover:bg-muted/50 transition-colors"
-                >
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <record.icon className="w-4 h-4 text-primary" />
+              {filteredRecords.map((record) => {
+                const RecordIcon = getRecordIcon(record.mimeType);
+                return (
+                  <tr
+                    key={record.id}
+                    className="border-b border-border/50 hover:bg-muted/50 transition-colors"
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <RecordIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{record.originalName}</p>
+                          <p className="text-sm text-muted-foreground md:hidden">
+                            {getRecordType(record.mimeType)}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{record.name}</p>
-                        <p className="text-sm text-muted-foreground md:hidden">
-                          {record.type}
-                        </p>
+                    </td>
+                    <td className="p-4 hidden md:table-cell">
+                      <span className="text-muted-foreground">{getRecordType(record.mimeType)}</span>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell">
+                      <span className="text-muted-foreground">{formatFileSize(record.size)}</span>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell">
+                      <span className="text-muted-foreground">
+                        {new Date(record.uploadedAt).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleView(record)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDownload(record)}>
+                          <Download className="w-4 h-4" />
+                        </Button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-4 hidden md:table-cell">
-                    <span className="text-muted-foreground">{record.type}</span>
-                  </td>
-                  <td className="p-4 hidden lg:table-cell">
-                    <span className="text-muted-foreground">{record.date}</span>
-                  </td>
-                  <td className="p-4">{getStatusBadge(record.status)}</td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -200,7 +231,9 @@ export const HealthArchive = () => {
         {filteredRecords.length === 0 && (
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No records found</p>
+            <p className="text-muted-foreground">
+              {records.length === 0 ? "No records yet. Upload your first health record!" : "No records found"}
+            </p>
           </div>
         )}
       </div>
