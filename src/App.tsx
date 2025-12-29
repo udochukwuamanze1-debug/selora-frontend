@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SuiProvider } from "@/providers/SuiProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -22,10 +23,12 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/docs" element={<Documentation />} />
             <Route path="/documentation" element={<Documentation />} />
             <Route path="/whitepaper" element={<Whitepaper />} />
             <Route path="/portal/doctor" element={<DoctorPortal walletAddress="0x1234...5678" onSignOut={() => window.location.href = '/'} />} />
