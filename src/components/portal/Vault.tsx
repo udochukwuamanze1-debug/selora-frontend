@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Upload,
   File,
@@ -14,6 +14,7 @@ import {
   List,
   FolderOpen,
   Loader2,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +98,7 @@ export const Vault = ({ walletAddress }: VaultProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [isDragging, setIsDragging] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { records, uploadFile, downloadFile, isUploading, isDownloading, loadRecords, deleteRecord } =
     useWalrusStorage(walletAddress);
@@ -168,8 +170,26 @@ export const Vault = ({ walletAddress }: VaultProps) => {
     toast.success("File removed from vault");
   };
 
-  const filteredFiles =
-    selectedCategory === "all" ? files : files.filter((f) => f.category === selectedCategory);
+  // Filter by category and search query
+  const filteredFiles = useMemo(() => {
+    let result = files;
+    
+    // Filter by category
+    if (selectedCategory !== "all") {
+      result = result.filter((f) => f.category === selectedCategory);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((f) => 
+        f.name.toLowerCase().includes(query) ||
+        f.type.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
+  }, [files, selectedCategory, searchQuery]);
 
   const categories: { value: FileCategory; label: string; count: number }[] = [
     { value: "all", label: "All Files", count: files.length },
@@ -195,6 +215,17 @@ export const Vault = ({ walletAddress }: VaultProps) => {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search files..."
+              className="pl-9 w-48"
+            />
+          </div>
+
           <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as FileCategory)}>
             <SelectTrigger className="w-40">
               <Filter className="w-4 h-4 mr-2" />
@@ -265,9 +296,13 @@ export const Vault = ({ walletAddress }: VaultProps) => {
       {filteredFiles.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <FolderOpen className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="font-semibold text-lg mb-2">No files yet</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            {searchQuery.trim() ? "No matching files" : "No files yet"}
+          </h3>
           <p className="text-muted-foreground text-sm">
-            Upload files to store them securely in your encrypted vault
+            {searchQuery.trim()
+              ? `No files match "${searchQuery}". Try a different search.`
+              : "Upload files to store them securely in your encrypted vault"}
           </p>
         </div>
       ) : viewMode === "grid" ? (
