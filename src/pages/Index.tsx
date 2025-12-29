@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { PortalSelection } from "@/components/PortalSelection";
 import { PatientPortal } from "@/components/portal/PatientPortal";
 import { useCurrentAccount, ConnectModal, useDisconnectWallet } from "@mysten/dapp-kit";
+import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
 
 type AppState = "landing" | "portal-selection" | "patient-portal";
 
@@ -25,7 +26,11 @@ const Index = () => {
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const currentAccount = useCurrentAccount();
   const { mutate: disconnect } = useDisconnectWallet();
-  const walletAddress = currentAccount?.address || null;
+  
+  // Check for zkLogin address in addition to wallet address
+  const zkLoginState = loadZkLoginState();
+  const zkLoginAddress = isZkLoginReady(zkLoginState) ? zkLoginState?.address : null;
+  const walletAddress = currentAccount?.address || zkLoginAddress || null;
 
   // Restore the last portal page on refresh (when wallet is connected)
   useEffect(() => {
@@ -51,7 +56,11 @@ const Index = () => {
   // When wallet disconnects, move back to landing
   useEffect(() => {
     if (!walletAddress && appState !== "landing") {
-      setAppState("landing");
+      // Check zkLogin again in case it was cleared
+      const zkState = loadZkLoginState();
+      if (!isZkLoginReady(zkState)) {
+        setAppState("landing");
+      }
     }
   }, [walletAddress, appState]);
 
@@ -76,6 +85,9 @@ const Index = () => {
     window.sessionStorage.setItem(DISABLE_AUTOCONNECT_KEY, "1");
     window.sessionStorage.removeItem(APP_STATE_KEY);
     window.sessionStorage.removeItem(LAST_PORTAL_KEY);
+
+    // Clear zkLogin state
+    clearZkLoginState();
 
     // Clear all user-specific localStorage
     const keysToRemove: string[] = [];

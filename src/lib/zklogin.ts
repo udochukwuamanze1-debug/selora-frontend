@@ -249,11 +249,15 @@ export function buildZkLoginSignature(
     Array.isArray(decoded.aud) ? decoded.aud[0] : decoded.aud
   ).toString();
 
+  const signatureInputs = {
+    proofPoints: state.proof.proofPoints,
+    issBase64Details: state.proof.issBase64Details,
+    headerBase64: state.proof.headerBase64,
+    addressSeed,
+  };
+
   return getZkLoginSignature({
-    inputs: {
-      ...state.proof,
-      addressSeed,
-    },
+    inputs: signatureInputs,
     maxEpoch: state.maxEpoch,
     userSignature: Buffer.from(userSignature).toString("base64"),
   });
