@@ -21,13 +21,16 @@ export type Database = {
           clinic_name: string | null
           country: string
           created_at: string
+          credential_document_path: string | null
           full_name: string
           id: string
           lat: number | null
           license_number: string | null
           lon: number | null
+          medical_degree: string | null
           specialty: string
           updated_at: string
+          verification_notes: string | null
           verified: boolean
           wallet_address: string
         }
@@ -37,13 +40,16 @@ export type Database = {
           clinic_name?: string | null
           country: string
           created_at?: string
+          credential_document_path?: string | null
           full_name: string
           id?: string
           lat?: number | null
           license_number?: string | null
           lon?: number | null
+          medical_degree?: string | null
           specialty: string
           updated_at?: string
+          verification_notes?: string | null
           verified?: boolean
           wallet_address: string
         }
@@ -53,13 +59,16 @@ export type Database = {
           clinic_name?: string | null
           country?: string
           created_at?: string
+          credential_document_path?: string | null
           full_name?: string
           id?: string
           lat?: number | null
           license_number?: string | null
           lon?: number | null
+          medical_degree?: string | null
           specialty?: string
           updated_at?: string
+          verification_notes?: string | null
           verified?: boolean
           wallet_address?: string
         }

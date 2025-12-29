@@ -13,7 +13,6 @@ import Documentation from "./pages/Documentation";
 import Whitepaper from "./pages/Whitepaper";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
-import Admin from "./pages/Admin";
 import { DoctorPortal } from "./components/portal/doctor/DoctorPortal";
 import { LabPortal } from "./components/portal/lab/LabPortal";
 import { InsurerPortal } from "./components/portal/insurer/InsurerPortal";
@@ -66,7 +65,6 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Index />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
-    <Route path="/admin" element={<Admin />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/docs" element={<Documentation />} />
