@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          active_guardians: number
+          created_at: string
+          health_records: number
+          id: string
+          rewards_earned: number
+          staked_datasets: number
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          active_guardians?: number
+          created_at?: string
+          health_records?: number
+          id?: string
+          rewards_earned?: number
+          staked_datasets?: number
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          active_guardians?: number
+          created_at?: string
+          health_records?: number
+          id?: string
+          rewards_earned?: number
+          staked_datasets?: number
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
