@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { MapPin, Navigation, Search, Stethoscope, X, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +49,29 @@ interface LocationData {
   lon?: number;
 }
 
+// Local storage key for doctor profiles
+const DOCTORS_STORAGE_KEY = "selora_doctor_profiles";
+
+interface StoredDoctorProfile {
+  id: string;
+  wallet_address: string;
+  full_name: string;
+  specialty: string;
+  lat: number;
+  lon: number;
+  accepts_new_patients: boolean;
+  verified: boolean;
+}
+
+function getLocalDoctors(): StoredDoctorProfile[] {
+  try {
+    const stored = localStorage.getItem(DOCTORS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function CareNetwork() {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
@@ -65,37 +87,27 @@ export function CareNetwork() {
   const [registeredDoctors, setRegisteredDoctors] = useState<Doctor[]>([]);
   const [doctorsLoading, setDoctorsLoading] = useState(true);
 
-  // Fetch verified doctors from database
+  // Fetch verified doctors from local storage (decentralized)
   useEffect(() => {
-    const fetchDoctors = async () => {
-      setDoctorsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("doctor_profiles")
-          .select("id, full_name, specialty, lat, lon, accepts_new_patients, verified")
-          .eq("verified", true);
-
-        if (error) {
-          console.error("Error fetching doctors:", error);
-        } else if (data) {
-          setRegisteredDoctors(
-            data.map((d: any) => ({
-              id: d.id,
-              name: d.full_name,
-              specialty: d.specialty,
-              lat: d.lat ?? 0,
-              lon: d.lon ?? 0,
-              acceptsNewPatients: d.accepts_new_patients,
-            }))
-          );
-        }
-      } catch (err) {
-        console.error("Failed to fetch doctors:", err);
-      } finally {
-        setDoctorsLoading(false);
-      }
-    };
-    fetchDoctors();
+    setDoctorsLoading(true);
+    try {
+      const storedDoctors = getLocalDoctors();
+      const verifiedDoctors = storedDoctors.filter((d) => d.verified);
+      setRegisteredDoctors(
+        verifiedDoctors.map((d) => ({
+          id: d.id,
+          name: d.full_name,
+          specialty: d.specialty,
+          lat: d.lat ?? 0,
+          lon: d.lon ?? 0,
+          acceptsNewPatients: d.accepts_new_patients,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch doctors:", err);
+    } finally {
+      setDoctorsLoading(false);
+    }
   }, []);
 
   // Load saved location from localStorage
@@ -160,9 +172,6 @@ export function CareNetwork() {
 
     setLocLoading(true);
     
-    // Geocode the address using a simple approximation
-    // In production, you'd use a real geocoding API
-    // For now, we'll use placeholder coordinates based on city
     const cityCoords: Record<string, { lat: number; lon: number }> = {
       lagos: { lat: 6.5244, lon: 3.3792 },
       "new york": { lat: 40.7128, lon: -74.006 },
@@ -298,7 +307,7 @@ export function CareNetwork() {
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground flex items-center gap-2">
               <Shield className="w-4 h-4 text-primary" />
-              This information is encrypted and only used to find nearby doctors.
+              This information is stored locally and only used to find nearby doctors.
             </p>
             
             <div className="grid grid-cols-1 gap-4">

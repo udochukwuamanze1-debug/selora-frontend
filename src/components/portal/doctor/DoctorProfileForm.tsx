@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2,
@@ -63,6 +62,22 @@ interface EligibilityCheck {
   field: string;
 }
 
+// Local storage key for doctor profiles
+const DOCTORS_STORAGE_KEY = "selora_doctor_profiles";
+
+function getLocalDoctors(): DoctorProfile[] {
+  try {
+    const stored = localStorage.getItem(DOCTORS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalDoctors(doctors: DoctorProfile[]) {
+  localStorage.setItem(DOCTORS_STORAGE_KEY, JSON.stringify(doctors));
+}
+
 export function DoctorProfileForm({ walletAddress }: DoctorProfileFormProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,17 +103,10 @@ export function DoctorProfileForm({ walletAddress }: DoctorProfileFormProps) {
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("doctor_profiles")
-        .select("*")
-        .eq("wallet_address", walletAddress)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error loading profile:", error);
-      }
-      if (data) {
-        setProfile(data);
+      const doctors = getLocalDoctors();
+      const existingProfile = doctors.find((d) => d.wallet_address === walletAddress);
+      if (existingProfile) {
+        setProfile(existingProfile);
       }
     } catch (err) {
       console.error("Failed to load doctor profile:", err);
@@ -142,21 +150,24 @@ export function DoctorProfileForm({ walletAddress }: DoctorProfileFormProps) {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${walletAddress}/${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from("doctor-credentials")
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      setProfile({ ...profile, credential_document_path: data.path });
-      toast.success("Document uploaded successfully");
+      // Store file locally as base64 (decentralized approach)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        const fileKey = `selora_doc_${walletAddress}_${Date.now()}`;
+        localStorage.setItem(fileKey, base64);
+        setProfile({ ...profile, credential_document_path: fileKey });
+        toast.success("Document saved locally");
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error("Failed to read file");
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err: any) {
       console.error("Upload error:", err);
-      toast.error("Failed to upload document: " + err.message);
-    } finally {
+      toast.error("Failed to save document: " + err.message);
       setUploading(false);
     }
   };
@@ -176,7 +187,11 @@ export function DoctorProfileForm({ walletAddress }: DoctorProfileFormProps) {
       // Check if eligible for auto-verification
       const shouldVerify = isFullyEligible && !profile.verified;
 
-      const payload = {
+      const doctors = getLocalDoctors();
+      const existingIndex = doctors.findIndex((d) => d.wallet_address === walletAddress);
+
+      const newProfile: DoctorProfile = {
+        id: profile.id || `doc_${Date.now()}`,
         wallet_address: walletAddress,
         full_name: profile.full_name,
         specialty: profile.specialty,
@@ -189,50 +204,23 @@ export function DoctorProfileForm({ walletAddress }: DoctorProfileFormProps) {
         accepts_new_patients: profile.accepts_new_patients ?? true,
         medical_degree: profile.medical_degree || null,
         credential_document_path: profile.credential_document_path || null,
-        verified: shouldVerify ? true : profile.verified,
+        verified: shouldVerify ? true : profile.verified ?? false,
       };
 
-      const { data: existing } = await supabase
-        .from("doctor_profiles")
-        .select("id, verified")
-        .eq("wallet_address", walletAddress)
-        .maybeSingle();
-
-      const wasVerified = existing?.verified;
-
-      let error;
-      if (existing) {
-        const res = await supabase
-          .from("doctor_profiles")
-          .update(payload)
-          .eq("wallet_address", walletAddress);
-        error = res.error;
+      if (existingIndex >= 0) {
+        doctors[existingIndex] = newProfile;
       } else {
-        const res = await supabase.from("doctor_profiles").insert(payload);
-        error = res.error;
+        doctors.push(newProfile);
       }
 
-      if (error) throw error;
+      saveLocalDoctors(doctors);
+      setProfile(newProfile);
 
-      // If newly verified, send notification email
-      if (shouldVerify && !wasVerified) {
-        try {
-          await supabase.functions.invoke("send-verification-email", {
-            body: {
-              doctorName: profile.full_name,
-              walletAddress: walletAddress,
-            },
-          });
-          toast.success("Profile verified! You now appear in Care Network.");
-        } catch (emailErr) {
-          console.error("Email notification failed:", emailErr);
-          toast.success("Profile verified! (Email notification failed)");
-        }
+      if (shouldVerify && !profile.verified) {
+        toast.success("Profile verified! You now appear in Care Network.");
       } else {
-        toast.success("Profile saved!");
+        toast.success("Profile saved locally!");
       }
-
-      loadProfile();
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error("Failed to save profile: " + err.message);
@@ -417,12 +405,12 @@ export function DoctorProfileForm({ walletAddress }: DoctorProfileFormProps) {
               ) : (
                 <Upload className="w-4 h-4" />
               )}
-              {uploading ? "Uploading..." : "Upload Document"}
+              {uploading ? "Saving..." : "Upload Document"}
             </Button>
             {profile.credential_document_path && (
               <div className="flex items-center gap-2 text-sm text-emerald-600">
                 <FileText className="w-4 h-4" />
-                Document uploaded
+                Document saved
               </div>
             )}
           </div>
