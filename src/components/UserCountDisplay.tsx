@@ -12,7 +12,7 @@ const formatUserCount = (count: number): string => {
   if (count >= 1000) return "1000+";
   if (count >= 500) return "500+";
   if (count >= 100) return `${count}+`;
-  return "hundreds of";
+  return "100+";
 };
 
 export const UserCountDisplay = ({ count }: UserCountDisplayProps) => {

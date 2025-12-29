@@ -9,38 +9,13 @@ import {
   ArrowRight,
   Shield,
 } from "lucide-react";
-
-const stakedDatasets = [
-  {
-    id: "1",
-    name: "Lab Results 2024",
-    type: "Lab Reports",
-    sharedWith: "Research Institute",
-    duration: "6 months",
-    rewards: 45,
-    progress: 60,
-  },
-  {
-    id: "2",
-    name: "Vitals History",
-    type: "Health Metrics",
-    sharedWith: "Insurance Pool",
-    duration: "1 year",
-    rewards: 120,
-    progress: 25,
-  },
-  {
-    id: "3",
-    name: "Medication History",
-    type: "Prescriptions",
-    sharedWith: "Pharma Research",
-    duration: "3 months",
-    rewards: 30,
-    progress: 80,
-  },
-];
+import { useUserStats } from "@/hooks/useUserStats";
 
 export const DataExchange = () => {
+  const { stats } = useUserStats();
+
+  const hasStakes = stats.stakedDatasets > 0;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -68,7 +43,7 @@ export const DataExchange = () => {
             </div>
             <span className="text-muted-foreground">Total Rewards</span>
           </div>
-          <p className="text-3xl font-heading font-bold">195</p>
+          <p className="text-3xl font-heading font-bold">{stats.rewardsEarned}</p>
           <p className="text-sm text-muted-foreground">Selora Points</p>
         </div>
 
@@ -79,7 +54,7 @@ export const DataExchange = () => {
             </div>
             <span className="text-muted-foreground">Projected Monthly</span>
           </div>
-          <p className="text-3xl font-heading font-bold">+45</p>
+          <p className="text-3xl font-heading font-bold">+0</p>
           <p className="text-sm text-muted-foreground">Points per month</p>
         </div>
 
@@ -90,7 +65,7 @@ export const DataExchange = () => {
             </div>
             <span className="text-muted-foreground">Active Shares</span>
           </div>
-          <p className="text-3xl font-heading font-bold">3</p>
+          <p className="text-3xl font-heading font-bold">{stats.stakedDatasets}</p>
           <p className="text-sm text-muted-foreground">Datasets shared</p>
         </div>
       </div>
@@ -101,53 +76,58 @@ export const DataExchange = () => {
           Staked Datasets
         </h2>
 
-        <div className="space-y-4">
-          {stakedDatasets.map((dataset) => (
-            <div
-              key={dataset.id}
-              className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-            >
+        {!hasStakes ? (
+          <div className="rounded-xl border border-border/50 p-10 text-center">
+            <p className="text-muted-foreground">
+              You haven’t staked any datasets yet.
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              When you stake data, your active shares and rewards will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Placeholder structure for future on-chain stakes */}
+            <div className="p-4 rounded-xl bg-muted/50">
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 <div className="flex items-center gap-4 flex-1">
                   <div className="p-3 rounded-xl bg-primary/10">
                     <Database className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium">{dataset.name}</h3>
-                    <p className="text-sm text-muted-foreground">{dataset.type}</p>
+                    <h3 className="font-medium">Staked dataset</h3>
+                    <p className="text-sm text-muted-foreground">On-chain</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Shared With</p>
-                    <p className="text-sm font-medium">{dataset.sharedWith}</p>
+                    <p className="text-sm font-medium">—</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Duration</p>
                     <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3 text-muted-foreground" />
-                      <p className="text-sm font-medium">{dataset.duration}</p>
+                      <p className="text-sm font-medium">—</p>
                     </div>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Rewards</p>
                     <div className="flex items-center gap-1">
                       <Gift className="w-3 h-3 text-primary" />
-                      <p className="text-sm font-medium text-primary">
-                        +{dataset.rewards}
-                      </p>
+                      <p className="text-sm font-medium text-primary">+0</p>
                     </div>
                   </div>
                   <div className="col-span-2 lg:col-span-1">
                     <p className="text-xs text-muted-foreground mb-1">Progress</p>
-                    <Progress value={dataset.progress} className="h-2" />
+                    <Progress value={0} className="h-2" />
                   </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Available Opportunities */}
@@ -165,11 +145,11 @@ export const DataExchange = () => {
               <div className="flex-1">
                 <h3 className="font-medium mb-1">Clinical Research Study</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Contribute anonymized health metrics for diabetes research
+                  Contribute anonymized health metrics for research
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-primary font-medium">
-                    +150 points/month
+                    +0 points/month
                   </span>
                   <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
@@ -189,7 +169,7 @@ export const DataExchange = () => {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-secondary font-medium">
-                    +80 points/month
+                    +0 points/month
                   </span>
                   <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-secondary transition-colors" />
                 </div>

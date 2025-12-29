@@ -17,40 +17,14 @@ import {
   Loader2,
 } from "lucide-react";
 
-const mockPrescriptions = [
-  {
-    id: "1",
-    name: "Amoxicillin 500mg",
-    doctor: "Dr. Sarah Chen",
-    date: "Dec 20, 2024",
-    status: "pending",
-    amount: "25.00",
-  },
-  {
-    id: "2",
-    name: "Ibuprofen 400mg",
-    doctor: "Dr. Michael Brown",
-    date: "Dec 18, 2024",
-    status: "paid",
-    amount: "12.50",
-  },
-  {
-    id: "3",
-    name: "Vitamin D3 1000IU",
-    doctor: "Dr. Sarah Chen",
-    date: "Dec 15, 2024",
-    status: "fulfilled",
-    amount: "18.00",
-  },
-  {
-    id: "4",
-    name: "Metformin 850mg",
-    doctor: "Dr. James Wilson",
-    date: "Dec 10, 2024",
-    status: "fulfilled",
-    amount: "32.00",
-  },
-];
+const mockPrescriptions: {
+  id: string;
+  name: string;
+  doctor: string;
+  date: string;
+  status: "pending" | "paid" | "fulfilled";
+  amount: string;
+}[] = [];
 
 export const Prescriptions = () => {
   const [paymentModal, setPaymentModal] = useState<string | null>(null);
@@ -134,56 +108,66 @@ export const Prescriptions = () => {
       </div>
 
       {/* Prescriptions List */}
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-border">
-          <h2 className="font-heading font-semibold">All Prescriptions</h2>
+      {mockPrescriptions.length === 0 ? (
+        <div className="glass-card p-12 text-center">
+          <Pill className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="font-heading font-semibold text-lg">No prescriptions yet</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Once a doctor issues prescriptions to your wallet, they’ll appear here.
+          </p>
         </div>
-        <div className="divide-y divide-border/50">
-          {mockPrescriptions.map((prescription) => (
-            <div
-              key={prescription.id}
-              className="p-4 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex flex-col md:flex-row md:items-center gap-4">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="p-3 rounded-xl bg-primary/10">
-                    <Pill className="w-6 h-6 text-primary" />
+      ) : (
+        <div className="glass-card overflow-hidden">
+          <div className="p-4 border-b border-border">
+            <h2 className="font-heading font-semibold">All Prescriptions</h2>
+          </div>
+          <div className="divide-y divide-border/50">
+            {mockPrescriptions.map((prescription) => (
+              <div
+                key={prescription.id}
+                className="p-4 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="p-3 rounded-xl bg-primary/10">
+                      <Pill className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{prescription.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {prescription.doctor} • {prescription.date}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{prescription.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {prescription.doctor} • {prescription.date}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(prescription.status)}
-                    <span className="text-sm">{getStatusLabel(prescription.status)}</span>
-                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(prescription.status)}
+                      <span className="text-sm">{getStatusLabel(prescription.status)}</span>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    {prescription.status === "pending" && (
-                      <Button
-                        size="sm"
-                        onClick={() => setPaymentModal(prescription.id)}
-                        className="gap-2"
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        Pay ${prescription.amount}
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon">
+                        <Eye className="w-4 h-4" />
                       </Button>
-                    )}
+                      {prescription.status === "pending" && (
+                        <Button
+                          size="sm"
+                          onClick={() => setPaymentModal(prescription.id)}
+                          className="gap-2"
+                        >
+                          <CreditCard className="w-4 h-4" />
+                          Pay ${prescription.amount}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Payment Modal */}
       <Dialog

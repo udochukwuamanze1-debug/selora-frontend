@@ -18,7 +18,7 @@ const menuItems = [
   { id: "diagnostics", label: "Diagnostics Hub", icon: FlaskConical },
   { id: "inventory", label: "Inventory", icon: Package },
   { id: "vault", label: "Secure Vault", icon: Lock },
-  { id: "assistant", label: "Health Guide", icon: Bot },
+  { id: "assistant", label: "Selora AI", icon: Bot },
   { id: "profile", label: "Profile & Preferences", icon: Settings },
 ];
 

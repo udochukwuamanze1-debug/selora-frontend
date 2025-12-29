@@ -28,7 +28,7 @@ const menuItems = [
   { id: "exchange", label: "Data Exchange", icon: ArrowLeftRight },
   { id: "contacts", label: "Trusted Contacts", icon: UserCheck },
   { id: "prescriptions", label: "Prescriptions", icon: Pill },
-  { id: "assistant", label: "Health Guide", icon: Bot },
+  { id: "assistant", label: "Selora AI", icon: Bot },
   { id: "profile", label: "Profile & Preferences", icon: Settings },
 ];
 

@@ -20,7 +20,7 @@ const menuItems = [
   { id: "marketplace", label: "Data Marketplace", icon: ShoppingCart },
   { id: "claims", label: "Claims", icon: FileCheck },
   { id: "vault", label: "Secure Vault", icon: Lock },
-  { id: "assistant", label: "Health Guide", icon: Bot },
+  { id: "assistant", label: "Selora AI", icon: Bot },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

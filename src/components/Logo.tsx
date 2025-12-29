@@ -40,7 +40,7 @@ export const Logo = ({ className, showText = true, size = "md", role }: LogoProp
   };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-1", className)}>
       <div className={cn("relative flex items-center justify-center", sizeClasses[size])}>
         <LogoIcon className={iconSizes[size]} />
       </div>
