@@ -25,11 +25,11 @@ const features = [
 
 export const BuiltOnSui = () => {
   return (
-    <section className="py-24 px-4 relative bg-background">
+    <section className="py-24 px-6 md:px-12 lg:px-16 relative bg-background">
       {/* Subtle ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/3 rounded-full blur-[120px]" />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-5xl mx-auto relative z-10">
         <div className="text-center mb-16">
           {/* Sui Logo */}
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-8">

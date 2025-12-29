@@ -5,6 +5,9 @@ import { HealthArchive } from "./HealthArchive";
 import { SecureVault } from "./SecureVault";
 import { Prescriptions } from "./Prescriptions";
 import { DataExchange } from "./DataExchange";
+import { Vault } from "./Vault";
+import { PortalHeader } from "./PortalHeader";
+import { PortalFooter } from "./PortalFooter";
 import { cn } from "@/lib/utils";
 
 interface PatientPortalProps {
@@ -14,6 +17,7 @@ interface PatientPortalProps {
 
 export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) => {
   const [activeTab, setActiveTab] = useState("home");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const renderContent = () => {
     switch (activeTab) {
@@ -22,7 +26,7 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "archive":
         return <HealthArchive />;
       case "vault":
-        return <SecureVault />;
+        return <Vault walletAddress={walletAddress} />;
       case "prescriptions":
         return <Prescriptions />;
       case "exchange":
@@ -51,7 +55,14 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
         onSignOut={onSignOut}
       />
       <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
+        <PortalHeader
+          title="Patient Portal"
+          subtitle="Manage your health data securely"
+          walletAddress={walletAddress}
+          onSearch={setSearchQuery}
+        />
         {renderContent()}
+        <PortalFooter />
       </main>
     </div>
   );

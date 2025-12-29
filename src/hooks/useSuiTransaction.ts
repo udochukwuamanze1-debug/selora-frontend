@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 
 // Type assertion to handle version mismatch between @mysten/sui and @mysten/dapp-kit
 type AnyTransaction = any;
-import { toast } from 'sonner';
 
 export function useSuiTransaction() {
   const currentAccount = useCurrentAccount();

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X, Wallet } from "lucide-react";
+import { Menu, X, Wallet, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCurrentAccount, useDisconnectWallet, ConnectModal } from "@mysten/dapp-kit";
+import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
+import { AuthModal } from "@/components/AuthModal";
 
 interface NavbarProps {
   onConnectWallet: () => void;
@@ -13,7 +14,7 @@ interface NavbarProps {
 
 export const Navbar = ({ onConnectWallet, walletAddress }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const currentAccount = useCurrentAccount();
   const { mutate: disconnect } = useDisconnectWallet();
 
@@ -25,10 +26,9 @@ export const Navbar = ({ onConnectWallet, walletAddress }: NavbarProps) => {
 
   const handleConnectClick = () => {
     if (currentAccount) {
-      // If already connected via dapp-kit, call parent handler
       onConnectWallet();
     } else {
-      setConnectModalOpen(true);
+      setAuthModalOpen(true);
     }
   };
 
@@ -57,8 +57,8 @@ export const Navbar = ({ onConnectWallet, walletAddress }: NavbarProps) => {
                   onClick={handleConnectClick}
                   className="gap-2"
                 >
-                  <Wallet className="w-4 h-4" />
-                  Connect Wallet
+                  <Rocket className="w-4 h-4" />
+                  Get Started
                 </Button>
               )}
             </div>
@@ -107,18 +107,18 @@ export const Navbar = ({ onConnectWallet, walletAddress }: NavbarProps) => {
                 onClick={handleConnectClick}
                 className="w-full gap-2"
               >
-                <Wallet className="w-4 h-4" />
-                Connect Wallet
+                <Rocket className="w-4 h-4" />
+                Get Started
               </Button>
             )}
           </div>
         </div>
       </nav>
 
-      <ConnectModal
-        trigger={<></>}
-        open={connectModalOpen}
-        onOpenChange={(open) => setConnectModalOpen(open)}
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        onSuccess={onConnectWallet}
       />
     </>
   );
