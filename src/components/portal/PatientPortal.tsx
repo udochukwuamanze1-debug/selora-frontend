@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PatientSidebar } from "./PatientSidebar";
 import { PatientHome } from "./PatientHome";
 import { HealthArchive } from "./HealthArchive";
-import { SecureVault } from "./SecureVault";
 import { Prescriptions } from "./Prescriptions";
 import { DataExchange } from "./DataExchange";
 import { Vault } from "./Vault";
@@ -12,6 +11,7 @@ import { HealthAssistant } from "./HealthAssistant";
 import { ProfilePreferences } from "./ProfilePreferences";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { OnboardingTutorial } from "./OnboardingTutorial";
+import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
 import { cn } from "@/lib/utils";
 
 interface PatientPortalProps {
@@ -19,16 +19,22 @@ interface PatientPortalProps {
   onSignOut: () => void;
 }
 
-export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) => {
+const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) => {
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
+  const { updateStats, addActivity } = useUserStats();
+
+  const handleRecordUploaded = () => {
+    updateStats("healthRecords", 1);
+    addActivity("Uploaded health record", "upload");
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case "home":
         return <PatientHome onNavigate={setActiveTab} />;
       case "archive":
-        return <HealthArchive />;
+        return <HealthArchive walletAddress={walletAddress} onRecordUploaded={handleRecordUploaded} />;
       case "vault":
         return <Vault walletAddress={walletAddress} />;
       case "prescriptions":
@@ -61,7 +67,7 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
       />
       <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
         <PortalHeader
-          title="Patient Portal"
+          title="Dashboard"
           subtitle="Manage your health data securely"
           walletAddress={walletAddress}
           onSearch={setSearchQuery}
@@ -70,6 +76,24 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
         <PortalFooter />
       </main>
     </div>
+  );
+};
+
+export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) => {
+  // Increment user count when a new user connects
+  useEffect(() => {
+    const userKey = `selora_user_${walletAddress}`;
+    if (!localStorage.getItem(userKey)) {
+      localStorage.setItem(userKey, "true");
+      const count = parseInt(localStorage.getItem("selora_user_count") || "0", 10);
+      localStorage.setItem("selora_user_count", (count + 1).toString());
+    }
+  }, [walletAddress]);
+
+  return (
+    <UserStatsProvider walletAddress={walletAddress}>
+      <PatientPortalContent walletAddress={walletAddress} onSignOut={onSignOut} />
+    </UserStatsProvider>
   );
 };
 
