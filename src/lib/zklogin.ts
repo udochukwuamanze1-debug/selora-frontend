@@ -123,8 +123,16 @@ export function clearZkLoginState(): void {
 // ----------------------------------------------------------------------------
 
 function keypairFromState(state: ZkLoginState): Ed25519Keypair {
-  const secretKeyBytes = base64ToBytes(state.ephemeralKeyPair.secretKey);
-  // Ed25519Keypair.fromSecretKey expects 32-byte seed
+  const stored = state.ephemeralKeyPair.secretKey;
+  
+  // Handle bech32-encoded secret key (suiprivkey1...)
+  if (stored.startsWith("suiprivkey")) {
+    return Ed25519Keypair.fromSecretKey(stored);
+  }
+  
+  // Handle base64-encoded raw bytes
+  const secretKeyBytes = base64ToBytes(stored);
+  // fromSecretKey expects 32-byte seed
   return Ed25519Keypair.fromSecretKey(secretKeyBytes.slice(0, 32));
 }
 
@@ -144,12 +152,16 @@ export async function initZkLoginState(): Promise<ZkLoginState> {
   const randomness = generateRandomness();
   const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness);
 
-  const rawSecret = ephemeralKeyPair.getSecretKey() as unknown;
+  // Get secret key - may be string (bech32) or Uint8Array depending on version
+  const rawSecret = ephemeralKeyPair.getSecretKey();
+  const secretKeyStr = typeof rawSecret === "string" 
+    ? rawSecret 
+    : bytesToBase64(rawSecret as unknown as Uint8Array);
 
   const state: ZkLoginState = {
     ephemeralKeyPair: {
       publicKey: bytesToBase64(ephemeralKeyPair.getPublicKey().toRawBytes()),
-      secretKey: typeof rawSecret === "string" ? rawSecret : bytesToBase64(rawSecret as any),
+      secretKey: secretKeyStr,
     },
     randomness,
     nonce,
