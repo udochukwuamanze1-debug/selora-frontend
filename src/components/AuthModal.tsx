@@ -103,9 +103,8 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               </div>
               <div className="text-left">
                 <div className="font-medium">
-                  {isLoading ? "Preparing zkLogin..." : "Continue with Google"}
+                  {isLoading ? "Signing you in..." : "Continue with Google"}
                 </div>
-                <div className="text-xs text-muted-foreground">Powered by zkLogin</div>
               </div>
             </Button>
 
@@ -128,7 +127,7 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
                   {isMobile ? "Connect Mobile Wallet" : "Connect Wallet"}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {isMobile ? "Sui Wallet App" : "Browser extension"}
+                  {isMobile ? "Slush Wallet App" : "Browser extension"}
                 </div>
               </div>
             </Button>
