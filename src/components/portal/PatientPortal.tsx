@@ -15,6 +15,9 @@ import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
 import { cn } from "@/lib/utils";
 import { CareNetwork } from "./CareNetwork";
 import { TrustedContacts } from "./TrustedContacts";
+import { BottomNav } from "./BottomNav";
+import { MobileHeader } from "./MobileHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PatientPortalProps {
   walletAddress: string;
@@ -25,6 +28,7 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
   const { updateStats, addActivity } = useUserStats();
+  const isMobile = useIsMobile();
 
   const handleRecordUploaded = () => {
     updateStats("healthRecords", 1);
@@ -66,29 +70,50 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
   return (
     <div className="min-h-screen bg-background">
       <OnboardingTutorial walletAddress={walletAddress} onComplete={() => {}} />
-      <PatientSidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        walletAddress={walletAddress}
-        onSignOut={onSignOut}
-      />
-      <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}
-      >
-        <PortalHeader
-          title="Dashboard"
-          subtitle="Manage your health data securely"
+      
+      {/* Mobile Header */}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Patient" />}
+      
+      {/* Desktop Sidebar - hidden on mobile */}
+      {!isMobile && (
+        <PatientSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           walletAddress={walletAddress}
-          onSearch={setSearchQuery}
+          onSignOut={onSignOut}
         />
+      )}
+      
+      <main className={cn(
+        "transition-all duration-300 p-4 pb-24",
+        !isMobile && "ml-64 p-6 lg:p-8 pb-8"
+      )}>
+        {/* Desktop Header - hidden on mobile */}
+        {!isMobile && (
+          <PortalHeader
+            title="Dashboard"
+            subtitle="Manage your health data securely"
+            walletAddress={walletAddress}
+            onSearch={setSearchQuery}
+          />
+        )}
         {renderContent()}
-        <PortalFooter />
+        {!isMobile && <PortalFooter />}
       </main>
+      
+      {/* Mobile Bottom Nav */}
+      {isMobile && (
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSignOut={onSignOut}
+        />
+      )}
     </div>
   );
 };
 
 export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) => {
-  // Increment user count when a new user connects
   useEffect(() => {
     const userKey = `selora_user_${walletAddress}`;
     if (!localStorage.getItem(userKey)) {
