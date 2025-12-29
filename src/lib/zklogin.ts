@@ -77,6 +77,24 @@ interface JwtPayload {
 }
 
 // ----------------------------------------------------------------------------
+// Base64 helpers (avoid Node Buffer - fixes iOS/Android browser incompat)
+// ----------------------------------------------------------------------------
+
+function bytesToBase64(input: Uint8Array | ArrayLike<number>): string {
+  const bytes = input instanceof Uint8Array ? input : Uint8Array.from(input);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function base64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// ----------------------------------------------------------------------------
 // Storage helpers
 // ----------------------------------------------------------------------------
 
@@ -105,8 +123,9 @@ export function clearZkLoginState(): void {
 // ----------------------------------------------------------------------------
 
 function keypairFromState(state: ZkLoginState): Ed25519Keypair {
-  const secretKey = Uint8Array.from(Buffer.from(state.ephemeralKeyPair.secretKey, "base64"));
-  return Ed25519Keypair.fromSecretKey(secretKey.slice(0, 32));
+  const secretKeyBytes = base64ToBytes(state.ephemeralKeyPair.secretKey);
+  // Ed25519Keypair.fromSecretKey expects 32-byte seed
+  return Ed25519Keypair.fromSecretKey(secretKeyBytes.slice(0, 32));
 }
 
 // ----------------------------------------------------------------------------
@@ -120,16 +139,17 @@ export async function initZkLoginState(): Promise<ZkLoginState> {
 
   // Generate ephemeral keypair
   const ephemeralKeyPair = new Ed25519Keypair();
-  const extendedPublicKey = getExtendedEphemeralPublicKey(ephemeralKeyPair.getPublicKey());
 
   // Generate randomness and nonce
   const randomness = generateRandomness();
   const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness);
 
+  const rawSecret = ephemeralKeyPair.getSecretKey() as unknown;
+
   const state: ZkLoginState = {
     ephemeralKeyPair: {
-      publicKey: Buffer.from(ephemeralKeyPair.getPublicKey().toRawBytes()).toString("base64"),
-      secretKey: Buffer.from(ephemeralKeyPair.getSecretKey()).toString("base64"),
+      publicKey: bytesToBase64(ephemeralKeyPair.getPublicKey().toRawBytes()),
+      secretKey: typeof rawSecret === "string" ? rawSecret : bytesToBase64(rawSecret as any),
     },
     randomness,
     nonce,
@@ -150,8 +170,10 @@ export function buildGoogleOAuthUrl(nonce: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: "id_token",
+    response_mode: "fragment",
     scope: "openid email profile",
     nonce,
+    prompt: "select_account",
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
@@ -191,7 +213,6 @@ export function deriveAddressFromJwt(jwt: string, salt: string): string {
 export async function fetchZkProof(state: ZkLoginState): Promise<ZkLoginState> {
   if (!state.jwt) throw new Error("JWT not set");
 
-  const decoded = decodeJwt(state.jwt);
   const ephemeralKeyPair = keypairFromState(state);
   const extendedPublicKey = getExtendedEphemeralPublicKey(ephemeralKeyPair.getPublicKey());
 
@@ -246,7 +267,10 @@ export function buildZkLoginSignature(
     BigInt(state.salt),
     "sub",
     decoded.sub,
-    Array.isArray(decoded.aud) ? decoded.aud[0] : decoded.aud
+    // jwtDecode type says aud is string, but some ID tokens can be array-like
+    (decoded as any).aud && Array.isArray((decoded as any).aud)
+      ? (decoded as any).aud[0]
+      : (decoded as any).aud
   ).toString();
 
   const signatureInputs = {
@@ -259,12 +283,12 @@ export function buildZkLoginSignature(
   return getZkLoginSignature({
     inputs: signatureInputs,
     maxEpoch: state.maxEpoch,
-    userSignature: Buffer.from(userSignature).toString("base64"),
+    userSignature: bytesToBase64(userSignature),
   });
 }
 
 // ----------------------------------------------------------------------------
-// High-level hook helpers
+// High-level helpers
 // ----------------------------------------------------------------------------
 
 export function isZkLoginReady(state: ZkLoginState | null): boolean {
@@ -277,3 +301,4 @@ export function isZkLoginExpired(state: ZkLoginState | null): boolean {
   // caller can check state.maxEpoch against current epoch.
   return false;
 }
+
