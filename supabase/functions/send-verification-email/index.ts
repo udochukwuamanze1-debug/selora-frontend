@@ -88,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
           "Authorization": `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "Selora <onboarding@resend.dev>",
+          from: "Selora HQ <onboarding@resend.dev>",
           to: [doctorEmail],
           subject: "Your Selora Profile Has Been Verified!",
           html: emailHtml,
