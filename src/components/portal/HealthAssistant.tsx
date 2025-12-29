@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, differenceInDays, isThisWeek } from "date-fns";
-import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -30,6 +29,75 @@ const shouldShowDateSeparator = (current: Message, previous?: Message): boolean 
   if (!previous) return true;
   return format(current.timestamp, "yyyy-MM-dd") !== format(previous.timestamp, "yyyy-MM-dd");
 };
+
+// Pre-baked local knowledge base for Selora AI
+const LOCAL_KNOWLEDGE: { keywords: string[]; answer: string }[] = [
+  {
+    keywords: ["upload", "file", "record", "health archive"],
+    answer:
+      "To upload a health record, go to the **Health Archive** tab and click the **Upload New Record** button. Your files are encrypted client-side with AES-256 before being stored on Walrus decentralized storage, so only you hold the keys.",
+  },
+  {
+    keywords: ["vault", "secure", "encrypt", "storage"],
+    answer:
+      "The **Secure Vault** is your encrypted file storage. Drag-and-drop or browse to add files. Each file is encrypted with AES-256 before upload to Walrus. You can filter by category and toggle between grid/list views.",
+  },
+  {
+    keywords: ["prescription", "medication", "pay"],
+    answer:
+      "The **Prescriptions** tab shows prescriptions issued to your wallet by doctors. You can view status (Pending, Ready, Completed) and pay directly with Sui or card. No prescriptions appear until a doctor sends one to your address.",
+  },
+  {
+    keywords: ["data exchange", "stake", "reward", "share"],
+    answer:
+      "In **Data Exchange** you can stake anonymized datasets for research or insurance pools and earn Selora Points. Your rewards and staked datasets show up once you participate in an opportunity.",
+  },
+  {
+    keywords: ["coverage", "analytics", "protection"],
+    answer:
+      "**Coverage & Protection** shows analytics: total uploads, transactions, active connections, storage used, and a detailed activity log of your actions across all portals.",
+  },
+  {
+    keywords: ["care network", "doctor", "find", "nearby"],
+    answer:
+      "Use **Care Network** to find nearby doctors. Enable location access to filter providers within a 2-mile radius. You can search by name or specialty and request appointments directly.",
+  },
+  {
+    keywords: ["trusted contact", "guardian", "permission", "access"],
+    answer:
+      "In **Trusted Contacts** you can add guardians (family, doctors) and control what they can do: view records, request access, or receive prescription updates. Permissions are stored locally and can be changed anytime.",
+  },
+  {
+    keywords: ["wallet", "connect", "sui"],
+    answer:
+      "Selora uses Sui wallets for authentication. Click **Get Started** to connect via browser extension or mobile wallet. You can also sign in with Google using zkLogin (requires configuration).",
+  },
+  {
+    keywords: ["zklogin", "google", "sign in"],
+    answer:
+      "zkLogin lets you sign in with Google without exposing your email. It requires setting up Google OAuth credentials and a ZK prover endpoint. Contact support or check the documentation for setup steps.",
+  },
+  {
+    keywords: ["notification", "alert"],
+    answer:
+      "Notifications appear in the bell icon at the top of the dashboard. You'll receive alerts for prescription updates, access requests, and important account events. These are stored locally.",
+  },
+  {
+    keywords: ["privacy", "security", "encrypt"],
+    answer:
+      "Selora encrypts your data client-side before it ever leaves your device. Keys are derived from your wallet, so only you can decrypt. We never see your plaintext files.",
+  },
+];
+
+function findLocalAnswer(query: string): string {
+  const q = query.toLowerCase();
+  for (const entry of LOCAL_KNOWLEDGE) {
+    if (entry.keywords.some((kw) => q.includes(kw))) {
+      return entry.answer;
+    }
+  }
+  return "I'm not sure about that. Try asking about uploading records, the Vault, prescriptions, data exchange, care network, trusted contacts, or security.";
+}
 
 export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([
@@ -65,70 +133,21 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
     setInput("");
     setIsLoading(true);
 
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-assistant`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [...messages, userMessage].map(m => ({
-              role: m.role,
-              content: m.content,
-            })),
-          }),
-        }
-      );
+    // Simulate typing delay then respond with local knowledge
+    await new Promise((r) => setTimeout(r, 600));
 
-      if (!response.ok) {
-        throw new Error("Failed to get response");
-      }
+    const answer = findLocalAnswer(userMessage.content);
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = "";
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
-
-          for (const line of lines) {
-            if (line.startsWith("data: ") && line !== "data: [DONE]") {
-              try {
-                const json = JSON.parse(line.slice(6));
-                const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  assistantContent += content;
-                  setMessages((prev) => {
-                    const last = prev[prev.length - 1];
-                    if (last?.role === "assistant" && last.id !== "welcome") {
-                      return prev.map((m, i) =>
-                        i === prev.length - 1 ? { ...m, content: assistantContent } : m
-                      );
-                    }
-                    return [...prev, {
-                      id: (Date.now() + 1).toString(),
-                      role: "assistant",
-                      content: assistantContent,
-                      timestamp: new Date(),
-                    }];
-                  });
-                }
-              } catch {}
-            }
-          }
-        }
-      }
-    } catch (error) {
-      toast.error("Failed to get response. Please try again.");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: answer,
+        timestamp: new Date(),
+      },
+    ]);
+    setIsLoading(false);
   };
 
   return (
@@ -164,7 +183,7 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
                     )}
                     <div
                       className={cn(
-                        "max-w-[65%] rounded-2xl px-4 py-3 text-sm",
+                        "max-w-[65%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
                         message.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground"
@@ -216,10 +235,7 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
 
         <div className="mt-4 text-center space-y-2">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
-            <Sparkles className="w-3 h-3" /> Powered by Gemini 2.5 Flash
-          </p>
-          <p className="text-xs text-muted-foreground">
-            ⚠️ AI responses may be inaccurate. Always verify important information.
+            <Sparkles className="w-3 h-3" /> Local knowledge base (no API required)
           </p>
           <p className="text-xs text-muted-foreground">
             © 2025, Selora. <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>, <a href="/terms" className="text-primary hover:underline">Terms of Use</a>.
