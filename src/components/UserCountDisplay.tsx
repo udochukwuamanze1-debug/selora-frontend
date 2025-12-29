@@ -47,7 +47,7 @@ export const UserCountDisplay = ({ count }: UserCountDisplayProps) => {
       
       {/* User count text */}
       <p className="text-sm text-muted-foreground">
-        Join <span className="font-medium text-foreground">{displayText}</span> others <br> and enjoy a self-sovereign identity.
+        Join <span className="font-medium text-foreground">{displayText}</span> others <br /> and enjoy a self-sovereign identity.
       </p>
     </div>
   );
