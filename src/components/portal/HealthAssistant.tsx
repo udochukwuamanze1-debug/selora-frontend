@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, differenceInDays, isThisWeek } from "date-fns";
 import { toast } from "sonner";
@@ -36,7 +36,8 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm your Health Guide assistant. I can help you navigate Selora, understand features, and answer questions about managing your health data. What would you like to know?",
+      content:
+        "Hello! I'm Selora AI. I can help you navigate Selora, understand features, and answer questions about managing your health data. What would you like to do?",
       timestamp: new Date(),
     },
   ]);
@@ -134,11 +135,11 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
     <div className="space-y-6">
       <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <Bot className="w-6 h-6 text-primary" />
+          <div className="w-10 h-10 rounded-full border border-border bg-muted/30 flex items-center justify-center overflow-hidden">
+            <img src="/logo.png" alt="Selora logo" className="w-5 h-5 object-contain" />
           </div>
           <div>
-            <h2 className="font-heading text-xl font-semibold">Health Guide</h2>
+            <h2 className="font-heading text-xl font-semibold">Selora AI</h2>
             <p className="text-sm text-muted-foreground">Your AI-powered assistant</p>
           </div>
         </div>
@@ -157,14 +158,18 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
                   )}
                   <div className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}>
                     {message.role === "assistant" && (
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <Sparkles className="w-4 h-4 text-primary" />
+                      <div className="w-8 h-8 rounded-full border border-border bg-muted/30 flex items-center justify-center shrink-0 overflow-hidden">
+                        <img src="/logo.png" alt="Selora logo" className="w-4 h-4 object-contain" />
                       </div>
                     )}
-                    <div className={cn(
-                      "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
-                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                    )}>
+                    <div
+                      className={cn(
+                        "max-w-[65%] rounded-2xl px-4 py-3 text-sm",
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-foreground"
+                      )}
+                    >
                       {message.content}
                     </div>
                     {message.role === "user" && (
@@ -193,13 +198,13 @@ export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {
           </ScrollArea>
 
           <div className="p-4 border-t border-border">
-            <div className="flex gap-3">
+            <div className="flex gap-3 justify-center">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                placeholder="Ask me anything..."
-                className="flex-1"
+                placeholder="Ask Selora AI..."
+                className="flex-1 max-w-[520px]"
                 disabled={isLoading}
               />
               <Button onClick={handleSend} disabled={!input.trim() || isLoading} className="bg-primary">

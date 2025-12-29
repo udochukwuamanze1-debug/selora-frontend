@@ -13,6 +13,8 @@ import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { OnboardingTutorial } from "./OnboardingTutorial";
 import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
 import { cn } from "@/lib/utils";
+import { CareNetwork } from "./CareNetwork";
+import { TrustedContacts } from "./TrustedContacts";
 
 interface PatientPortalProps {
   walletAddress: string;
@@ -34,7 +36,12 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "home":
         return <PatientHome onNavigate={setActiveTab} />;
       case "archive":
-        return <HealthArchive walletAddress={walletAddress} onRecordUploaded={handleRecordUploaded} />;
+        return (
+          <HealthArchive
+            walletAddress={walletAddress}
+            onRecordUploaded={handleRecordUploaded}
+          />
+        );
       case "vault":
         return <Vault walletAddress={walletAddress} />;
       case "prescriptions":
@@ -44,9 +51,9 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "coverage":
         return <AnalyticsDashboard walletAddress={walletAddress} />;
       case "network":
-        return <ComingSoon title="Care Network" />;
+        return <CareNetwork />;
       case "contacts":
-        return <ComingSoon title="Trusted Contacts" />;
+        return <TrustedContacts walletAddress={walletAddress} />;
       case "assistant":
         return <HealthAssistant walletAddress={walletAddress} />;
       case "profile":
@@ -65,7 +72,8 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
         walletAddress={walletAddress}
         onSignOut={onSignOut}
       />
-      <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
+      <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}
+      >
         <PortalHeader
           title="Dashboard"
           subtitle="Manage your health data securely"
@@ -97,9 +105,3 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
   );
 };
 
-const ComingSoon = ({ title }: { title: string }) => (
-  <div className="glass-card p-12 text-center">
-    <h1 className="font-heading text-2xl md:text-3xl font-bold mb-4">{title}</h1>
-    <p className="text-muted-foreground">This feature is coming soon.</p>
-  </div>
-);
