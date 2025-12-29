@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { DoctorSidebar } from "./DoctorSidebar";
 import { CareWorkspace } from "./CareWorkspace";
 import { PatientInsights } from "./PatientInsights";
 import { PrescriptionCreation } from "./PrescriptionCreation";
+import { Vault } from "../Vault";
+import { HealthAssistant } from "../HealthAssistant";
+import { ProfilePreferences } from "../ProfilePreferences";
 import { cn } from "@/lib/utils";
 
 interface DoctorPortalProps {
@@ -10,21 +15,41 @@ interface DoctorPortalProps {
   onSignOut: () => void;
 }
 
-export const DoctorPortal = ({ walletAddress, onSignOut }: DoctorPortalProps) => {
+export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: DoctorPortalProps) => {
   const [activeTab, setActiveTab] = useState("workspace");
+  const navigate = useNavigate();
+  const currentAccount = useCurrentAccount();
+  
+  // Use real wallet address if connected, otherwise use prop
+  const walletAddress = currentAccount?.address || propWalletAddress;
+
+  const handleSignOut = () => {
+    // Clear all user data
+    localStorage.removeItem(`selora_user_${walletAddress}`);
+    localStorage.removeItem(`selora_avatar_${walletAddress}`);
+    localStorage.removeItem(`selora_notifications_${walletAddress}`);
+    localStorage.removeItem(`selora_profile_${walletAddress}`);
+    // Navigate to landing page
+    navigate("/");
+    onSignOut();
+  };
 
   const renderContent = () => {
     switch (activeTab) {
       case "workspace":
-        return <CareWorkspace />;
+        return <CareWorkspace isNewUser={true} />;
       case "insights":
-        return <PatientInsights />;
+        return <PatientInsights isNewUser={true} />;
       case "prescriptions":
         return <PrescriptionCreation />;
+      case "vault":
+        return <Vault walletAddress={walletAddress} />;
+      case "assistant":
+        return <HealthAssistant walletAddress={walletAddress} />;
       case "profile":
-        return <ComingSoon title="Profile & Preferences" />;
+        return <ProfilePreferences walletAddress={walletAddress} />;
       default:
-        return <CareWorkspace />;
+        return <CareWorkspace isNewUser={true} />;
     }
   };
 
@@ -34,7 +59,7 @@ export const DoctorPortal = ({ walletAddress, onSignOut }: DoctorPortalProps) =>
         activeTab={activeTab}
         onTabChange={setActiveTab}
         walletAddress={walletAddress}
-        onSignOut={onSignOut}
+        onSignOut={handleSignOut}
       />
       <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
         {renderContent()}
@@ -42,10 +67,3 @@ export const DoctorPortal = ({ walletAddress, onSignOut }: DoctorPortalProps) =>
     </div>
   );
 };
-
-const ComingSoon = ({ title }: { title: string }) => (
-  <div className="glass-card p-12 text-center">
-    <h1 className="font-heading text-2xl md:text-3xl font-bold mb-4 text-foreground">{title}</h1>
-    <p className="text-muted-foreground">This feature is coming soon.</p>
-  </div>
-);

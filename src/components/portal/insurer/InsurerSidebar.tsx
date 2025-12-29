@@ -109,7 +109,7 @@ export const InsurerSidebar = ({
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 text-muted-foreground hover:text-destructive",
+            "w-full justify-start gap-3 text-muted-foreground hover:text-primary hover:bg-primary/10",
             collapsed && "justify-center px-2"
           )}
           onClick={onSignOut}

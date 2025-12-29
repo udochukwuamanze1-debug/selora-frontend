@@ -85,7 +85,11 @@ const mockInventory: InventoryItem[] = [
   },
 ];
 
-export const InventoryManagement = () => {
+interface InventoryManagementProps {
+  isNewUser?: boolean;
+}
+
+export const InventoryManagement = ({ isNewUser = false }: InventoryManagementProps) => {
   const [inventory, setInventory] = useState(mockInventory);
   const [searchQuery, setSearchQuery] = useState("");
 
