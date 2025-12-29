@@ -12,11 +12,13 @@ import {
   ChevronRight,
   Lock,
   Bot,
+  UserCircle,
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { id: "workspace", label: "Care Workspace", icon: LayoutDashboard },
+  { id: "doctor-profile", label: "My Doctor Profile", icon: UserCircle },
   { id: "insights", label: "Patient Insights", icon: Users },
   { id: "prescriptions", label: "Prescriptions", icon: FileText },
   { id: "vault", label: "Secure Vault", icon: Lock },
