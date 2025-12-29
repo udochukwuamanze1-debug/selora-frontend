@@ -10,13 +10,17 @@ import {
   Wallet,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Bot,
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { id: "workspace", label: "Care Workspace", icon: LayoutDashboard },
   { id: "insights", label: "Patient Insights", icon: Users },
-  { id: "prescriptions", label: "Prescriptions & Orders", icon: FileText },
+  { id: "prescriptions", label: "Prescriptions", icon: FileText },
+  { id: "vault", label: "Secure Vault", icon: Lock },
+  { id: "assistant", label: "Health Guide", icon: Bot },
   { id: "profile", label: "Profile & Preferences", icon: Settings },
 ];
 
@@ -48,7 +52,7 @@ export const DoctorSidebar = ({
     >
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
-        <Logo showText={!collapsed} />
+        <Logo showText={!collapsed} role={collapsed ? undefined : "DOCTOR"} />
         <Button
           variant="ghost"
           size="icon"
@@ -61,16 +65,6 @@ export const DoctorSidebar = ({
             <ChevronLeft className="w-4 h-4" />
           )}
         </Button>
-      </div>
-
-      {/* Role Badge */}
-      <div className={cn("px-4 py-2", collapsed && "px-2")}>
-        <div className={cn(
-          "text-xs font-medium text-primary bg-primary/10 rounded-full py-1 text-center",
-          collapsed ? "px-1" : "px-3"
-        )}>
-          {collapsed ? "Dr" : "Doctor Portal"}
-        </div>
       </div>
 
       {/* Wallet Address */}

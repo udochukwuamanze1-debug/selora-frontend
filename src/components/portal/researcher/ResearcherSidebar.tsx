@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import {
-  Microscope,
   LayoutDashboard,
   Database,
   FileCheck,
@@ -11,6 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Wallet,
+  Lock,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,8 @@ const menuItems = [
   { id: "pools", label: "Data Pools", icon: Database },
   { id: "consent", label: "Consent Management", icon: FileCheck },
   { id: "publications", label: "Publications", icon: BookOpen },
+  { id: "vault", label: "Secure Vault", icon: Lock },
+  { id: "assistant", label: "Health Guide", icon: Bot },
 ];
 
 interface ResearcherSidebarProps {
@@ -43,84 +46,71 @@ export const ResearcherSidebar = ({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-full glass-card border-r border-border/50 transition-all duration-300 z-50 flex flex-col",
+        "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-50 flex flex-col",
         collapsed ? "w-20" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-border/50">
-        <div className="flex items-center justify-between">
-          {!collapsed && <Logo />}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-            className="ml-auto"
-          >
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Role Badge */}
-      <div className="p-4 border-b border-border/50">
-        <div
-          className={cn(
-            "flex items-center gap-3 p-3 rounded-xl bg-primary/10",
-            collapsed && "justify-center"
-          )}
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <Logo showText={!collapsed} role={collapsed ? undefined : "RESEARCHER"} />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setCollapsed(!collapsed)}
+          className="shrink-0"
         >
-          <Microscope className="w-5 h-5 text-primary shrink-0" />
-          {!collapsed && (
-            <div>
-              <p className="text-sm font-medium text-foreground">Researcher</p>
-              <p className="text-xs text-muted-foreground">Data Analysis</p>
-            </div>
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
           )}
-        </div>
+        </Button>
       </div>
 
       {/* Wallet */}
-      {!collapsed && (
-        <div className="px-4 py-3 border-b border-border/50">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Wallet className="w-4 h-4" />
-            <span>{truncateAddress(walletAddress)}</span>
-          </div>
+      <div className={cn("p-4 border-b border-border", collapsed && "px-2")}>
+        <div
+          className={cn(
+            "flex items-center gap-2 p-2 rounded-lg bg-muted text-sm",
+            collapsed && "justify-center"
+          )}
+        >
+          <Wallet className="w-4 h-4 text-primary shrink-0" />
+          {!collapsed && (
+            <span className="truncate text-muted-foreground">
+              {truncateAddress(walletAddress)}
+            </span>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onTabChange(item.id)}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left",
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left text-sm font-medium",
               activeTab === item.id
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
               collapsed && "justify-center px-2"
             )}
           >
             <item.icon className="w-5 h-5 shrink-0" />
-            {!collapsed && <span className="font-medium">{item.label}</span>}
+            {!collapsed && <span>{item.label}</span>}
           </button>
         ))}
       </nav>
 
       {/* Sign Out */}
-      <div className="p-4 border-t border-border/50">
+      <div className="p-4 border-t border-border">
         <Button
           variant="ghost"
           className={cn(
             "w-full justify-start gap-3 text-muted-foreground hover:text-destructive",
-            collapsed && "justify-center"
+            collapsed && "justify-center px-2"
           )}
           onClick={onSignOut}
         >
