@@ -30,6 +30,17 @@ const shouldShowDateSeparator = (current: Message, previous?: Message): boolean 
   return format(current.timestamp, "yyyy-MM-dd") !== format(previous.timestamp, "yyyy-MM-dd");
 };
 
+// Greetings that AI should respond to conversationally
+const GREETINGS = ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "howdy", "what's up", "whats up", "sup", "yo", "hiya", "greetings"];
+
+const GREETING_RESPONSES = [
+  "Hi there! 👋 How can I help you with Selora today?",
+  "Hello! I'm here to help you navigate Selora. What would you like to know?",
+  "Hey! Great to see you. Feel free to ask me anything about managing your health data.",
+  "Hi! I'm Selora AI, your personal assistant. What can I do for you today?",
+  "Hello! Need help with uploads, prescriptions, finding doctors, or anything else? Just ask!",
+];
+
 // Pre-baked local knowledge base for Selora AI
 const LOCAL_KNOWLEDGE: { keywords: string[]; answer: string }[] = [
   {
@@ -87,16 +98,44 @@ const LOCAL_KNOWLEDGE: { keywords: string[]; answer: string }[] = [
     answer:
       "Selora encrypts your data client-side before it ever leaves your device. Keys are derived from your wallet, so only you can decrypt. We never see your plaintext files.",
   },
+  {
+    keywords: ["thank", "thanks", "appreciate"],
+    answer:
+      "You're welcome! If you have any more questions, feel free to ask. I'm here to help! 😊",
+  },
+  {
+    keywords: ["bye", "goodbye", "see you", "later"],
+    answer:
+      "Goodbye! Take care and feel free to come back anytime you need help with Selora. 👋",
+  },
+  {
+    keywords: ["how are you", "how do you do", "how's it going"],
+    answer:
+      "I'm doing great, thank you for asking! 😊 How can I assist you with Selora today?",
+  },
+  {
+    keywords: ["help", "what can you do", "features"],
+    answer:
+      "I can help you with:\n• **Uploading & managing health records**\n• **Using the Secure Vault**\n• **Understanding prescriptions**\n• **Finding doctors nearby**\n• **Managing trusted contacts**\n• **Data exchange & rewards**\n\nJust ask about any of these!",
+  },
 ];
 
 function findLocalAnswer(query: string): string {
-  const q = query.toLowerCase();
+  const q = query.toLowerCase().trim();
+
+  // Check for greetings first
+  if (GREETINGS.some((g) => q === g || q.startsWith(g + " ") || q.startsWith(g + "!"))) {
+    return GREETING_RESPONSES[Math.floor(Math.random() * GREETING_RESPONSES.length)];
+  }
+
+  // Check knowledge base
   for (const entry of LOCAL_KNOWLEDGE) {
     if (entry.keywords.some((kw) => q.includes(kw))) {
       return entry.answer;
     }
   }
-  return "I'm not sure about that. Try asking about uploading records, the Vault, prescriptions, data exchange, care network, trusted contacts, or security.";
+
+  return "I'm not sure about that. Try asking about uploading records, the Vault, prescriptions, data exchange, care network, trusted contacts, or security. Or just say hi! 👋";
 }
 
 export const HealthAssistant = ({ walletAddress }: HealthAssistantProps) => {

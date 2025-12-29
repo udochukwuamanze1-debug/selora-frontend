@@ -8,7 +8,7 @@ import { BuiltOnSui } from "@/components/BuiltOnSui";
 import { Footer } from "@/components/Footer";
 import { PortalSelection } from "@/components/PortalSelection";
 import { PatientPortal } from "@/components/portal/PatientPortal";
-import { useCurrentAccount, ConnectModal } from "@mysten/dapp-kit";
+import { useCurrentAccount, ConnectModal, useDisconnectWallet } from "@mysten/dapp-kit";
 
 type AppState = "landing" | "portal-selection" | "patient-portal";
 
@@ -16,6 +16,7 @@ const Index = () => {
   const [appState, setAppState] = useState<AppState>("landing");
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const currentAccount = useCurrentAccount();
+  const { mutate: disconnect } = useDisconnectWallet();
   const walletAddress = currentAccount?.address || null;
 
   // When wallet connects, move to portal selection
@@ -44,6 +45,22 @@ const Index = () => {
   };
 
   const handleDisconnect = () => {
+    // Clear all user-specific localStorage
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith("selora_") ||
+        key.startsWith("sui-dapp-kit") ||
+        key.includes("wallet")
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+    // Disconnect wallet using dapp-kit
+    disconnect();
     setAppState("landing");
   };
 

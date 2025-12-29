@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,21 +14,15 @@ interface ProfilePreferencesProps {
   walletAddress: string;
 }
 
-interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-  location: string;
-  avatar: string;
-  verified: boolean;
+interface LocationData {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  lat?: number;
+  lon?: number;
 }
-
-const mockDoctors: Doctor[] = [
-  { id: "1", name: "Dr. Sarah Johnson", specialty: "OB-GYN", location: "Lagos, Nigeria", avatar: "", verified: true },
-  { id: "2", name: "Dr. Michael Chen", specialty: "Cardiologist", location: "Lagos, Nigeria", avatar: "", verified: true },
-  { id: "3", name: "Dr. Emily Williams", specialty: "Dermatologist", location: "Lagos, Nigeria", avatar: "", verified: false },
-  { id: "4", name: "Dr. James Okonkwo", specialty: "General Practitioner", location: "Lagos, Nigeria", avatar: "", verified: true },
-];
 
 export const ProfilePreferences = ({ walletAddress }: ProfilePreferencesProps) => {
   const { theme, setTheme } = useTheme();
@@ -36,21 +30,51 @@ export const ProfilePreferences = ({ walletAddress }: ProfilePreferencesProps) =
   const [displayName, setDisplayName] = useState("");
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
-  const [locationData, setLocationData] = useState({
+  const [locationData, setLocationData] = useState<LocationData>({
     street: "",
     city: "",
     state: "",
     country: "",
     postalCode: "",
   });
-  const [showDoctors, setShowDoctors] = useState(false);
+
+  // Load saved profile data on mount
+  useEffect(() => {
+    const savedProfile = localStorage.getItem(`selora_profile_${walletAddress}`);
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile);
+        setDisplayName(parsed.displayName || "");
+        setProfileImage(parsed.profileImage || null);
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
+    const savedLocation = localStorage.getItem("selora_user_location");
+    if (savedLocation) {
+      try {
+        const parsed = JSON.parse(savedLocation) as LocationData;
+        setLocationData(parsed);
+        if (parsed.city && parsed.country) {
+          setLocationEnabled(true);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, [walletAddress]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setProfileImage(event.target?.result as string);
+        const image = event.target?.result as string;
+        setProfileImage(image);
+        // Save to localStorage
+        const profile = { displayName, profileImage: image };
+        localStorage.setItem(`selora_profile_${walletAddress}`, JSON.stringify(profile));
         toast.success("Profile picture updated!");
       };
       reader.readAsDataURL(file);
@@ -63,7 +87,8 @@ export const ProfilePreferences = ({ walletAddress }: ProfilePreferencesProps) =
       setShowLocationForm(true);
     } else {
       setShowLocationForm(false);
-      setShowDoctors(false);
+      // Clear saved location
+      localStorage.removeItem("selora_user_location");
     }
   };
 
@@ -72,12 +97,41 @@ export const ProfilePreferences = ({ walletAddress }: ProfilePreferencesProps) =
       toast.error("Please fill in at least city and country");
       return;
     }
+
+    // Geocode the address using a simple approximation
+    const cityCoords: Record<string, { lat: number; lon: number }> = {
+      lagos: { lat: 6.5244, lon: 3.3792 },
+      "new york": { lat: 40.7128, lon: -74.006 },
+      london: { lat: 51.5074, lon: -0.1278 },
+      tokyo: { lat: 35.6762, lon: 139.6503 },
+      paris: { lat: 48.8566, lon: 2.3522 },
+      berlin: { lat: 52.52, lon: 13.405 },
+      sydney: { lat: -33.8688, lon: 151.2093 },
+      mumbai: { lat: 19.076, lon: 72.8777 },
+      dubai: { lat: 25.2048, lon: 55.2708 },
+      singapore: { lat: 1.3521, lon: 103.8198 },
+    };
+
+    const cityKey = locationData.city.toLowerCase();
+    const coords = cityCoords[cityKey] || { lat: 0, lon: 0 };
+
+    const updatedLocation: LocationData = {
+      ...locationData,
+      lat: coords.lat,
+      lon: coords.lon,
+    };
+
+    // Save to localStorage for Care Network sync
+    localStorage.setItem("selora_user_location", JSON.stringify(updatedLocation));
+    setLocationData(updatedLocation);
+    
     toast.success("Location saved and encrypted!");
     setShowLocationForm(false);
-    setShowDoctors(true);
   };
 
   const handleSaveProfile = () => {
+    const profile = { displayName, profileImage };
+    localStorage.setItem(`selora_profile_${walletAddress}`, JSON.stringify(profile));
     toast.success("Profile saved successfully!");
   };
 
@@ -154,7 +208,7 @@ export const ProfilePreferences = ({ walletAddress }: ProfilePreferencesProps) =
             <Switch checked={locationEnabled} onCheckedChange={handleLocationToggle} />
           </div>
 
-          {showLocationForm && (
+          {(showLocationForm || (locationEnabled && locationData.city)) && (
             <div className="space-y-4 p-4 bg-muted/50 rounded-xl">
               <p className="text-sm text-muted-foreground flex items-center gap-2">
                 <Shield className="w-4 h-4 text-primary" />
@@ -209,45 +263,8 @@ export const ProfilePreferences = ({ walletAddress }: ProfilePreferencesProps) =
               </div>
               <Button onClick={handleLocationSubmit}>
                 <Search className="w-4 h-4 mr-2" />
-                Save & Find Doctors
+                Save Location
               </Button>
-            </div>
-          )}
-
-          {showDoctors && (
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Doctors within 2 miles</h3>
-              <div className="grid gap-4">
-                {mockDoctors.map((doctor) => (
-                  <div
-                    key={doctor.id}
-                    className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl"
-                  >
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={doctor.avatar} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {doctor.name.split(" ").map((n) => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{doctor.name}</span>
-                        {doctor.verified && (
-                          <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                            <Check className="w-2.5 h-2.5 text-primary-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {doctor.location}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">View Profile</Button>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </CardContent>
