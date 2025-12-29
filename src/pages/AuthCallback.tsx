@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   loadZkLoginState,
@@ -7,44 +7,41 @@ import {
   saveZkLoginState,
   ZkLoginState,
 } from "@/lib/zklogin";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 /**
  * OAuth callback page for zkLogin.
  * Handles the id_token fragment from Google and fetches the ZK proof.
+ * This page is intentionally minimal - processing happens silently.
  */
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const [status, setStatus] = useState("Processing login...");
 
   useEffect(() => {
     const processCallback = async () => {
       try {
         const jwt = extractJwtFromUrl();
         if (!jwt) {
-          toast.error("No JWT found in callback URL");
+          console.error("No JWT found in callback URL");
           navigate("/");
           return;
         }
 
         const state = loadZkLoginState();
         if (!state) {
-          toast.error("No zkLogin session found");
+          console.error("No zkLogin session found");
           navigate("/");
           return;
         }
-
-        setStatus("Fetching ZK proof...");
 
         // Update state with JWT
         const updatedState: ZkLoginState = { ...state, jwt };
         saveZkLoginState(updatedState);
 
-        // Fetch ZK proof
+        // Fetch ZK proof silently
         const finalState = await fetchZkProof(updatedState);
 
-        toast.success("zkLogin successful!");
+        toast.success("Welcome to Selora!");
         
         // Store the zkLogin address so other parts of the app can use it
         sessionStorage.setItem("selora_zklogin_address", finalState.address || "");
@@ -54,7 +51,7 @@ const AuthCallback = () => {
         navigate("/");
       } catch (e: any) {
         console.error("zkLogin callback error:", e);
-        toast.error("Login failed: " + e.message);
+        toast.error("Login failed. Please try again.");
         navigate("/");
       }
     };
@@ -62,16 +59,9 @@ const AuthCallback = () => {
     processCallback();
   }, [navigate]);
 
+  // Minimal loading state - just a blank background
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="glass-card p-8 text-center space-y-4">
-        <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-        <p className="text-lg font-medium">{status}</p>
-        <p className="text-sm text-muted-foreground">
-          Please wait while we complete your login...
-        </p>
-      </div>
-    </div>
+    <div className="min-h-screen bg-background" />
   );
 };
 
