@@ -2,7 +2,6 @@ import { WalletAddress } from "./WalletAddress";
 import { WalletBalance } from "./WalletBalance";
 import { NotificationBell } from "./NotificationBell";
 import { Logo } from "@/components/Logo";
-import { Badge } from "@/components/ui/badge";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 interface MobileHeaderProps {
@@ -26,13 +25,15 @@ export function MobileHeader({ walletAddress, portalType = "Patient" }: MobileHe
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 md:hidden">
       <div className="flex items-center justify-between">
-        {/* Left side: Wallet info */}
-        <div className="flex items-center gap-2">
-          <WalletAddress address={walletAddress} />
-          <WalletBalance />
+        {/* Left side: Logo with portal type underneath */}
+        <div className="flex flex-col">
+          <Logo size="sm" showText={true} />
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium ml-11 -mt-1">
+            {portalType}
+          </span>
         </div>
 
-        {/* Right side: Notifications, Logo, Portal ID */}
+        {/* Right side: Bell, Balance, Address */}
         <div className="flex items-center gap-2">
           <NotificationBell
             notifications={formattedNotifications}
@@ -40,10 +41,8 @@ export function MobileHeader({ walletAddress, portalType = "Patient" }: MobileHe
             onMarkAllAsRead={markAllAsRead}
             onRemove={removeNotification}
           />
-          <Logo className="h-6 w-auto" />
-          <Badge variant="outline" className="text-xs">
-            {portalType}
-          </Badge>
+          <WalletBalance />
+          <WalletAddress address={walletAddress} className="text-xs" />
         </div>
       </div>
     </header>

@@ -59,8 +59,8 @@ export const PortalHeader = ({
             onMarkAllAsRead={markAllAsRead}
             onRemove={removeNotification}
           />
-          <WalletAddress address={walletAddress} />
           <WalletBalance />
+          <WalletAddress address={walletAddress} />
         </div>
       </div>
     </div>
