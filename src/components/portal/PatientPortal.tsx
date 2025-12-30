@@ -39,7 +39,7 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <PatientHome onNavigate={setActiveTab} />;
+        return <PatientHome walletAddress={walletAddress} onNavigate={setActiveTab} />;
       case "archive":
         return (
           <HealthArchive
@@ -64,7 +64,7 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "profile":
         return <ProfilePreferences walletAddress={walletAddress} />;
       default:
-        return <PatientHome onNavigate={setActiveTab} />;
+        return <PatientHome walletAddress={walletAddress} onNavigate={setActiveTab} />;
     }
   };
 

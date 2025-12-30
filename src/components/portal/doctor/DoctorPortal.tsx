@@ -38,7 +38,7 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
   const renderContent = () => {
     switch (activeTab) {
       case "workspace":
-        return <CareWorkspace isNewUser={true} />;
+        return <CareWorkspace isNewUser={true} walletAddress={walletAddress} />;
       case "insights":
         return <PatientInsights isNewUser={true} />;
       case "prescriptions":

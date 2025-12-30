@@ -28,6 +28,7 @@ import {
 import { useWalrusStorage, type StoredRecord } from "@/hooks/useWalrusStorage";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { KeyphraseBackup } from "./KeyphraseBackup";
 
 interface VaultProps {
   walletAddress: string;
@@ -209,6 +210,8 @@ export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
 
   return (
     <div className="space-y-6">
+      <KeyphraseBackup walletAddress={walletAddress} />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>

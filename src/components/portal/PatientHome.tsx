@@ -8,12 +8,14 @@ import {
 } from "lucide-react";
 import { useUserStats, formatRelativeTime } from "@/hooks/useUserStats";
 import { DashboardGreeting } from "./DashboardGreeting";
+import { QRAccessRequest } from "./QRAccessRequest";
 
 interface PatientHomeProps {
+  walletAddress: string;
   onNavigate: (tab: string) => void;
 }
 
-export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
+export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => {
   const { stats, activities } = useUserStats();
 
   const statCards = [
@@ -40,6 +42,8 @@ export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
     <div className="space-y-6">
       {/* Dashboard Greeting with Health Score */}
       <DashboardGreeting userName="Tunde" healthScore={85} previousScore={82} />
+
+      <QRAccessRequest walletAddress={walletAddress} userType="patient" />
 
       {/* Quick Actions */}
       <div className="glass-card p-6">
