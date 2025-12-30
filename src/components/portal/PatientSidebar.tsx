@@ -37,6 +37,8 @@ interface PatientSidebarProps {
   onTabChange: (tab: string) => void;
   walletAddress: string;
   onSignOut: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export const PatientSidebar = ({
@@ -44,8 +46,12 @@ export const PatientSidebar = ({
   onTabChange,
   walletAddress,
   onSignOut,
+  collapsed: controlledCollapsed,
+  onCollapsedChange,
 }: PatientSidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed ?? internalCollapsed;
+  const setCollapsed = onCollapsedChange ?? setInternalCollapsed;
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;

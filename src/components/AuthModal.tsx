@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Wallet, Smartphone, Loader2 } from "lucide-react";
+import { Wallet, Loader2 } from "lucide-react";
 import { ConnectModal } from "@mysten/dapp-kit";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { initZkLoginState, buildGoogleOAuthUrl, loadZkLoginState, isZkLoginReady } from "@/lib/zklogin";
 
 interface AuthModalProps {
@@ -108,20 +109,24 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               </div>
             </Button>
 
-            {/* Wallet Connection */}
+            {/* Wallet Connection - Disabled on mobile */}
             <Button
               variant="outline"
-              className="w-full h-14 gap-3 text-base justify-start px-6 hover:bg-muted/50"
-              onClick={handleWalletConnect}
-              disabled={isLoading}
+              className={cn(
+                "w-full h-14 gap-3 text-base justify-start px-6 hover:bg-muted/50",
+                isMobile && "opacity-50 cursor-not-allowed"
+              )}
+              onClick={isMobile ? undefined : handleWalletConnect}
+              disabled={isLoading || isMobile}
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-primary" />
+                <Wallet className="w-5 h-5 text-primary" />
               </div>
               <div className="text-left">
-                <div className="font-medium">
-                  {isMobile ? "Connect Mobile Wallet" : "Connect Wallet"}
-                </div>
+                <div className="font-medium">Connect Wallet</div>
+                {isMobile && (
+                  <div className="text-xs text-muted-foreground">Desktop only</div>
+                )}
               </div>
             </Button>
 

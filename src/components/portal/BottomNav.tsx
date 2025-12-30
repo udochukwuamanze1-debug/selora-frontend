@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Home, Lock, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -6,6 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +29,13 @@ const menuItems = [
 ];
 
 export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleTabChange = (tab: string) => {
+    onTabChange(tab);
+    setMenuOpen(false); // Close menu when tab is selected
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border md:hidden">
       <div className="flex items-center justify-around h-16 px-4">
@@ -59,7 +68,7 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
         </button>
 
         {/* Menu Sheet */}
-        <Sheet>
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors">
               <Menu className="w-5 h-5" />
@@ -74,7 +83,7 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
               {menuItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => handleTabChange(item.id)}
                   className={cn(
                     "flex items-center gap-3 p-4 rounded-xl text-left transition-colors",
                     activeTab === item.id
@@ -91,7 +100,10 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
               <Button
                 variant="outline"
                 className="w-full text-destructive hover:text-destructive"
-                onClick={onSignOut}
+                onClick={() => {
+                  onSignOut();
+                  setMenuOpen(false);
+                }}
               >
                 Sign Out
               </Button>

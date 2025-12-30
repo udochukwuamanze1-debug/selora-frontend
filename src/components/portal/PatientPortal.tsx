@@ -27,6 +27,7 @@ interface PatientPortalProps {
 const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) => {
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { updateStats, addActivity } = useUserStats();
   const isMobile = useIsMobile();
 
@@ -81,12 +82,15 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
           onTabChange={setActiveTab}
           walletAddress={walletAddress}
           onSignOut={onSignOut}
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
         />
       )}
       
       <main className={cn(
         "transition-all duration-300 p-4 pb-24",
-        !isMobile && "ml-64 p-6 lg:p-8 pb-8"
+        !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
+        !isMobile && "p-6 lg:p-8 pb-8"
       )}>
         {/* Desktop Header - hidden on mobile */}
         {!isMobile && (

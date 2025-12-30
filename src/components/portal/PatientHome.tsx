@@ -3,11 +3,11 @@ import {
   Upload,
   Database,
   Award,
-  Bell,
   FileText,
   Shield,
 } from "lucide-react";
 import { useUserStats, formatRelativeTime } from "@/hooks/useUserStats";
+import { DashboardGreeting } from "./DashboardGreeting";
 
 interface PatientHomeProps {
   onNavigate: (tab: string) => void;
@@ -37,15 +37,18 @@ export const PatientHome = ({ onNavigate }: PatientHomeProps) => {
       ];
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="glass-card p-6 md:p-8">
+    <div className="space-y-6">
+      {/* Dashboard Greeting with Health Score */}
+      <DashboardGreeting userName="Tunde" healthScore={85} previousScore={82} />
+
+      {/* Quick Actions */}
+      <div className="glass-card p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">
-              Welcome back
-            </h1>
-            <p className="text-muted-foreground">
+            <h2 className="font-heading text-xl font-semibold mb-1">
+              Quick Actions
+            </h2>
+            <p className="text-muted-foreground text-sm">
               Your health data is secure and under your control
             </p>
           </div>
