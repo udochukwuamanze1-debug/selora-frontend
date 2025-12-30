@@ -116,18 +116,11 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               disabled={isLoading}
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                {isMobile ? (
-                  <Smartphone className="w-5 h-5 text-primary" />
-                ) : (
                   <Wallet className="w-5 h-5 text-primary" />
-                )}
               </div>
               <div className="text-left">
                 <div className="font-medium">
                   {isMobile ? "Connect Mobile Wallet" : "Connect Wallet"}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {isMobile ? "Slush Wallet App" : "Browser extension"}
                 </div>
               </div>
             </Button>
