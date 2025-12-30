@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { MapPin, Navigation, Search, Stethoscope, X, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { syncAllDoctorProfiles, getVerifiedDoctors } from "@/lib/walrus-sync";
 import {
   Dialog,
   DialogContent,
@@ -49,29 +50,6 @@ interface LocationData {
   lon?: number;
 }
 
-// Local storage key for doctor profiles
-const DOCTORS_STORAGE_KEY = "selora_doctor_profiles";
-
-interface StoredDoctorProfile {
-  id: string;
-  wallet_address: string;
-  full_name: string;
-  specialty: string;
-  lat: number;
-  lon: number;
-  accepts_new_patients: boolean;
-  verified: boolean;
-}
-
-function getLocalDoctors(): StoredDoctorProfile[] {
-  try {
-    const stored = localStorage.getItem(DOCTORS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
 export function CareNetwork() {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
@@ -87,27 +65,35 @@ export function CareNetwork() {
   const [registeredDoctors, setRegisteredDoctors] = useState<Doctor[]>([]);
   const [doctorsLoading, setDoctorsLoading] = useState(true);
 
-  // Fetch verified doctors from local storage (decentralized)
+  // Fetch + sync verified doctors from Walrus + local
   useEffect(() => {
-    setDoctorsLoading(true);
-    try {
-      const storedDoctors = getLocalDoctors();
-      const verifiedDoctors = storedDoctors.filter((d) => d.verified);
-      setRegisteredDoctors(
-        verifiedDoctors.map((d) => ({
-          id: d.id,
-          name: d.full_name,
-          specialty: d.specialty,
-          lat: d.lat ?? 0,
-          lon: d.lon ?? 0,
-          acceptsNewPatients: d.accepts_new_patients,
-        }))
-      );
-    } catch (err) {
-      console.error("Failed to fetch doctors:", err);
-    } finally {
-      setDoctorsLoading(false);
-    }
+    let mounted = true;
+    (async () => {
+      setDoctorsLoading(true);
+      try {
+        await syncAllDoctorProfiles();
+        const verified = getVerifiedDoctors();
+        if (!mounted) return;
+        setRegisteredDoctors(
+          verified.map((d) => ({
+            id: d.id,
+            name: d.full_name,
+            specialty: d.specialty,
+            lat: d.lat ?? 0,
+            lon: d.lon ?? 0,
+            acceptsNewPatients: d.accepts_new_patients,
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to sync doctors:", err);
+      } finally {
+        if (mounted) setDoctorsLoading(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Load saved location from localStorage

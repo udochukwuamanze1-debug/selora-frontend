@@ -1,10 +1,12 @@
 import { Activity, Users, FileText, Clock } from "lucide-react";
+import { QRAccessRequest } from "../QRAccessRequest";
 
 interface CareWorkspaceProps {
   isNewUser?: boolean;
+  walletAddress?: string;
 }
 
-export const CareWorkspace = ({ isNewUser = false }: CareWorkspaceProps) => {
+export const CareWorkspace = ({ isNewUser = false, walletAddress = "" }: CareWorkspaceProps) => {
   const stats = isNewUser
     ? [
         { label: "Active Patients", value: "0", icon: Users, change: "No patients yet" },
@@ -21,6 +23,7 @@ export const CareWorkspace = ({ isNewUser = false }: CareWorkspaceProps) => {
 
   return (
     <div className="space-y-6">
+      <QRAccessRequest walletAddress={walletAddress} userType="doctor" />
       <div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
           Care Workspace
