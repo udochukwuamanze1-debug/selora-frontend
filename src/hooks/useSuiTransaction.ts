@@ -1,6 +1,6 @@
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
-import { SELORA_CONFIG } from '@/config/constants';
+import { SELORA_CONFIG, ACCESS_DURATION_MS } from '@/config/constants';
 import { toast } from 'sonner';
 
 // Type assertion to handle version mismatch between @mysten/sui and @mysten/dapp-kit
@@ -21,10 +21,14 @@ export function useSuiTransaction() {
       const tx = new Transaction();
       
       tx.moveCall({
-        target: `${SELORA_CONFIG.PACKAGE_ID}::avatar::mint`,
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::create_patient_profile`,
         arguments: [
-          tx.pure.string(name),
           tx.object(SELORA_CONFIG.REGISTRY_ID),
+          tx.pure.string(name),
+          tx.pure.u8(0), // age placeholder
+          tx.pure.string(''), // blood type placeholder
+          tx.pure.string(''), // encrypted data ref placeholder
+          tx.object('0x6'), // Clock object
         ],
       });
 
@@ -54,8 +58,9 @@ export function useSuiTransaction() {
 
   const createPrescription = async (
     patientAddress: string,
-    blobId: string,
-    pharmacyAddress: string
+    pharmacyAddress: string,
+    medicationDetails: string,
+    blobId: string
   ) => {
     if (!currentAccount) {
       toast.error('Please connect your wallet first');
@@ -66,12 +71,14 @@ export function useSuiTransaction() {
       const tx = new Transaction();
 
       tx.moveCall({
-        target: `${SELORA_CONFIG.PACKAGE_ID}::prescriptions::create`,
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::create_prescription`,
         arguments: [
           tx.object(SELORA_CONFIG.REGISTRY_ID),
           tx.pure.address(patientAddress),
-          tx.pure.string(blobId),
           tx.pure.address(pharmacyAddress),
+          tx.pure.string(medicationDetails),
+          tx.pure.string(blobId),
+          tx.object('0x6'), // Clock object
         ],
       });
 
@@ -79,12 +86,18 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      await suiClient.waitForTransaction({
+      const txResponse = await suiClient.waitForTransaction({
         digest: result.digest,
+        options: { showObjectChanges: true },
       });
 
       toast.success('Prescription created on-chain!');
-      return { digest: result.digest };
+      return { 
+        digest: result.digest,
+        objectId: txResponse.objectChanges?.find(
+          (change) => change.type === 'created'
+        )?.objectId,
+      };
     } catch (error: any) {
       console.error('Create prescription error:', error);
       toast.error(error.message || 'Failed to create prescription');
@@ -105,10 +118,12 @@ export function useSuiTransaction() {
       const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]);
 
       tx.moveCall({
-        target: `${SELORA_CONFIG.PACKAGE_ID}::prescriptions::pay`,
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::pay_prescription_self_pay`,
         arguments: [
+          tx.object(SELORA_CONFIG.REGISTRY_ID),
           tx.object(prescriptionId),
           paymentCoin,
+          tx.object('0x6'), // Clock object
         ],
       });
 
@@ -129,10 +144,54 @@ export function useSuiTransaction() {
     }
   };
 
+  const payPrescriptionWithInsurance = async (
+    prescriptionId: string,
+    insuranceNftId: string,
+    patientPaymentInMist: number
+  ) => {
+    if (!currentAccount) {
+      toast.error('Please connect your wallet first');
+      return null;
+    }
+
+    try {
+      const tx = new Transaction();
+
+      // Split coins for patient portion
+      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(patientPaymentInMist)]);
+
+      tx.moveCall({
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::pay_prescription_with_insurance`,
+        arguments: [
+          tx.object(SELORA_CONFIG.REGISTRY_ID),
+          tx.object(prescriptionId),
+          tx.object(insuranceNftId),
+          paymentCoin,
+          tx.object('0x6'), // Clock object
+        ],
+      });
+
+      const result = await signAndExecute({
+        transaction: tx as AnyTransaction,
+      });
+
+      await suiClient.waitForTransaction({
+        digest: result.digest,
+      });
+
+      toast.success('Insurance payment successful!');
+      return { digest: result.digest };
+    } catch (error: any) {
+      console.error('Insurance payment error:', error);
+      toast.error(error.message || 'Failed to process insurance payment');
+      return null;
+    }
+  };
+
   const grantAccess = async (
     recordId: string,
     granteeAddress: string,
-    expirationTimestamp: number
+    durationType: number
   ) => {
     if (!currentAccount) {
       toast.error('Please connect your wallet first');
@@ -143,11 +202,13 @@ export function useSuiTransaction() {
       const tx = new Transaction();
 
       tx.moveCall({
-        target: `${SELORA_CONFIG.PACKAGE_ID}::access::grant`,
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::grant_temporary_access`,
         arguments: [
           tx.object(recordId),
           tx.pure.address(granteeAddress),
-          tx.pure.u64(expirationTimestamp),
+          tx.pure.string('general'),
+          tx.pure.u64(durationType),
+          tx.object('0x6'), // Clock object
         ],
       });
 
@@ -178,10 +239,11 @@ export function useSuiTransaction() {
       const tx = new Transaction();
 
       tx.moveCall({
-        target: `${SELORA_CONFIG.PACKAGE_ID}::access::revoke`,
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::revoke_doctor_access`,
         arguments: [
           tx.object(recordId),
           tx.pure.address(granteeAddress),
+          tx.object('0x6'), // Clock object
         ],
       });
 
@@ -202,12 +264,67 @@ export function useSuiTransaction() {
     }
   };
 
+  // Create visit report (Doctor sends to Patient)
+  const createVisitReport = async (
+    patientAddress: string,
+    diagnosis: string,
+    prescriptionDetails: string,
+    notes: string,
+    encryptedReportBlobId: string,
+    reportType: string
+  ) => {
+    if (!currentAccount) {
+      toast.error('Please connect your wallet first');
+      return null;
+    }
+
+    try {
+      const tx = new Transaction();
+
+      tx.moveCall({
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::create_visit_report`,
+        arguments: [
+          tx.pure.address(patientAddress),
+          tx.pure.string(diagnosis),
+          tx.pure.string(prescriptionDetails),
+          tx.pure.string(notes),
+          tx.pure.string(encryptedReportBlobId),
+          tx.pure.string(reportType),
+          tx.object('0x6'), // Clock object
+        ],
+      });
+
+      const result = await signAndExecute({
+        transaction: tx as AnyTransaction,
+      });
+
+      const txResponse = await suiClient.waitForTransaction({
+        digest: result.digest,
+        options: { showObjectChanges: true },
+      });
+
+      toast.success('Visit report created and sent to patient!');
+      return { 
+        digest: result.digest,
+        objectId: txResponse.objectChanges?.find(
+          (change) => change.type === 'created'
+        )?.objectId,
+      };
+    } catch (error: any) {
+      console.error('Create visit report error:', error);
+      toast.error(error.message || 'Failed to create visit report');
+      return null;
+    }
+  };
+
   return {
     mintAvatar,
     createPrescription,
     payPrescription,
+    payPrescriptionWithInsurance,
     grantAccess,
     revokeAccess,
+    createVisitReport,
     isPending,
     isConnected: !!currentAccount,
     address: currentAccount?.address,
