@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { QrCode, Camera, Clock, Shield, Check, X, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { QrCode, Camera, Clock, Shield, Check, X, Loader2, Scan } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,8 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ACCESS_DURATIONS } from "@/config/constants";
+import { ACCESS_DURATION_MS } from "@/config/constants";
 import { addLocalNotification } from "@/lib/wallet-keyphrase";
+import { QRCodeSVG } from "qrcode.react";
+import { Html5Qrcode } from "html5-qrcode";
+import { useSuiTransaction } from "@/hooks/useSuiTransaction";
 
 interface AccessRequest {
   id: string;
@@ -29,11 +32,13 @@ interface AccessRequest {
   requestedAt: string;
   status: "pending" | "approved" | "denied";
   expiresAt?: string;
+  recordId?: string;
 }
 
 interface QRAccessRequestProps {
   walletAddress: string;
   userType: "patient" | "doctor";
+  recordId?: string; // Medical record ID for access grants
 }
 
 // Storage key for access requests
@@ -52,103 +57,197 @@ function saveAccessRequests(requests: AccessRequest[]): void {
   localStorage.setItem(ACCESS_REQUESTS_KEY, JSON.stringify(requests));
 }
 
-export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProps) {
+export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessRequestProps) {
   const [showQR, setShowQR] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<AccessRequest | null>(null);
-  const [selectedDuration, setSelectedDuration] = useState<string>("one_hour");
+  const [selectedDuration, setSelectedDuration] = useState<string>("ONE_HOUR");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerContainerId = "qr-scanner-container";
+
+  const { grantAccess, revokeAccess, isPending } = useSuiTransaction();
 
   // Generate QR code data for patient
   const generateQRData = () => {
     return JSON.stringify({
       type: "selora_access_request",
       patientAddress: walletAddress,
+      recordId: recordId || "default_record",
       timestamp: Date.now(),
       nonce: Math.random().toString(36).slice(2, 11),
     });
   };
 
-  // Simulate scanning QR code (doctor side)
-  const handleScanQR = () => {
-    setIsProcessing(true);
-    // Simulate QR scan
-    setTimeout(() => {
-      const mockPatientAddress = "0x" + Array.from({ length: 40 }, () =>
-        Math.floor(Math.random() * 16).toString(16)
-      ).join("");
+  // Initialize camera scanner
+  const startScanner = useCallback(async () => {
+    try {
+      const html5Qrcode = new Html5Qrcode(scannerContainerId);
+      scannerRef.current = html5Qrcode;
+
+      await html5Qrcode.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
+          handleQRCodeScanned(decodedText);
+        },
+        (errorMessage) => {
+          // Ignore scan errors (no QR found in frame)
+          console.debug("QR scan frame:", errorMessage);
+        }
+      );
+      setIsCameraReady(true);
+    } catch (error) {
+      console.error("Failed to start scanner:", error);
+      toast.error("Camera access denied", {
+        description: "Please allow camera access to scan QR codes.",
+      });
+      setShowScanner(false);
+    }
+  }, []);
+
+  // Stop camera scanner
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      } catch (error) {
+        console.error("Failed to stop scanner:", error);
+      }
+    }
+    setIsCameraReady(false);
+  }, []);
+
+  // Handle scanned QR code
+  const handleQRCodeScanned = async (decodedText: string) => {
+    try {
+      const data = JSON.parse(decodedText);
+      
+      if (data.type !== "selora_access_request") {
+        toast.error("Invalid QR code", { description: "This is not a Selora access QR code." });
+        return;
+      }
+
+      // Stop scanner after successful scan
+      await stopScanner();
+      setShowScanner(false);
+      setIsProcessing(true);
 
       // Create access request
       const request: AccessRequest = {
         id: `req_${Date.now()}`,
-        doctorName: "Dr. Current User",
+        doctorName: "Current Doctor", // Would come from doctor profile
         doctorAddress: walletAddress,
         hospitalName: "Selora Clinic",
         accessType: "general",
         requestedAt: new Date().toISOString(),
         status: "pending",
+        recordId: data.recordId,
       };
 
       const requests = getAccessRequests();
       requests.unshift(request);
       saveAccessRequests(requests);
 
-      // Notify patient (simulated)
+      // Notify patient
       addLocalNotification({
         type: "access",
         title: "Access Request",
         message: `Dr. ${request.doctorName} at ${request.hospitalName} requests access to your health history.`,
-        data: { requestId: request.id, doctorAddress: walletAddress },
+        data: { requestId: request.id, doctorAddress: walletAddress, patientAddress: data.patientAddress },
       });
 
       setIsProcessing(false);
-      setShowScanner(false);
       toast.success("Access request sent!", {
-        description: "Waiting for patient approval...",
+        description: `Request sent to patient ${data.patientAddress.slice(0, 8)}...`,
       });
-    }, 2000);
+    } catch (error) {
+      console.error("Failed to parse QR code:", error);
+      toast.error("Invalid QR code format");
+      setIsProcessing(false);
+    }
   };
 
-  // Handle incoming access request (patient side)
+  // Handle dialog open/close for scanner
+  useEffect(() => {
+    if (showScanner) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        startScanner();
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      stopScanner();
+    }
+  }, [showScanner, startScanner, stopScanner]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopScanner();
+    };
+  }, [stopScanner]);
+
+  // Handle approve access request - calls on-chain
   const handleApproveRequest = async () => {
     if (!pendingRequest) return;
     
     setIsProcessing(true);
     
-    // Calculate expiration based on selected duration
-    const durationMs = ACCESS_DURATIONS[selectedDuration.toUpperCase() as keyof typeof ACCESS_DURATIONS] || ACCESS_DURATIONS.ONE_HOUR;
+    const durationMs = ACCESS_DURATION_MS[selectedDuration as keyof typeof ACCESS_DURATION_MS] || ACCESS_DURATION_MS.ONE_HOUR;
     const expiresAt = new Date(Date.now() + durationMs).toISOString();
 
-    // Update request status
-    const requests = getAccessRequests();
-    const index = requests.findIndex((r) => r.id === pendingRequest.id);
-    if (index >= 0) {
-      requests[index].status = "approved";
-      requests[index].expiresAt = expiresAt;
-      saveAccessRequests(requests);
+    try {
+      // Call on-chain access grant
+      if (pendingRequest.recordId) {
+        const result = await grantAccess(
+          pendingRequest.recordId,
+          pendingRequest.doctorAddress,
+          Date.now() + durationMs
+        );
+
+        if (!result) {
+          throw new Error("On-chain access grant failed");
+        }
+      }
+
+      // Update local request status
+      const requests = getAccessRequests();
+      const index = requests.findIndex((r) => r.id === pendingRequest.id);
+      if (index >= 0) {
+        requests[index].status = "approved";
+        requests[index].expiresAt = expiresAt;
+        saveAccessRequests(requests);
+      }
+
+      toast.success("Access granted on-chain!", {
+        description: `Dr. ${pendingRequest.doctorName} can now view your records for ${selectedDuration.replace("_", " ").toLowerCase()}.`,
+      });
+
+      addLocalNotification({
+        type: "access",
+        title: "Access Granted",
+        message: `You granted ${selectedDuration.replace("_", " ")} access to Dr. ${pendingRequest.doctorName}.`,
+      });
+    } catch (error) {
+      console.error("Failed to grant access:", error);
+      toast.error("Failed to grant access", {
+        description: "On-chain transaction failed. Please try again.",
+      });
+    } finally {
+      setIsProcessing(false);
+      setShowRequestModal(false);
+      setPendingRequest(null);
     }
-
-    // In a real implementation, this would call the smart contract
-    // await buildGrantAccessTx(recordId, pendingRequest.doctorAddress, expiration);
-
-    setIsProcessing(false);
-    setShowRequestModal(false);
-    setPendingRequest(null);
-
-    toast.success("Access granted!", {
-      description: `Dr. ${pendingRequest.doctorName} can now view your records.`,
-    });
-
-    // Add notification about granted access
-    addLocalNotification({
-      type: "access",
-      title: "Access Granted",
-      message: `You granted ${selectedDuration.replace("_", " ")} access to Dr. ${pendingRequest.doctorName}.`,
-    });
   };
 
-  const handleDenyRequest = () => {
+  const handleDenyRequest = async () => {
     if (!pendingRequest) return;
 
     const requests = getAccessRequests();
@@ -168,11 +267,12 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
     const request: AccessRequest = {
       id: `req_${Date.now()}`,
       doctorName: "Dr. Adegoke",
-      doctorAddress: "0x1234...5678",
+      doctorAddress: "0x1234567890abcdef1234567890abcdef12345678",
       hospitalName: "Lagos General Hospital",
       accessType: "general",
       requestedAt: new Date().toISOString(),
       status: "pending",
+      recordId: recordId || "medical_record_001",
     };
     setPendingRequest(request);
     setShowRequestModal(true);
@@ -196,7 +296,6 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
             </Button>
           </div>
 
-          {/* Demo button for testing */}
           <Button
             variant="outline"
             size="sm"
@@ -219,7 +318,7 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
               </p>
             </div>
             <Button onClick={() => setShowScanner(true)} className="gap-2">
-              <Camera className="w-4 h-4" />
+              <Scan className="w-4 h-4" />
               Scan QR Code
             </Button>
           </div>
@@ -240,18 +339,15 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
           </DialogHeader>
 
           <div className="flex flex-col items-center py-6">
-            {/* Placeholder QR code visualization */}
-            <div className="w-48 h-48 bg-white rounded-xl flex items-center justify-center border-4 border-primary/20">
-              <div className="grid grid-cols-5 gap-1">
-                {Array.from({ length: 25 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-6 h-6 rounded-sm ${
-                      Math.random() > 0.5 ? "bg-foreground" : "bg-transparent"
-                    }`}
-                  />
-                ))}
-              </div>
+            <div className="p-4 bg-white rounded-xl">
+              <QRCodeSVG
+                value={generateQRData()}
+                size={200}
+                level="H"
+                includeMargin
+                bgColor="#ffffff"
+                fgColor="#000000"
+              />
             </div>
             <p className="text-xs text-muted-foreground mt-4 text-center">
               QR code expires in 5 minutes
@@ -263,8 +359,11 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
         </DialogContent>
       </Dialog>
 
-      {/* QR Scanner Modal (Doctor) */}
-      <Dialog open={showScanner} onOpenChange={setShowScanner}>
+      {/* Camera Scanner Modal (Doctor) */}
+      <Dialog open={showScanner} onOpenChange={(open) => {
+        if (!open) stopScanner();
+        setShowScanner(open);
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -276,35 +375,27 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col items-center py-6">
-            <div className="w-64 h-64 bg-muted rounded-xl flex items-center justify-center border-2 border-dashed border-muted-foreground/50">
-              {isProcessing ? (
+          <div className="flex flex-col items-center py-4">
+            <div 
+              id={scannerContainerId}
+              className="w-full max-w-[300px] aspect-square rounded-xl overflow-hidden bg-muted"
+            />
+            
+            {!isCameraReady && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80">
                 <div className="text-center">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-                  <p className="text-sm text-muted-foreground mt-2">Processing...</p>
+                  <p className="text-sm text-muted-foreground mt-2">Initializing camera...</p>
                 </div>
-              ) : (
-                <div className="text-center">
-                  <Camera className="w-12 h-12 text-muted-foreground mx-auto" />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Camera preview would appear here
-                  </p>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <Button
-              onClick={handleScanQR}
-              disabled={isProcessing}
-              className="mt-4 gap-2"
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )}
-              {isProcessing ? "Sending Request..." : "Simulate Scan"}
-            </Button>
+            {isProcessing && (
+              <div className="mt-4 text-center">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
+                <p className="text-sm text-muted-foreground mt-2">Processing request...</p>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -336,9 +427,7 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Access Type</span>
                   <Badge variant="outline">
-                    {pendingRequest.accessType === "full"
-                      ? "Full History"
-                      : "General History"}
+                    {pendingRequest.accessType === "full" ? "Full History" : "General History"}
                   </Badge>
                 </div>
               </div>
@@ -353,11 +442,12 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="one_time">One-Time Access</SelectItem>
-                    <SelectItem value="one_hour">1 Hour</SelectItem>
-                    <SelectItem value="two_hours">2 Hours</SelectItem>
-                    <SelectItem value="twenty_four_hours">24 Hours</SelectItem>
-                    <SelectItem value="one_week">1 Week</SelectItem>
+                    <SelectItem value="ONE_TIME">One-Time Access (1 hour)</SelectItem>
+                    <SelectItem value="ONE_HOUR">1 Hour</SelectItem>
+                    <SelectItem value="TWO_HOURS">2 Hours</SelectItem>
+                    <SelectItem value="TWENTY_FOUR_HOURS">24 Hours</SelectItem>
+                    <SelectItem value="ONE_WEEK">1 Week</SelectItem>
+                    <SelectItem value="THIRTY_DAYS">30 Days</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -367,7 +457,7 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
                   variant="outline"
                   className="flex-1 gap-2"
                   onClick={handleDenyRequest}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isPending}
                 >
                   <X className="w-4 h-4" />
                   Deny
@@ -375,9 +465,9 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
                 <Button
                   className="flex-1 gap-2"
                   onClick={handleApproveRequest}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isPending}
                 >
-                  {isProcessing ? (
+                  {isProcessing || isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Check className="w-4 h-4" />
@@ -387,7 +477,7 @@ export function QRAccessRequest({ walletAddress, userType }: QRAccessRequestProp
               </div>
 
               <p className="text-xs text-center text-muted-foreground">
-                Access will be verified with biometric authentication
+                Access grant will be recorded on-chain
               </p>
             </div>
           )}
