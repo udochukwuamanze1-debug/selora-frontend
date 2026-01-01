@@ -1,5 +1,4 @@
 // src/lib/ocrService.ts
-
 const OCR_API_URL = import.meta.env.VITE_OCR_API_URL || 'http://localhost:3001';
 
 export interface OCRResult {
@@ -30,7 +29,8 @@ export async function extractTextFromImage(
   });
 
   if (!response.ok) {
-    throw new Error('OCR extraction failed');
+    const error = await response.json().catch(() => ({ error: 'OCR extraction failed' }));
+    throw new Error(error.error || 'OCR extraction failed');
   }
 
   return response.json();
