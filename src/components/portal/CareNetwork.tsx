@@ -3,9 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { MapPin, Navigation, Search, Stethoscope, X, Shield } from "lucide-react";
+import { MapPin, Navigation, Search, Stethoscope, X, Shield, RefreshCw, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { syncAllDoctorProfiles, getVerifiedDoctors } from "@/lib/walrus-sync";
+import { 
+  syncAllDoctorProfiles, 
+  getVerifiedDoctors, 
+  publishGlobalDoctorsRegistry,
+  fetchGlobalDoctorsRegistry 
+} from "@/lib/walrus-sync";
 import {
   Dialog,
   DialogContent,
@@ -64,37 +69,81 @@ export function CareNetwork() {
   });
   const [registeredDoctors, setRegisteredDoctors] = useState<Doctor[]>([]);
   const [doctorsLoading, setDoctorsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Fetch + sync verified doctors from Walrus + local
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      setDoctorsLoading(true);
-      try {
-        await syncAllDoctorProfiles();
-        const verified = getVerifiedDoctors();
-        if (!mounted) return;
-        setRegisteredDoctors(
-          verified.map((d) => ({
-            id: d.id,
-            name: d.full_name,
-            specialty: d.specialty,
-            lat: d.lat ?? 0,
-            lon: d.lon ?? 0,
-            acceptsNewPatients: d.accepts_new_patients,
-          }))
-        );
-      } catch (err) {
-        console.error("Failed to sync doctors:", err);
-      } finally {
-        if (mounted) setDoctorsLoading(false);
-      }
-    })();
+  const loadDoctors = async () => {
+    setDoctorsLoading(true);
+    try {
+      await syncAllDoctorProfiles();
+      const verified = getVerifiedDoctors();
+      setRegisteredDoctors(
+        verified.map((d) => ({
+          id: d.id,
+          name: d.full_name,
+          specialty: d.specialty,
+          lat: d.lat ?? 0,
+          lon: d.lon ?? 0,
+          acceptsNewPatients: d.accepts_new_patients,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to sync doctors:", err);
+    } finally {
+      setDoctorsLoading(false);
+    }
+  };
 
-    return () => {
-      mounted = false;
-    };
+  useEffect(() => {
+    loadDoctors();
   }, []);
+
+  // Handle sync from Walrus global registry
+  const handleSyncDoctors = async () => {
+    setIsSyncing(true);
+    try {
+      const doctors = await fetchGlobalDoctorsRegistry();
+      setRegisteredDoctors(
+        doctors.map((d) => ({
+          id: d.id,
+          name: d.full_name,
+          specialty: d.specialty,
+          lat: d.lat ?? 0,
+          lon: d.lon ?? 0,
+          acceptsNewPatients: d.accepts_new_patients,
+        }))
+      );
+      toast.success("Doctors synced!", {
+        description: `Found ${doctors.length} verified doctors in the network.`,
+      });
+    } catch (error) {
+      console.error("Failed to sync doctors:", error);
+      toast.error("Sync failed", {
+        description: "Could not fetch doctors from Walrus. Using local data.",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Handle publish to Walrus global registry
+  const handlePublishRegistry = async () => {
+    setIsPublishing(true);
+    try {
+      const blobId = await publishGlobalDoctorsRegistry();
+      toast.success("Registry published!", {
+        description: `Doctors registry uploaded to Walrus. Blob ID: ${blobId.slice(0, 12)}...`,
+      });
+    } catch (error) {
+      console.error("Failed to publish registry:", error);
+      toast.error("Publish failed", {
+        description: "Could not upload to Walrus. Check your connection.",
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   // Load saved location from localStorage
   useEffect(() => {
@@ -132,7 +181,6 @@ export function CareNetwork() {
   }, [query, location, registeredDoctors]);
 
   const handleUseLocation = () => {
-    // Check if user has saved location in profile
     const savedLocation = localStorage.getItem("selora_user_location");
     if (savedLocation) {
       try {
@@ -146,7 +194,6 @@ export function CareNetwork() {
         // Fall through to show modal
       }
     }
-    // Show modal to collect location
     setShowLocationModal(true);
   };
 
@@ -203,10 +250,16 @@ export function CareNetwork() {
             Find nearby doctors within a {MILES_RADIUS}-mile radius.
           </p>
         </div>
-        <Button variant="glass" className="gap-2" onClick={handleUseLocation} disabled={locLoading}>
-          <Navigation className="w-4 h-4" />
-          {locLoading ? "Loading..." : location ? "Update location" : "Use my location"}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleSyncDoctors} disabled={isSyncing}>
+            {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            Sync Doctors
+          </Button>
+          <Button variant="glass" className="gap-2" onClick={handleUseLocation} disabled={locLoading}>
+            <Navigation className="w-4 h-4" />
+            {locLoading ? "Loading..." : location ? "Update" : "Location"}
+          </Button>
+        </div>
       </header>
 
       <div className="glass-card p-4">
