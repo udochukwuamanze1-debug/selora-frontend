@@ -28,7 +28,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { extractTextFromImage } from "@/lib/ocrService";
 import { useWalrusStorage } from "@/hooks/useWalrusStorage";
 import { encryptWithPassphrase } from "@/lib/encryption";
 
@@ -107,35 +107,28 @@ export const OCRDocumentScanner = ({ walletAddress, onRecordSaved }: OCRDocument
   }, []);
 
   const processWithOCR = async () => {
-    if (!capturedImage) return;
+  if (!capturedImage) return;
 
-    setIsProcessing(true);
-    try {
-      // Extract base64 data
-      const base64Data = capturedImage.split(",")[1];
-      const mimeType = capturedImage.split(";")[0].split(":")[1];
+  setIsProcessing(true);
+  try {
+    // Extract base64 data
+    const base64Data = capturedImage.split(",")[1];
+    const mimeType = capturedImage.split(";")[0].split(":")[1];
 
-      const { data, error } = await supabase.functions.invoke("ocr-extract", {
-        body: { imageBase64: base64Data, mimeType },
-      });
+    // Call your OCR API instead of Supabase
+    const data = await extractTextFromImage(base64Data, mimeType);
 
-      if (error) throw error;
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setOcrResult(data);
-      setEditedText(data.extractedText);
-      setSelectedType(data.documentType || "other");
-      toast.success("Text extracted successfully!");
-    } catch (error: any) {
-      console.error("OCR error:", error);
-      toast.error(error.message || "Failed to extract text from image");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+    setOcrResult(data);
+    setEditedText(data.extractedText);
+    setSelectedType(data.documentType || "other");
+    toast.success("Text extracted successfully!");
+  } catch (error: any) {
+    console.error("OCR error:", error);
+    toast.error(error.message || "Failed to extract text from image");
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   const handleSaveRecord = async () => {
     if (!editedText.trim()) {
