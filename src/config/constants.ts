@@ -1,7 +1,7 @@
 // Selora Smart Contract Configuration - Deployed on Devnet
 export const SELORA_CONFIG = {
-  // Main package ID - deployed contract
-  PACKAGE_ID: '0xeae91c577a8aa720cdb2c0301136b6721fd42149cf7c6bc29d1d87922f83545c',
+  // Main package ID - deployed contract (updated)
+  PACKAGE_ID: '0xd3ca3f08cd18b236892159fef26051a028b355d09ca44be33e34a0540ceb7ca1',
   // Registry object for storing platform state
   REGISTRY_ID: '0x516e6cbd4871ae3240b914d8205a5aa9c4cad5d4ed28b024156ed5f607355299',
   // Upgrade capability (for future upgrades)
@@ -11,6 +11,18 @@ export const SELORA_CONFIG = {
   // Fee configuration (in basis points)
   PRESCRIPTION_FEE_BPS: 50, // 0.5%
   RESEARCH_COMMISSION_BPS: 100, // 1%
+  // Basis points divisor
+  BASIS_POINTS_DIVISOR: 10000,
+} as const;
+
+// Access duration constants (milliseconds)
+export const ACCESS_DURATION_MS = {
+  ONE_TIME: 3600000, // 1 hour
+  ONE_HOUR: 3600000,
+  TWO_HOURS: 7200000,
+  TWENTY_FOUR_HOURS: 86400000,
+  ONE_WEEK: 604800000,
+  THIRTY_DAYS: 2592000000,
 } as const;
 
 // Doctor Subscription Tiers
