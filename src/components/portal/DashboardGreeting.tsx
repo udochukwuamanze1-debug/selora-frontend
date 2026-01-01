@@ -148,59 +148,61 @@ export function DashboardGreeting({
             </div>
           </div>
 
-          {/* Health Score Card */}
-          <div className={cn(
-            "flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br min-w-fit",
-            getScoreBgColor(displayScore)
-          )}>
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-background/50 flex items-center justify-center">
-                <Heart className={cn("w-8 h-8", getScoreColor(displayScore))} />
-              </div>
-              {!isNewUser && (
-                <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1">
-                  <TrendIcon className={cn("w-4 h-4", trendColor)} />
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Health Score Card */}
+            <div className={cn(
+              "flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br min-w-fit",
+              getScoreBgColor(displayScore)
+            )}>
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-background/50 flex items-center justify-center">
+                  <Heart className={cn("w-8 h-8", getScoreColor(displayScore))} />
                 </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className={cn("text-3xl font-bold", getScoreColor(displayScore))}>
-                  {displayScore}
-                </span>
-                <span className="text-sm text-muted-foreground">/100</span>
-              </div>
-              <p className="text-sm font-medium text-muted-foreground">Health Score</p>
-              <p className={cn("text-xs", isNewUser ? "text-muted-foreground" : trendColor)}>
-                {isNewUser ? getScoreLabel(displayScore) : (
-                  scoreDiff !== 0 
-                    ? `${scoreDiff > 0 ? "+" : ""}${scoreDiff} from last week`
-                    : "No change"
+                {!isNewUser && (
+                  <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1">
+                    <TrendIcon className={cn("w-4 h-4", trendColor)} />
+                  </div>
                 )}
-              </p>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className={cn("text-3xl font-bold", getScoreColor(displayScore))}>
+                    {displayScore}
+                  </span>
+                  <span className="text-sm text-muted-foreground">/100</span>
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">Health Score</p>
+                <p className={cn("text-xs", isNewUser ? "text-muted-foreground" : trendColor)}>
+                  {isNewUser ? getScoreLabel(displayScore) : (
+                    scoreDiff !== 0 
+                      ? `${scoreDiff > 0 ? "+" : ""}${scoreDiff} from last week`
+                      : "No change"
+                  )}
+                </p>
+              </div>
             </div>
-          </div>
-
-          {/* Avatar Mint Box */}
-          <div className="glass-card-hover p-4 rounded-2xl flex gap-4 items-center justify-center min-w-[140px] border border-primary/20">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center mb-2">
-              <Sparkles className="w-6 h-6 text-primary" />
+  
+            {/* Avatar Mint Box */}
+            <div className="glass-card-hover p-4 rounded-2xl flex gap-4 items-center justify-center min-w-[140px] border border-primary/20">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center mb-2">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground mb-2">Mint Your Avatar</p>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setShowMintModal(true)}
+                disabled={isPending}
+                className="text-xs gap-1"
+              >
+                {isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                Mint NFT
+              </Button>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">Mint Your Avatar</p>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setShowMintModal(true)}
-              disabled={isPending}
-              className="text-xs gap-1"
-            >
-              {isPending ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <Sparkles className="w-3 h-3" />
-              )}
-              Mint NFT
-            </Button>
           </div>
         </div>
       </div>
