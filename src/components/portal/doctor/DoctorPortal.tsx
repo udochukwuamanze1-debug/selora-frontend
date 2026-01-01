@@ -5,6 +5,7 @@ import { DoctorSidebar } from "./DoctorSidebar";
 import { CareWorkspace } from "./CareWorkspace";
 import { PatientInsights } from "./PatientInsights";
 import { PrescriptionCreation } from "./PrescriptionCreation";
+import { VisitReportCreator } from "./VisitReportCreator";
 import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
@@ -39,6 +40,8 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
     switch (activeTab) {
       case "workspace":
         return <CareWorkspace isNewUser={true} walletAddress={walletAddress} />;
+      case "visit-report":
+        return <VisitReportCreator doctorAddress={walletAddress} doctorName="Doctor" />;
       case "insights":
         return <PatientInsights isNewUser={true} />;
       case "prescriptions":
