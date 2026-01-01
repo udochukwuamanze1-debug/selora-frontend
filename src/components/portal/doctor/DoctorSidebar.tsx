@@ -13,11 +13,13 @@ import {
   Lock,
   Bot,
   UserCircle,
+  Stethoscope,
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { id: "workspace", label: "Care Workspace", icon: LayoutDashboard },
+  { id: "visit-report", label: "Create Visit Report", icon: Stethoscope },
   { id: "doctor-profile", label: "My Doctor Profile", icon: UserCircle },
   { id: "insights", label: "Patient Insights", icon: Users },
   { id: "prescriptions", label: "Prescriptions", icon: FileText },

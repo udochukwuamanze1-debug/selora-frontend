@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useWalrusStorage } from "@/hooks/useWalrusStorage";
 import { toast } from "sonner";
+import { OCRDocumentScanner } from "./OCRDocumentScanner";
 
 interface HealthArchiveProps {
   walletAddress: string;
@@ -120,23 +121,26 @@ export const HealthArchive = ({ walletAddress, onRecordUploaded }: HealthArchive
             All your encrypted health records in one place
           </p>
         </div>
-        <Button 
-          className="gap-2" 
-          onClick={handleUploadClick}
-          disabled={isUploading}
-        >
-          {isUploading ? (
-            <>
-              <Upload className="w-4 h-4 animate-pulse" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Database className="w-4 h-4" />
-              Upload New Record
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <OCRDocumentScanner walletAddress={walletAddress} onRecordSaved={loadRecords} />
+          <Button 
+            className="gap-2" 
+            onClick={handleUploadClick}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <>
+                <Upload className="w-4 h-4 animate-pulse" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Database className="w-4 h-4" />
+                Upload File
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filter */}

@@ -161,11 +161,66 @@ export function useWalrusStorage(walletAddress: string | undefined) {
     []
   );
 
+  // Upload raw data (encrypted string or buffer) directly
+  const uploadData = useCallback(
+    async (data: ArrayBuffer | string, fileName: string, mimeType: string): Promise<{ blobId: string } | null> => {
+      if (!walletAddress) {
+        toast.error("Wallet not connected");
+        return null;
+      }
+
+      setIsUploading(true);
+      try {
+        // Convert string to ArrayBuffer if needed
+        const buffer = typeof data === "string" 
+          ? new TextEncoder().encode(data).buffer 
+          : data;
+        const blob = new Blob([buffer], { type: mimeType });
+        
+        const recordId = `${walletAddress}_${Date.now()}`;
+        let blobId: string;
+
+        try {
+          const result = await withTimeout(uploadToWalrus(blob), 15000, "Walrus upload");
+          blobId = result.blobId;
+        } catch (error) {
+          console.warn("Walrus upload failed, using local storage:", error);
+          blobId = `local_${recordId}`;
+          await storeEncryptedBlobLocally(recordId, blob);
+        }
+
+        // Store record metadata
+        const record: StoredRecord = {
+          id: recordId,
+          blobId,
+          iv: "",
+          originalName: fileName,
+          mimeType,
+          uploadedAt: new Date().toISOString(),
+          size: blob.size,
+        };
+
+        saveRecordLocally(record);
+        setRecords((prev) => [...prev, record]);
+
+        return { blobId };
+      } catch (error) {
+        console.error("Upload data failed:", error);
+        toast.error("Failed to upload data");
+        return null;
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [walletAddress]
+  );
+
   return {
     records,
     isUploading,
     isDownloading,
     uploadFile,
+    uploadData,
     downloadFile,
     loadRecords,
     deleteRecord,
