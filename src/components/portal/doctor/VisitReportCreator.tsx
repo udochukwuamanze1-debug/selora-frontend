@@ -18,12 +18,14 @@ import {
   Stethoscope,
   Pill,
   ClipboardList,
-  User
+  User,
+  Bell
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSuiTransaction } from "@/hooks/useSuiTransaction";
 import { useWalrusStorage } from "@/hooks/useWalrusStorage";
 import { encryptWithPassphrase } from "@/lib/encryption";
+import { sendVisitReportNotification } from "@/lib/walrus-notifications";
 
 interface VisitReportCreatorProps {
   doctorAddress: string;
@@ -116,12 +118,27 @@ export const VisitReportCreator = ({ doctorAddress, doctorName = "Doctor" }: Vis
 
       if (result) {
         setLastCreatedReport(result.digest);
-        toast.success("Visit Report created and sent to patient!", {
-          description: `Transaction: ${result.digest.slice(0, 12)}...`,
-        });
-
-        // Send notification to patient (would integrate with push notification service)
-        console.log(`Notification sent to patient ${formData.patientAddress}: Dr. ${doctorName} just added a Visit Report`);
+        
+        // Send Walrus notification to patient
+        try {
+          await sendVisitReportNotification(
+            formData.patientAddress,
+            doctorName,
+            doctorAddress,
+            formData.reportType,
+            formData.diagnosis
+          );
+          
+          toast.success("Visit Report created and sent to patient!", {
+            description: `Patient has been notified. TX: ${result.digest.slice(0, 12)}...`,
+            icon: <Bell className="w-4 h-4" />,
+          });
+        } catch (notifError) {
+          console.error("Failed to send notification:", notifError);
+          toast.success("Visit Report created and sent to patient!", {
+            description: `Transaction: ${result.digest.slice(0, 12)}...`,
+          });
+        }
 
         // Reset form
         setFormData({

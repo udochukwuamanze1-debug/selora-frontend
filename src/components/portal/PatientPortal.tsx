@@ -12,6 +12,7 @@ import { ProfilePreferences } from "./ProfilePreferences";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { OnboardingTutorial } from "./OnboardingTutorial";
 import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
+import { XPRewardsProvider } from "@/hooks/useXPRewards";
 import { cn } from "@/lib/utils";
 import { CareNetwork } from "./CareNetwork";
 import { TrustedContacts } from "./TrustedContacts";
@@ -129,8 +130,9 @@ export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) 
 
   return (
     <UserStatsProvider walletAddress={walletAddress}>
-      <PatientPortalContent walletAddress={walletAddress} onSignOut={onSignOut} />
+      <XPRewardsProvider walletAddress={walletAddress}>
+        <PatientPortalContent walletAddress={walletAddress} onSignOut={onSignOut} />
+      </XPRewardsProvider>
     </UserStatsProvider>
   );
 };
-

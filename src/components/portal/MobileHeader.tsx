@@ -2,7 +2,7 @@ import { WalletAddress } from "./WalletAddress";
 import { WalletBalance } from "./WalletBalance";
 import { NotificationBell } from "./NotificationBell";
 import { Logo } from "@/components/Logo";
-import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useWalrusNotifications } from "@/hooks/useWalrusNotifications";
 
 interface MobileHeaderProps {
   walletAddress: string;
@@ -10,15 +10,15 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ walletAddress, portalType = "Patient" }: MobileHeaderProps) {
-  const { notifications, markAsRead, markAllAsRead, removeNotification } =
-    useRealtimeNotifications(walletAddress);
+  const { notifications, markAsRead, markAllRead, remove } =
+    useWalrusNotifications(walletAddress);
 
   const formattedNotifications = notifications.map((n) => ({
     id: n.id,
-    type: n.type as "prescription" | "access" | "alert" | "info",
+    type: mapNotificationType(n.type),
     title: n.title,
     message: n.message,
-    time: formatTime(n.created_at),
+    time: formatTime(n.timestamp),
     read: n.read,
   }));
 
@@ -38,8 +38,8 @@ export function MobileHeader({ walletAddress, portalType = "Patient" }: MobileHe
           <NotificationBell
             notifications={formattedNotifications}
             onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllAsRead}
-            onRemove={removeNotification}
+            onMarkAllAsRead={markAllRead}
+            onRemove={remove}
           />
           <WalletBalance />
           <WalletAddress address={walletAddress} className="text-xs" />
@@ -49,10 +49,23 @@ export function MobileHeader({ walletAddress, portalType = "Patient" }: MobileHe
   );
 }
 
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+function mapNotificationType(type: string): "prescription" | "access" | "alert" | "info" | "welcome" {
+  switch (type) {
+    case "visit_report":
+      return "info";
+    case "prescription":
+      return "prescription";
+    case "access_request":
+    case "access_granted":
+      return "access";
+    default:
+      return "info";
+  }
+}
+
+function formatTime(timestamp: number): string {
+  const now = Date.now();
+  const diffMs = now - timestamp;
   const diffMins = Math.floor(diffMs / 60000);
 
   if (diffMins < 1) return "Just now";
