@@ -1,62 +1,57 @@
 import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
-import { SELORA_CONFIG, ACCESS_DURATION_MS } from '@/config/constants';
+import { SELORA_CONFIG } from '@/config/constants';
 import { toast } from 'sonner';
 
 // Type assertion to handle version mismatch between @mysten/sui and @mysten/dapp-kit
 type AnyTransaction = any;
 
-const uploadScannedRecord = async (
-  recordType: string,
-  ocrText: string,
-  imageRef: string,
-  tags: string
-) => {
-  if (!currentAccount) {
-    toast.error('Please connect your wallet first');
-    return null;
-  }
-
-  try {
-    const tx = new Transaction();
-
-    const typeBytes = Array.from(new TextEncoder().encode(recordType));
-    const textBytes = Array.from(new TextEncoder().encode(ocrText));
-    const imageBytes = Array.from(new TextEncoder().encode(imageRef));
-    const tagsBytes = Array.from(new TextEncoder().encode(tags));
-
-    tx.moveCall({
-      target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::upload_scanned_record`,
-      arguments: [
-        tx.pure(typeBytes, 'vector<u8>'),
-        tx.pure(textBytes, 'vector<u8>'),
-        tx.pure(imageBytes, 'vector<u8>'),
-        tx.pure(tagsBytes, 'vector<u8>'),
-        tx.object(SELORA_CONFIG.CLOCK_ID),
-      ],
-    });
-
-    const result = await signAndExecute({
-      transaction: tx as AnyTransaction,
-    });
-
-    await suiClient.waitForTransaction({
-      digest: result.digest,
-    });
-
-    toast.success('Record uploaded to blockchain!');
-    return { digest: result.digest };
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    toast.error(error.message || 'Failed to upload record');
-    return null;
-  }
-};
-
 export function useSuiTransaction() {
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
   const { mutateAsync: signAndExecute, isPending } = useSignAndExecuteTransaction();
+
+  const uploadScannedRecord = async (
+    recordType: string,
+    ocrText: string,
+    imageRef: string,
+    tags: string
+  ) => {
+    if (!currentAccount) {
+      toast.error('Please connect your wallet first');
+      return null;
+    }
+
+    try {
+      const tx = new Transaction();
+
+      tx.moveCall({
+        target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::upload_scanned_record`,
+        arguments: [
+          tx.pure.string(recordType),
+          tx.pure.string(ocrText),
+          tx.pure.string(imageRef),
+          tx.pure.string(tags),
+          tx.object('0x6'), // Clock object
+        ],
+      });
+
+      const result = await signAndExecute({
+        transaction: tx as AnyTransaction,
+      });
+
+      await suiClient.waitForTransaction({
+        digest: result.digest,
+      });
+
+      toast.success('Record uploaded to blockchain!');
+      return { digest: result.digest };
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload record');
+      return null;
+    }
+  };
 
   const mintAvatar = async (name: string) => {
     if (!currentAccount) {
@@ -372,9 +367,9 @@ export function useSuiTransaction() {
     grantAccess,
     revokeAccess,
     createVisitReport,
+    uploadScannedRecord,
     isPending,
     isConnected: !!currentAccount,
     address: currentAccount?.address,
-    uploadScannedRecord,
   };
 }
