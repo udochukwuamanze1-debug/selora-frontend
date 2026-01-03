@@ -11,6 +11,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Documentation from "./pages/Documentation";
 import Whitepaper from "./pages/Whitepaper";
+import Waitlist from "./pages/Waitlist";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import { DoctorPortal } from "./components/portal/doctor/DoctorPortal";
@@ -64,6 +65,7 @@ function ProtectedPortal({ portal }: { portal: "doctor" | "lab" | "insurer" | "r
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Index />} />
+    <Route path="/waitlist" element={<Waitlist />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
