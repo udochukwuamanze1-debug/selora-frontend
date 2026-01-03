@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/providers/ThemeProvider";
-import { 
-  Shield, 
-  Database, 
-  Lock, 
-  Coins, 
-  Smartphone, 
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  Shield,
+  Database,
+  Lock,
+  Coins,
+  Smartphone,
   Users,
   ChevronDown,
   ChevronUp,
@@ -17,7 +18,7 @@ import {
   ArrowRight,
   Twitter,
   MessageCircle,
-  Send
+  Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -87,27 +88,36 @@ export default function Waitlist() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { resolvedTheme } = useTheme();
+  const reducedMotion = useReducedMotion();
+
+  const sectionVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: 18 },
+      visible: { opacity: 1, y: 0 },
+    }),
+    []
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !email.includes("@")) {
       toast.error("Please enter a valid email address");
       return;
     }
 
     setIsSubmitting(true);
-    
+
     // Simulate API call - in production, this would save to a database
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // Store in localStorage for now
     const waitlist = JSON.parse(localStorage.getItem("selora_waitlist") || "[]");
     if (!waitlist.includes(email)) {
       waitlist.push(email);
       localStorage.setItem("selora_waitlist", JSON.stringify(waitlist));
     }
-    
+
     setIsSubmitting(false);
     setIsSubmitted(true);
     toast.success("You're on the list! We'll notify you when Selora launches.");
@@ -165,7 +175,14 @@ export default function Waitlist() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4">
+      <motion.section
+        className="relative pt-32 pb-20 px-4"
+        initial={reducedMotion ? false : "hidden"}
+        whileInView={reducedMotion ? undefined : "visible"}
+        viewport={{ once: true, amount: 0.25 }}
+        variants={sectionVariants}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect text-sm text-primary mb-8 animate-fade-up">
             <span className="relative flex h-2 w-2">
@@ -174,21 +191,31 @@ export default function Waitlist() {
             </span>
             Coming Soon on Sui Mainnet
           </div>
-          
-          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-up" style={{ animationDelay: "0.1s" }}>
+
+          <h1
+            className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-up"
+            style={{ animationDelay: "0.1s" }}
+          >
             Own Your Health.
             <br />
             <span className="text-primary">Control Your Future.</span>
           </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "0.2s" }}>
-            The first decentralized health records platform where you own your data, 
+
+          <p
+            className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            The first decentralized health records platform where you own your data,
             control access, and earn from research contributions.
           </p>
 
           {/* Email Signup */}
           {!isSubmitted ? (
-            <form onSubmit={handleSubmit} className="max-w-md mx-auto animate-fade-up" style={{ animationDelay: "0.3s" }}>
+            <form
+              onSubmit={handleSubmit}
+              className="max-w-md mx-auto animate-fade-up"
+              style={{ animationDelay: "0.3s" }}
+            >
               <div className="flex flex-col sm:flex-row gap-3">
                 <Input
                   type="email"
@@ -198,9 +225,9 @@ export default function Waitlist() {
                   className="flex-1 h-12 bg-background/50 border-border/50 text-foreground"
                   disabled={isSubmitting}
                 />
-                <Button 
-                  type="submit" 
-                  size="lg" 
+                <Button
+                  type="submit"
+                  size="lg"
                   className="gap-2 h-12"
                   disabled={isSubmitting}
                 >
@@ -223,7 +250,8 @@ export default function Waitlist() {
               <CheckCircle className="w-12 h-12 text-primary mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">You're on the list!</h3>
               <p className="text-muted-foreground">
-                We'll send you an email when Selora is ready. In the meantime, follow us on social media.
+                We'll send you an email when Selora is ready. In the meantime, follow
+                us on social media.
               </p>
             </div>
           )}
@@ -233,19 +261,27 @@ export default function Waitlist() {
             <div className="relative mx-auto max-w-4xl">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-2xl blur-xl" />
               <div className="relative glass-card p-2 rounded-2xl overflow-hidden">
-                <img 
+                <img
                   src={resolvedTheme === "dark" ? patientPortalDark : patientPortalLight}
                   alt="Selora Patient Portal Preview"
                   className="w-full rounded-xl border border-border/50"
+                  loading="lazy"
                 />
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 relative">
+      <motion.section
+        className="py-20 px-4 relative"
+        initial={reducedMotion ? false : "hidden"}
+        whileInView={reducedMotion ? undefined : "visible"}
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
@@ -260,10 +296,13 @@ export default function Waitlist() {
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <div
+                <motion.div
                   key={index}
-                  className="glass-card p-6 group hover:border-primary/30 transition-all animate-fade-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="glass-card p-6 group hover:border-primary/30 transition-all"
+                  initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+                  whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.35, delay: index * 0.06, ease: "easeOut" }}
                 >
                   <div className="p-3 rounded-xl bg-primary/5 inline-block mb-4 group-hover:bg-primary/10 transition-colors">
                     <IconComponent className="w-6 h-6 text-primary" />
@@ -271,18 +310,23 @@ export default function Waitlist() {
                   <h3 className="font-heading text-lg font-semibold mb-2 text-foreground">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm">
-                    {feature.description}
-                  </p>
-                </div>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
+                </motion.div>
               );
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 relative">
+      <motion.section
+        className="py-20 px-4 relative"
+        initial={reducedMotion ? false : "hidden"}
+        whileInView={reducedMotion ? undefined : "visible"}
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
@@ -292,10 +336,13 @@ export default function Waitlist() {
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div
+              <motion.div
                 key={index}
-                className="glass-card overflow-hidden animate-fade-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="glass-card overflow-hidden"
+                initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+                whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.35, delay: index * 0.06, ease: "easeOut" }}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
@@ -313,19 +360,26 @@ export default function Waitlist() {
                     <p className="text-muted-foreground">{faq.answer}</p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Social Links */}
-      <section className="py-20 px-4 relative">
+      <motion.section
+        className="py-20 px-4 relative"
+        initial={reducedMotion ? false : "hidden"}
+        whileInView={reducedMotion ? undefined : "visible"}
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-heading text-2xl md:text-3xl font-bold mb-8">
             Join Our <span className="text-primary">Community</span>
           </h2>
-          
+
           <div className="flex flex-wrap justify-center gap-4">
             <a
               href="https://twitter.com/selorahealth"
@@ -356,7 +410,7 @@ export default function Waitlist() {
             </a>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border/50">
