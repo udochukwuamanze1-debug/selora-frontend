@@ -1,42 +1,42 @@
 import {
-  Fingerprint,
   Lock,
+  Shield,
+  Database,
   Coins,
-  Umbrella,
-  AlertCircle,
-  FlaskConical,
+  Smartphone,
+  Users,
 } from "lucide-react";
 
 const features = [
   {
-    icon: Fingerprint,
-    title: "Self-Sovereign Identity",
-    description: "Your records live under your control — encrypted, permissioned, and revocable at any time.",
+    icon: Lock,
+    title: "Self-Sovereign Health Data",
+    description: "Own your medical records as NFTs. No intermediaries, no data breaches.",
   },
   {
-    icon: Lock,
-    title: "Encrypted Records",
-    description: "All health data is encrypted client-side before storage. Only you hold the keys.",
+    icon: Shield,
+    title: "Military-Grade Encryption",
+    description: "AES-256 encryption ensures only you control access to your health data.",
+  },
+  {
+    icon: Database,
+    title: "Decentralized Storage",
+    description: "Records stored on Walrus network - censorship-resistant and always available.",
   },
   {
     icon: Coins,
-    title: "Ethical Data Monetization",
-    description: "Choose to stake your anonymized data and earn transparent rewards for research contributions.",
+    title: "Earn From Your Data",
+    description: "Monetize anonymized health data for research while maintaining privacy.",
   },
   {
-    icon: Umbrella,
-    title: "Micro-Insurance",
-    description: "Participate in decentralized coverage pools without surrendering control of your data.",
+    icon: Smartphone,
+    title: "Wearable Integration",
+    description: "Sync Apple Health, Google Fit data automatically to your profile.",
   },
   {
-    icon: AlertCircle,
-    title: "Emergency Access",
-    description: "Designate trusted guardians who can access your records in emergencies.",
-  },
-  {
-    icon: FlaskConical,
-    title: "Research Participation",
-    description: "Contribute to medical research on your terms with full consent management.",
+    icon: Users,
+    title: "Care Network",
+    description: "Grant temporary access to doctors with granular permissions.",
   },
 ];
 
@@ -46,11 +46,10 @@ export const FeaturesSection = () => {
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16 animate-fade-up">
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-foreground">
-            Everything you need for{" "}
-            <span className="text-primary">health sovereignty</span>
+            Why <span className="text-primary">Selora</span>?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            A complete platform designed around privacy, consent, and your control.
+            A new paradigm for health data ownership and privacy
           </p>
         </div>
 

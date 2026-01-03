@@ -30,8 +30,11 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
       {/* Subtle dark cinematic background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
       
-      {/* Soft ambient glow - minimalistic */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 rounded-full blur-[120px]" />
+      {/* Glassy diagonal primary glow - top-left */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] opacity-60" />
+      
+      {/* Glassy diagonal primary glow - bottom-right */}
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] opacity-60" />
 
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         <div className="animate-fade-up">

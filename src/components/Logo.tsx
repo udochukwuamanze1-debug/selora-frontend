@@ -18,9 +18,10 @@ interface LogoProps {
   showText?: boolean;
   size?: "sm" | "md" | "lg";
   role?: string;
+  textClassName?: string;
 }
 
-export const Logo = ({ className, showText = true, size = "md", role }: LogoProps) => {
+export const Logo = ({ className, showText = true, size = "md", role, textClassName }: LogoProps) => {
   const sizeClasses = {
     sm: "w-10 h-10",
     md: "w-12 h-12",
@@ -46,7 +47,7 @@ export const Logo = ({ className, showText = true, size = "md", role }: LogoProp
       </div>
       {showText && (
         <div className="flex flex-col">
-          <span className={cn("font-heading font-bold tracking-tight text-primary leading-tight", textSizes[size])}>
+          <span className={cn("font-heading font-bold tracking-tight text-primary leading-tight", textSizes[size], textClassName)}>
             {LOGO_CONFIG.text}
           </span>
           {role && (
