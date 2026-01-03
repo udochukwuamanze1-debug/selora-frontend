@@ -161,24 +161,39 @@ export const PortalSelection = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {portals.map((portal, index) => (
-              <button
-                key={portal.id}
-                onClick={() => handlePortalClick(portal.id)}
-                className="glass-card-hover p-6 text-left group animate-fade-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="p-4 rounded-2xl bg-primary/5 inline-block mb-4 group-hover:bg-primary/10 transition-colors">
-                  <portal.icon className="w-8 h-8 text-primary" />
+            {portals.map((portal, index) => {
+              const IconComponent = portal.icon;
+              return (
+                <div
+                  key={portal.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handlePortalClick(portal.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handlePortalClick(portal.id);
+                    }
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    handlePortalClick(portal.id);
+                  }}
+                  className="glass-card-hover p-6 text-left group animate-fade-up cursor-pointer select-none touch-manipulation active:scale-[0.98] transition-transform"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="p-4 rounded-2xl bg-primary/5 inline-block mb-4 group-hover:bg-primary/10 transition-colors pointer-events-none">
+                    <IconComponent className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-heading text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors pointer-events-none">
+                    {portal.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm pointer-events-none">
+                    {portal.description}
+                  </p>
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors">
-                  {portal.title}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {portal.description}
-                </p>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>
