@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
 import { PortalSearch } from "./PortalSearch";
 import { NotificationBell, Notification } from "./NotificationBell";
 import { WalletAddress } from "./WalletAddress";
 import { WalletBalance } from "./WalletBalance";
-import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { useWalrusNotifications } from "@/hooks/useWalrusNotifications";
 
 interface PortalHeaderProps {
   title: string;
@@ -18,20 +17,16 @@ export const PortalHeader = ({
   walletAddress,
   onSearch,
 }: PortalHeaderProps) => {
-  const { 
-    notifications: realtimeNotifications, 
-    markAsRead, 
-    markAllAsRead, 
-    removeNotification 
-  } = useRealtimeNotifications(walletAddress);
+  const { notifications: walrusNotifications, markAsRead, markAllRead, remove } = 
+    useWalrusNotifications(walletAddress);
 
   // Convert to the NotificationBell format
-  const notifications: Notification[] = realtimeNotifications.map(n => ({
+  const notifications: Notification[] = walrusNotifications.map(n => ({
     id: n.id,
-    type: n.type,
+    type: mapNotificationType(n.type),
     title: n.title,
     message: n.message,
-    time: formatTime(n.created_at),
+    time: formatTime(n.timestamp),
     read: n.read,
   }));
 
@@ -56,8 +51,8 @@ export const PortalHeader = ({
           <NotificationBell
             notifications={notifications}
             onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllAsRead}
-            onRemove={removeNotification}
+            onMarkAllAsRead={markAllRead}
+            onRemove={remove}
           />
           <WalletBalance />
           <WalletAddress address={walletAddress} />
@@ -67,10 +62,23 @@ export const PortalHeader = ({
   );
 };
 
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
+function mapNotificationType(type: string): "prescription" | "access" | "alert" | "info" | "welcome" {
+  switch (type) {
+    case "visit_report":
+      return "info";
+    case "prescription":
+      return "prescription";
+    case "access_request":
+    case "access_granted":
+      return "access";
+    default:
+      return "info";
+  }
+}
+
+function formatTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
   
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
@@ -80,5 +88,5 @@ function formatTime(dateString: string): string {
   if (minutes < 60) return `${minutes} min ago`;
   if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
   if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
-  return date.toLocaleDateString();
+  return new Date(timestamp).toLocaleDateString();
 }

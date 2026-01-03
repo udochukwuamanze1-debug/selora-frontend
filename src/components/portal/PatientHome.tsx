@@ -5,10 +5,14 @@ import {
   Award,
   FileText,
   Shield,
+  Zap,
 } from "lucide-react";
 import { useUserStats, formatRelativeTime } from "@/hooks/useUserStats";
 import { DashboardGreeting } from "./DashboardGreeting";
 import { QRAccessRequest } from "./QRAccessRequest";
+import { useAvatar } from "@/hooks/useAvatar";
+import { useXPRewards } from "@/hooks/useXPRewards";
+import { useEffect } from "react";
 
 interface PatientHomeProps {
   walletAddress: string;
@@ -17,11 +21,18 @@ interface PatientHomeProps {
 
 export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => {
   const { stats, activities } = useUserStats();
+  const { avatar } = useAvatar(walletAddress);
+  const { xp, level, xpProgress, xpToNextLevel, checkDailyLogin, records } = useXPRewards();
+
+  // Check for daily login XP on mount
+  useEffect(() => {
+    checkDailyLogin();
+  }, []);
 
   const statCards = [
     { label: "Health Records", value: stats.healthRecords.toString(), icon: FileText, color: "primary" },
     { label: "Staked Datasets", value: stats.stakedDatasets.toString(), icon: Database, color: "secondary" },
-    { label: "Rewards Earned", value: stats.rewardsEarned.toString(), icon: Award, color: "accent" },
+    { label: "Total XP", value: xp.toString(), icon: Zap, color: "accent" },
     { label: "Active Guardians", value: stats.activeGuardians.toString(), icon: Shield, color: "primary" },
   ];
 
@@ -38,10 +49,23 @@ export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => 
         { id: "empty", action: "No activity yet", time: "", type: "info" as const, timestamp: 0 }
       ];
 
+  // Get recent XP rewards
+  const recentXPRewards = records.slice(0, 3);
+
   return (
     <div className="space-y-6">
-      {/* Dashboard Greeting with Health Score */}
-      <DashboardGreeting userName="Tunde" healthScore={85} previousScore={82} />
+      {/* Dashboard Greeting with Health Score and XP */}
+      <DashboardGreeting 
+        userName={avatar?.name}
+        healthScore={stats.healthRecords > 0 ? 75 + Math.min(stats.healthRecords * 2, 20) : undefined}
+        previousScore={stats.healthRecords > 0 ? 73 + Math.min(stats.healthRecords * 2, 18) : undefined}
+        healthRecordsCount={stats.healthRecords}
+        walletAddress={walletAddress}
+        xp={xp}
+        level={level}
+        xpProgress={xpProgress}
+        xpToNextLevel={xpToNextLevel}
+      />
 
       <QRAccessRequest walletAddress={walletAddress} userType="patient" />
 
@@ -113,42 +137,63 @@ export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => 
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="glass-card p-6">
-          <h2 className="font-heading text-xl font-semibold mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              variant="glass"
-              className="h-auto flex-col gap-2 py-6"
-              onClick={() => onNavigate("archive")}
-            >
-              <FileText className="w-6 h-6 text-primary" />
-              <span>View Records</span>
-            </Button>
-            <Button
-              variant="glass"
-              className="h-auto flex-col gap-2 py-6"
-              onClick={() => onNavigate("prescriptions")}
-            >
-              <Database className="w-6 h-6 text-secondary" />
-              <span>Prescriptions</span>
-            </Button>
-            <Button
-              variant="glass"
-              className="h-auto flex-col gap-2 py-6"
-              onClick={() => onNavigate("contacts")}
-            >
-              <Shield className="w-6 h-6 text-accent" />
-              <span>Guardians</span>
-            </Button>
-            <Button
-              variant="glass"
-              className="h-auto flex-col gap-2 py-6"
-              onClick={() => onNavigate("assistant")}
-            >
-              <Award className="w-6 h-6 text-primary" />
-              <span>Selora AI</span>
-            </Button>
+        {/* XP Rewards & Quick Actions */}
+        <div className="space-y-6">
+          {/* Recent XP Rewards */}
+          {recentXPRewards.length > 0 && (
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="w-5 h-5 text-yellow-500" />
+                <h2 className="font-heading text-lg font-semibold">Recent XP Earned</h2>
+              </div>
+              <div className="space-y-2">
+                {recentXPRewards.map((reward) => (
+                  <div key={reward.timestamp} className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{reward.action.replace(/_/g, ' ').toLowerCase()}</span>
+                    <span className="font-bold text-yellow-500">+{reward.xp} XP</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Actions Grid */}
+          <div className="glass-card p-6">
+            <h2 className="font-heading text-xl font-semibold mb-6">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="glass"
+                className="h-auto flex-col gap-2 py-6"
+                onClick={() => onNavigate("archive")}
+              >
+                <FileText className="w-6 h-6 text-primary" />
+                <span>View Records</span>
+              </Button>
+              <Button
+                variant="glass"
+                className="h-auto flex-col gap-2 py-6"
+                onClick={() => onNavigate("prescriptions")}
+              >
+                <Database className="w-6 h-6 text-secondary" />
+                <span>Prescriptions</span>
+              </Button>
+              <Button
+                variant="glass"
+                className="h-auto flex-col gap-2 py-6"
+                onClick={() => onNavigate("contacts")}
+              >
+                <Shield className="w-6 h-6 text-accent" />
+                <span>Guardians</span>
+              </Button>
+              <Button
+                variant="glass"
+                className="h-auto flex-col gap-2 py-6"
+                onClick={() => onNavigate("assistant")}
+              >
+                <Award className="w-6 h-6 text-primary" />
+                <span>Selora AI</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
