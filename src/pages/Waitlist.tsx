@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/providers/ThemeProvider";
 import { 
   Shield, 
   Database, 
@@ -19,6 +21,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+
+import patientPortalDark from "@/assets/patient-portal-dark.png";
+import patientPortalLight from "@/assets/patient-portal-light.png";
 
 const features = [
   {
@@ -81,6 +86,7 @@ export default function Waitlist() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { resolvedTheme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,12 +117,13 @@ export default function Waitlist() {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
         
-        {/* Floating orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-[100px] animate-float" style={{ animationDelay: "-2s" }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-accent/10 rounded-full blur-[80px] animate-float" style={{ animationDelay: "-4s" }} />
+        {/* Glassy diagonal primary glow - top-left */}
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] opacity-60" />
+        
+        {/* Glassy diagonal primary glow - bottom-right */}
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] opacity-60" />
         
         {/* Grid pattern */}
         <div 
@@ -152,11 +159,7 @@ export default function Waitlist() {
             <Link to="/">
               <Logo />
             </Link>
-            <Link to="/">
-              <Button variant="outline" size="sm">
-                Back to Home
-              </Button>
-            </Link>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -225,25 +228,16 @@ export default function Waitlist() {
             </div>
           )}
 
-          {/* Portal Preview Image */}
-          <div className="mt-16 animate-fade-up" style={{ animationDelay: "0.4s" }}>
-            <div className="relative mx-auto max-w-3xl">
+          {/* Portal Preview Image - Hidden on mobile */}
+          <div className="mt-16 animate-fade-up hidden md:block" style={{ animationDelay: "0.4s" }}>
+            <div className="relative mx-auto max-w-4xl">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-2xl blur-xl" />
               <div className="relative glass-card p-2 rounded-2xl overflow-hidden">
-                <div className="aspect-video bg-gradient-to-br from-background via-muted to-background rounded-xl flex items-center justify-center border border-border/50">
-                  <div className="text-center p-8">
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                      {[Shield, Database, Lock].map((Icon, i) => (
-                        <div key={i} className="p-4 rounded-xl bg-primary/5 flex items-center justify-center">
-                          <Icon className="w-8 h-8 text-primary" />
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground text-sm">
-                      Selora Patient Portal Preview
-                    </p>
-                  </div>
-                </div>
+                <img 
+                  src={resolvedTheme === "dark" ? patientPortalDark : patientPortalLight}
+                  alt="Selora Patient Portal Preview"
+                  className="w-full rounded-xl border border-border/50"
+                />
               </div>
             </div>
           </div>
@@ -367,7 +361,7 @@ export default function Waitlist() {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border/50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <Logo />
+          <Logo textClassName="text-foreground" />
           <p className="text-muted-foreground text-sm">
             © {new Date().getFullYear()} Selora. All rights reserved.
           </p>
