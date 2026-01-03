@@ -1,4 +1,5 @@
-import { WALRUS_CONFIG } from "@/config/constants";
+import { toast } from "sonner";
+import { uploadToWalrus, downloadFromWalrus } from "@/lib/walrus";
 
 interface WalrusNotification {
   id: string;
@@ -21,10 +22,20 @@ interface NotificationBlobData {
 const NOTIFICATION_STORAGE_KEY = "selora_notifications";
 const NOTIFICATION_BLOB_KEY = "selora_notification_blob";
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timeoutId: number | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) window.clearTimeout(timeoutId);
+  }) as Promise<T>;
+}
+
 // Get notifications blob ID for a wallet
 const getNotificationBlobId = (walletAddress: string): string | null => {
-  const stored = localStorage.getItem(`${NOTIFICATION_BLOB_KEY}_${walletAddress}`);
-  return stored;
+  return localStorage.getItem(`${NOTIFICATION_BLOB_KEY}_${walletAddress}`);
 };
 
 // Save notification blob ID
@@ -60,31 +71,13 @@ export const syncNotificationsToWalrus = async (
     };
 
     const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+    const result = await withTimeout(uploadToWalrus(blob), 15000, "Walrus notifications upload");
 
-    const response = await fetch(`${WALRUS_CONFIG.PUBLISHER_URL}/v1/blobs`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-      body: blob,
-    });
-
-    if (!response.ok) {
-      console.error("Failed to upload notifications to Walrus:", response.statusText);
-      return null;
-    }
-
-    const result = await response.json();
-    const blobId = result.newlyCreated?.blobObject?.blobId || result.alreadyCertified?.blobId;
-    
-    if (blobId) {
-      saveNotificationBlobId(walletAddress, blobId);
-      return blobId;
-    }
-    
-    return null;
+    saveNotificationBlobId(walletAddress, result.blobId);
+    return result.blobId;
   } catch (error) {
     console.error("Error syncing notifications to Walrus:", error);
+    toast.info("Notifications stored locally (Walrus unavailable)");
     return null;
   }
 };
@@ -95,28 +88,16 @@ export const fetchNotificationsFromWalrus = async (
 ): Promise<WalrusNotification[]> => {
   try {
     const blobId = getNotificationBlobId(walletAddress);
-    if (!blobId) {
-      return getLocalNotifications(walletAddress);
-    }
+    if (!blobId) return getLocalNotifications(walletAddress);
 
-    const response = await fetch(`${WALRUS_CONFIG.AGGREGATOR_URL}/v1/blobs/${blobId}`, {
-      signal: AbortSignal.timeout(10000),
-    });
+    const blob = await withTimeout(downloadFromWalrus(blobId), 15000, "Walrus notifications download");
+    const text = await blob.text();
+    const data: NotificationBlobData = JSON.parse(text);
 
-    if (!response.ok) {
-      console.warn("Failed to fetch from Walrus, using local:", response.statusText);
-      return getLocalNotifications(walletAddress);
-    }
-
-    const data: NotificationBlobData = await response.json();
-    
-    // Merge with local notifications (local might have newer ones)
     const localNotifications = getLocalNotifications(walletAddress);
-    const mergedNotifications = mergeNotifications(data.notifications, localNotifications);
-    
-    // Save merged back to local
+    const mergedNotifications = mergeNotifications(data.notifications || [], localNotifications);
+
     saveLocalNotifications(walletAddress, mergedNotifications);
-    
     return mergedNotifications;
   } catch (error) {
     console.error("Error fetching notifications from Walrus:", error);
@@ -130,19 +111,15 @@ const mergeNotifications = (
   localNotifications: WalrusNotification[]
 ): WalrusNotification[] => {
   const notificationMap = new Map<string, WalrusNotification>();
-  
-  // Add Walrus notifications first
-  walrusNotifications.forEach(n => notificationMap.set(n.id, n));
-  
-  // Override/add local notifications (they might be more up-to-date)
-  localNotifications.forEach(n => {
+
+  walrusNotifications.forEach((n) => notificationMap.set(n.id, n));
+  localNotifications.forEach((n) => {
     const existing = notificationMap.get(n.id);
     if (!existing || n.timestamp > existing.timestamp) {
       notificationMap.set(n.id, n);
     }
   });
-  
-  // Sort by timestamp descending
+
   return Array.from(notificationMap.values()).sort((a, b) => b.timestamp - a.timestamp);
 };
 
@@ -158,18 +135,12 @@ export const addNotification = async (
     read: false,
   };
 
-  // Get existing notifications
   const notifications = getLocalNotifications(patientWalletAddress);
-  
-  // Add new notification at the beginning
   const updatedNotifications = [newNotification, ...notifications].slice(0, 50);
-  
-  // Save locally
+
   saveLocalNotifications(patientWalletAddress, updatedNotifications);
-  
-  // Sync to Walrus in background
   syncNotificationsToWalrus(patientWalletAddress, updatedNotifications).catch(console.error);
-  
+
   return newNotification;
 };
 
@@ -179,21 +150,17 @@ export const markNotificationAsRead = async (
   notificationId: string
 ): Promise<void> => {
   const notifications = getLocalNotifications(walletAddress);
-  const updated = notifications.map(n => 
-    n.id === notificationId ? { ...n, read: true } : n
-  );
-  
+  const updated = notifications.map((n) => (n.id === notificationId ? { ...n, read: true } : n));
+
   saveLocalNotifications(walletAddress, updated);
-  
-  // Sync to Walrus in background
   syncNotificationsToWalrus(walletAddress, updated).catch(console.error);
 };
 
 // Mark all as read
 export const markAllNotificationsAsRead = async (walletAddress: string): Promise<void> => {
   const notifications = getLocalNotifications(walletAddress);
-  const updated = notifications.map(n => ({ ...n, read: true }));
-  
+  const updated = notifications.map((n) => ({ ...n, read: true }));
+
   saveLocalNotifications(walletAddress, updated);
   syncNotificationsToWalrus(walletAddress, updated).catch(console.error);
 };
@@ -204,8 +171,8 @@ export const removeNotification = async (
   notificationId: string
 ): Promise<void> => {
   const notifications = getLocalNotifications(walletAddress);
-  const updated = notifications.filter(n => n.id !== notificationId);
-  
+  const updated = notifications.filter((n) => n.id !== notificationId);
+
   saveLocalNotifications(walletAddress, updated);
   syncNotificationsToWalrus(walletAddress, updated).catch(console.error);
 };

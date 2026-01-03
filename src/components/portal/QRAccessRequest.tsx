@@ -25,6 +25,7 @@ import { useSuiTransaction } from "@/hooks/useSuiTransaction";
 
 interface AccessRequest {
   id: string;
+  patientAddress: string;
   doctorName: string;
   doctorAddress: string;
   hospitalName: string;
@@ -62,6 +63,7 @@ export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessR
   const [showScanner, setShowScanner] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<AccessRequest | null>(null);
+  const [patientRequests, setPatientRequests] = useState<AccessRequest[]>([]);
   const [selectedDuration, setSelectedDuration] = useState<string>("ONE_HOUR");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -139,9 +141,10 @@ export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessR
       setShowScanner(false);
       setIsProcessing(true);
 
-      // Create access request
+       // Create access request
       const request: AccessRequest = {
         id: `req_${Date.now()}`,
+        patientAddress: data.patientAddress,
         doctorName: "Current Doctor", // Would come from doctor profile
         doctorAddress: walletAddress,
         hospitalName: "Selora Clinic",
@@ -186,6 +189,25 @@ export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessR
       stopScanner();
     }
   }, [showScanner, startScanner, stopScanner]);
+
+  // Patient view: load incoming requests for this wallet
+  const loadPatientRequests = useCallback(() => {
+    if (userType !== "patient") return;
+    const all = getAccessRequests();
+    const mine = all
+      .filter((r) => r.patientAddress === walletAddress)
+      .sort((a, b) => (a.requestedAt < b.requestedAt ? 1 : -1));
+    setPatientRequests(mine);
+  }, [userType, walletAddress]);
+
+  useEffect(() => {
+    loadPatientRequests();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === ACCESS_REQUESTS_KEY) loadPatientRequests();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [loadPatientRequests]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -262,19 +284,13 @@ export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessR
     toast.info("Access denied");
   };
 
-  // Demo: Simulate receiving a request (for testing)
-  const simulateIncomingRequest = () => {
-    const request: AccessRequest = {
-      id: `req_${Date.now()}`,
-      doctorName: "Dr. Adegoke",
-      doctorAddress: "0x1234567890abcdef1234567890abcdef12345678",
-      hospitalName: "Lagos General Hospital",
-      accessType: "general",
-      requestedAt: new Date().toISOString(),
-      status: "pending",
-      recordId: recordId || "medical_record_001",
-    };
-    setPendingRequest(request);
+  const openLatestPendingRequest = () => {
+    const latest = patientRequests.find((r) => r.status === "pending");
+    if (!latest) {
+      toast.info("No pending requests", { description: "You're all caught up." });
+      return;
+    }
+    setPendingRequest(latest);
     setShowRequestModal(true);
   };
 
@@ -296,14 +312,11 @@ export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessR
             </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={simulateIncomingRequest}
-            className="text-xs"
-          >
-            Demo: Simulate Access Request
-          </Button>
+          {patientRequests.filter((r) => r.status === "pending").length > 0 && (
+            <Button variant="outline" size="sm" onClick={openLatestPendingRequest} className="text-xs">
+              Review pending requests ({patientRequests.filter((r) => r.status === "pending").length})
+            </Button>
+          )}
         </div>
       )}
 
