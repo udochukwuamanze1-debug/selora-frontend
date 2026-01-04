@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
@@ -19,9 +19,11 @@ import {
   Twitter,
   MessageCircle,
   Send,
+  X,
 } from "lucide-react";
-import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { WaitlistCTA } from "@/components/WaitlistCTA";
 
 import patientPortalDark from "@/assets/patient-portal-dark.png";
 import patientPortalLight from "@/assets/patient-portal-light.png";
@@ -82,10 +84,22 @@ const faqs = [
   }
 ];
 
+function generateReferralCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 export default function Waitlist() {
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("r") || undefined;
+  
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [successData, setSuccessData] = useState<{ email: string; referralCode: string } | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { resolvedTheme } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -102,25 +116,65 @@ export default function Waitlist() {
     e.preventDefault();
 
     if (!email || !email.includes("@")) {
-      toast.error("Please enter a valid email address");
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate API call - in production, this would save to a database
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const newReferralCode = generateReferralCode();
 
-    // Store in localStorage for now
-    const waitlist = JSON.parse(localStorage.getItem("selora_waitlist") || "[]");
-    if (!waitlist.includes(email)) {
-      waitlist.push(email);
-      localStorage.setItem("selora_waitlist", JSON.stringify(waitlist));
+      const { data, error } = await supabase
+        .from("waitlist")
+        .insert({
+          email,
+          referral_code: newReferralCode,
+          referred_by: referralCode || null,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          // Duplicate email - fetch existing
+          const { data: existing } = await supabase
+            .from("waitlist")
+            .select("referral_code")
+            .eq("email", email)
+            .single();
+
+          if (existing) {
+            setSuccessData({ email, referralCode: existing.referral_code });
+          }
+        } else {
+          throw error;
+        }
+      } else if (data) {
+        if (referralCode) {
+          try {
+            await (supabase.rpc as any)("increment_referral_count", { ref_code: referralCode });
+          } catch {
+            // Ignore
+          }
+        }
+        setSuccessData({ email, referralCode: data.referral_code });
+      }
+    } catch (error) {
+      console.error("Waitlist error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    toast.success("You're on the list! We'll notify you when Selora launches.");
+  const copyReferralLink = () => {
+    if (!successData) return;
+    const link = `${window.location.origin}/waitlist?r=${successData.referralCode}`;
+    navigator.clipboard.writeText(link);
+  };
+
+  const closeSuccess = () => {
+    setSuccessData(null);
+    setEmail("");
   };
 
   return (
@@ -135,9 +189,9 @@ export default function Waitlist() {
         {/* Glassy diagonal primary glow - bottom-right */}
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] opacity-60" />
         
-        {/* Grid pattern */}
+        {/* Grid pattern - more visible in light mode */}
         <div 
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.04] dark:opacity-[0.02]"
           style={{
             backgroundImage: `
               linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
@@ -147,11 +201,11 @@ export default function Waitlist() {
           }}
         />
         
-        {/* Animated particles */}
-        {Array.from({ length: 20 }).map((_, i) => (
+        {/* Animated particles/stars - bigger and visible in both modes */}
+        {Array.from({ length: 25 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-primary/30 rounded-full animate-pulse"
+            className="absolute w-[3px] h-[3px] bg-primary/40 dark:bg-primary/30 rounded-full animate-pulse"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
@@ -210,7 +264,7 @@ export default function Waitlist() {
           </p>
 
           {/* Email Signup */}
-          {!isSubmitted ? (
+          {!successData ? (
             <form
               onSubmit={handleSubmit}
               className="max-w-md mx-auto animate-fade-up"
@@ -247,12 +301,19 @@ export default function Waitlist() {
             </form>
           ) : (
             <div className="max-w-md mx-auto animate-fade-up glass-card p-6">
-              <CheckCircle className="w-12 h-12 text-primary mx-auto mb-4" />
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">You're on the list!</h3>
-              <p className="text-muted-foreground">
-                We'll send you an email when Selora is ready. In the meantime, follow
-                us on social media.
+              <p className="text-muted-foreground mb-4">
+                Share your referral code to move up the priority list:
               </p>
+              <div className="flex items-center justify-center gap-2">
+                <code className="px-4 py-2 rounded-lg bg-muted text-foreground font-mono">
+                  {successData.referralCode}
+                </code>
+                <Button size="sm" variant="outline" onClick={copyReferralLink}>
+                  Copy Link
+                </Button>
+              </div>
             </div>
           )}
 
@@ -365,6 +426,9 @@ export default function Waitlist() {
           </div>
         </div>
       </motion.section>
+
+      {/* CTA Section */}
+      <WaitlistCTA referralCode={referralCode} />
 
       {/* Social Links */}
       <motion.section

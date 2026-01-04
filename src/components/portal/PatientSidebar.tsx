@@ -16,11 +16,15 @@ import {
   Wallet,
   ChevronLeft,
   ChevronRight,
+  Inbox,
+  Stethoscope,
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { id: "home", label: "Home", icon: Home },
+  { id: "inbox", label: "Access Inbox", icon: Inbox },
+  { id: "doctors", label: "Find Doctors", icon: Stethoscope },
   { id: "archive", label: "Health Archive", icon: Archive },
   { id: "vault", label: "Secure Vault", icon: Lock },
   { id: "coverage", label: "Coverage & Protection", icon: Shield },

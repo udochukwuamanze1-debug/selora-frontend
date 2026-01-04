@@ -11,6 +11,8 @@ import { HealthAssistant } from "./HealthAssistant";
 import { ProfilePreferences } from "./ProfilePreferences";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { OnboardingTutorial } from "./OnboardingTutorial";
+import { PatientInbox } from "./PatientInbox";
+import { DoctorsDirectory } from "./DoctorsDirectory";
 import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
 import { XPRewardsProvider } from "@/hooks/useXPRewards";
 import { cn } from "@/lib/utils";
@@ -41,6 +43,10 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
     switch (activeTab) {
       case "home":
         return <PatientHome walletAddress={walletAddress} onNavigate={setActiveTab} />;
+      case "inbox":
+        return <PatientInbox walletAddress={walletAddress} />;
+      case "doctors":
+        return <DoctorsDirectory patientWalletAddress={walletAddress} />;
       case "archive":
         return (
           <HealthArchive

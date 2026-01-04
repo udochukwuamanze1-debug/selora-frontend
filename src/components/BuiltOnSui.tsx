@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "framer-motion";
 import SuiLogo from "@/assets/sui-logo.svg";
 import { Zap, Shield, Layers, Database } from "lucide-react";
 
@@ -25,13 +26,21 @@ const features = [
 ];
 
 export const BuiltOnSui = () => {
+  const reducedMotion = useReducedMotion();
+
   return (
     <section className="py-24 px-6 md:px-12 lg:px-16 relative bg-background">
       {/* Subtle ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-primary/3 rounded-full blur-[120px]" />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+          whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           {/* Sui Logo */}
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-8">
             <img src={SuiLogo} alt="Sui" className="w-12 h-12" />
@@ -44,13 +53,17 @@ export const BuiltOnSui = () => {
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Selora is powered by the Sui ecosystem — fast, secure, and designed for composable ownership.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {features.map((feature) => (
-            <div
+          {features.map((feature, index) => (
+            <motion.div
               key={feature.label}
               className="group"
+              initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+              whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
             >
               <div className="glass-card p-6 text-center transition-all duration-300 hover:border-primary/20 h-full">
                 <div className="inline-flex p-3 rounded-xl bg-primary/5 group-hover:bg-primary/10 transition-colors mb-4">
@@ -63,7 +76,7 @@ export const BuiltOnSui = () => {
                   {feature.description}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
