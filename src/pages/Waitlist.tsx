@@ -446,16 +446,16 @@ export default function Waitlist() {
 
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href="https://twitter.com/selorahealth"
+              href="https://x.com/selorahealth"
               target="_blank"
               rel="noopener noreferrer"
               className="glass-card-hover px-6 py-4 flex items-center gap-3 group"
             >
               <Twitter className="w-5 h-5 text-primary" />
-              <span className="text-foreground group-hover:text-primary transition-colors">Twitter</span>
+              <span className="text-foreground group-hover:text-primary transition-colors">X-Twitter</span>
             </a>
             <a
-              href="https://discord.gg/selora"
+              href="https://discord.gg/XqZkcdhf2k"
               target="_blank"
               rel="noopener noreferrer"
               className="glass-card-hover px-6 py-4 flex items-center gap-3 group"
