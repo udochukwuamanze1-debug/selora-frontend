@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Lock,
   Shield,
@@ -41,24 +42,35 @@ const features = [
 ];
 
 export const FeaturesSection = () => {
+  const reducedMotion = useReducedMotion();
+
   return (
     <section className="py-24 px-4 relative overflow-hidden bg-muted/50">
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-16 animate-fade-up">
+        <motion.div 
+          className="text-center mb-16"
+          initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+          whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-foreground">
             Why <span className="text-primary">Selora</span>?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             A new paradigm for health data ownership and privacy
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div
+            <motion.div
               key={feature.title}
               className="group relative"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+              whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
             >
               <div className="glass-card p-6 relative overflow-hidden transition-all duration-300 hover:border-primary/20 hover:bg-card/80 h-full">
                 <div className="flex items-start gap-4 relative z-10">
@@ -75,7 +87,7 @@ export const FeaturesSection = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

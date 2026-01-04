@@ -137,12 +137,50 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          referral_code: string
+          referral_count: number
+          referred_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          referral_code: string
+          referral_count?: number
+          referred_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          referral_code?: string
+          referral_count?: number
+          referred_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "waitlist"
+            referencedColumns: ["referral_code"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_referral_count: {
+        Args: { ref_code: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

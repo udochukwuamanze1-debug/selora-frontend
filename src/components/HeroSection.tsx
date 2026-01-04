@@ -30,6 +30,32 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
       {/* Subtle dark cinematic background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20" />
       
+      {/* Grid pattern - more visible in light mode */}
+      <div 
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
+            linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px'
+        }}
+      />
+      
+      {/* Animated particles/stars - bigger and visible in both modes */}
+      {Array.from({ length: 25 }).map((_, i) => (
+        <div
+          key={i}
+          className="absolute w-[3px] h-[3px] bg-primary/40 dark:bg-primary/30 rounded-full animate-pulse"
+          style={{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 3}s`,
+            animationDuration: `${2 + Math.random() * 2}s`
+          }}
+        />
+      ))}
+      
       {/* Glassy diagonal primary glow - top-left */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] opacity-60" />
       

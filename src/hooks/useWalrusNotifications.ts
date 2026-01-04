@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import {
   getLocalNotifications,
   fetchNotificationsFromWalrus,
@@ -23,6 +24,7 @@ export function useWalrusNotifications(walletAddress: string) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const previousUnreadRef = useRef(0);
 
   // Load notifications
   const loadNotifications = useCallback(async () => {
@@ -41,8 +43,22 @@ export function useWalrusNotifications(walletAddress: string) {
 
       // Then fetch from Walrus and merge
       const walrusNotifications = await fetchNotificationsFromWalrus(walletAddress);
+      const newUnreadCount = walrusNotifications.filter(n => !n.read).length;
+      
+      // Show toast for new notifications
+      if (newUnreadCount > previousUnreadRef.current && previousUnreadRef.current > 0) {
+        const newestUnread = walrusNotifications.find(n => !n.read);
+        if (newestUnread) {
+          toast.info(newestUnread.title, {
+            description: newestUnread.message.slice(0, 60) + (newestUnread.message.length > 60 ? '...' : ''),
+            duration: 5000,
+          });
+        }
+      }
+      
+      previousUnreadRef.current = newUnreadCount;
       setNotifications(walrusNotifications);
-      setUnreadCount(walrusNotifications.filter(n => !n.read).length);
+      setUnreadCount(newUnreadCount);
     } catch (error) {
       console.error("Error loading notifications:", error);
     } finally {

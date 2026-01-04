@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { Wallet, Upload, Settings, User, Gift } from "lucide-react";
 
 const steps = [
@@ -29,25 +30,37 @@ const steps = [
 ];
 
 export const HowSeloraWorks = () => {
+  const reducedMotion = useReducedMotion();
+
   return (
     <section className="py-24 px-6 md:px-12 lg:px-16 relative bg-background">
       <div className="max-w-5xl mx-auto relative z-10">
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+          whileInView={reducedMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-foreground">
             How <span className="text-primary">Selora</span> Works
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             A simple, secure process to take control of your health data
           </p>
-        </div>
+        </motion.div>
 
         <div className="space-y-12 md:space-y-20">
           {steps.map((step, index) => (
-            <div
+            <motion.div
               key={step.title}
               className={`flex flex-col ${
                 index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
               } gap-8 md:gap-12 items-center`}
+              initial={reducedMotion ? false : { opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
+              whileInView={reducedMotion ? undefined : { opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
             >
               {/* Content */}
               <div className="flex-1 text-center md:text-left">
@@ -70,7 +83,7 @@ export const HowSeloraWorks = () => {
                   <step.icon className="w-16 h-16 md:w-20 md:h-20 text-primary/80" />
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
