@@ -42,7 +42,7 @@ const features = [
   {
     icon: Database,
     title: "Decentralized Storage",
-    description: "Records stored on Walrus network - censorship-resistant and always available."
+    description: "Records stored on IPFS decentralized storage network - censorship-resistant and always available."
   },
   {
     icon: Coins,
@@ -64,15 +64,15 @@ const features = [
 const faqs = [
   {
     question: "What is Selora?",
-    answer: "Selora is a decentralized health records platform built on the Sui blockchain. It gives you complete ownership and control over your medical data, allowing you to securely share it with healthcare providers and even earn from anonymized research contributions."
+    answer: "Selora is a decentralized health records platform built on the IOTA blockchain. It gives you complete ownership and control over your medical data, allowing you to securely share it with healthcare providers and even earn from anonymized research contributions."
   },
   {
     question: "How does Selora protect my data?",
-    answer: "Your health records are encrypted with AES-256 encryption before being stored on the Walrus decentralized storage network. Only you hold the keys to decrypt your data, and you control exactly who can access it and for how long."
+    answer: "Your health records are encrypted with AES-256 encryption before being stored on the IPFS decentralized storage network. Only you hold the keys to decrypt your data, and you control exactly who can access it and for how long."
   },
   {
     question: "Do I need cryptocurrency to use Selora?",
-    answer: "While Selora is built on the Sui blockchain, we've made it easy for everyone to use. You'll need a small amount of SUI tokens for transactions, but our onboarding process helps you get started even if you're new to crypto."
+    answer: "While Selora is built on the Sui blockchain, we've made it easy for everyone to use. You'll need a small amount of IOTA tokens for transactions, but our onboarding process helps you get started even if you're new to crypto."
   },
   {
     question: "Can doctors really send me prescriptions directly?",
@@ -80,7 +80,7 @@ const faqs = [
   },
   {
     question: "When will Selora launch?",
-    answer: "We're currently in development and testing on Sui Devnet. Join our waitlist to be among the first to access Selora when we launch on mainnet!"
+    answer: "We're currently in development and testing on IOTA Devnet. Join our waitlist to be among the first to access Selora when we launch on mainnet!"
   }
 ];
 
