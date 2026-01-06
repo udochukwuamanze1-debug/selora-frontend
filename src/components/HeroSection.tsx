@@ -67,7 +67,7 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
           {/* Powered by Sui Tag */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect mb-8 text-sm text-muted-foreground">
             <Shield className="w-4 h-4 text-primary" />
-            <span>Powered by Sui</span>
+            <span>Powered by IOTA</span>
           </div>
 
           <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-foreground">
