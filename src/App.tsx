@@ -5,7 +5,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { IotaProvider } from "@/providers/IotaProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
+// ✅ FIXED: Changed from @mysten/dapp-kit to @iota/dapp-kit
+import { useCurrentAccount, useDisconnectWallet } from "@iota/dapp-kit";
 import Index from "./pages/Index";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -23,25 +24,29 @@ function ProtectedPortal({ portal }: { portal: "doctor" | "lab" | "insurer" | "r
   const currentAccount = useCurrentAccount();
   const { mutate: disconnect } = useDisconnectWallet();
   const navigate = useNavigate();
+  
   const walletAddress = currentAccount?.address;
 
   const handleSignOut = () => {
     // Disable auto-connect for this tab/session so the user stays signed out.
     window.sessionStorage.setItem("selora_disable_autoconnect", "1");
-
+    
     // Clear all user-specific localStorage
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (
         key &&
-        (key.startsWith("selora_") || key.startsWith("sui-dapp-kit") || key.startsWith("dapp-kit") || key.includes("wallet"))
+        (key.startsWith("selora_") || 
+         key.startsWith("iota-dapp-kit") || // ✅ FIXED: Changed from sui-dapp-kit
+         key.startsWith("dapp-kit") || 
+         key.includes("wallet"))
       ) {
         keysToRemove.push(key);
       }
     }
     keysToRemove.forEach((key) => localStorage.removeItem(key));
-
+    
     disconnect();
     navigate("/");
   };
@@ -82,7 +87,7 @@ const AppRoutes = () => (
 
 const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="selora-theme">
-    <SuiProvider>
+    <IotaProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -91,7 +96,7 @@ const App = () => (
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>
-    </SuiProvider>
+    </IotaProvider>
   </ThemeProvider>
 );
 
