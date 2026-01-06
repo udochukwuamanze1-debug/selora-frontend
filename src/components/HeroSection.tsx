@@ -76,7 +76,7 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Selora is a decentralized health platform built on Sui — private, secure, and human-centered.
+            Selora is a decentralized health platform built on the IOTA Network — private, secure, and human-centered.
           </p>
 
           <Button
