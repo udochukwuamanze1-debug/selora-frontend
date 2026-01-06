@@ -22,7 +22,7 @@ const features = [
   {
     icon: Database,
     title: "Decentralized Storage",
-    description: "Records stored on IPFS Storage - censorship-resistant and always available.",
+    description: "Records stored onon IPFS decentralized storage network - censorship-resistant and always available.",
   },
   {
     icon: Coins,
