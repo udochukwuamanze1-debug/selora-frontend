@@ -54,7 +54,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <a
-                  href="https://x.com/selora"
+                  href="https://x.com/selorahealth"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-foreground transition-colors inline-flex items-center gap-2"
@@ -67,7 +67,7 @@ export const Footer = () => {
               </li>
               <li>
                 <a
-                  href="https://discord.gg/selora"
+                  href="https://discord.gg/XqZkcdhf2k"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-foreground transition-colors inline-flex items-center gap-2"
