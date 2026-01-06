@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@iota/dapp-kit": "^0.8.0",
+    "@iota/iota-sdk": "^1.10.0",
     "@mysten/dapp-kit": "^0.19.11",
     "@mysten/sui": "1.18.0",
     "@radix-ui/react-accordion": "^1.2.11",
