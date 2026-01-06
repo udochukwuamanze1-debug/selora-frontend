@@ -1,13 +1,13 @@
-// Selora Smart Contract Configuration - Deployed on Devnet
+// Selora Smart Contract Configuration - Deployed on IOTA
 export const SELORA_CONFIG = {
-  // Main package ID - deployed contract (updated)
-  PACKAGE_ID: '0xd3ca3f08cd18b236892159fef26051a028b355d09ca44be33e34a0540ceb7ca1',
+  // Main package ID - will be updated after IOTA contract deployment
+  PACKAGE_ID: '0x0000000000000000000000000000000000000000000000000000000000000000',
   // Registry object for storing platform state
-  REGISTRY_ID: '0x516e6cbd4871ae3240b914d8205a5aa9c4cad5d4ed28b024156ed5f607355299',
+  REGISTRY_ID: '0x0000000000000000000000000000000000000000000000000000000000000000',
   // Upgrade capability (for future upgrades)
-  UPGRADE_CAP: '0x763e3c799f589f36a05c97333b194f22f0154ac2052aeb0282a946f1c1125d33',
+  UPGRADE_CAP: '0x0000000000000000000000000000000000000000000000000000000000000000',
   // Network configuration
-  NETWORK: 'devnet' as const,
+  NETWORK: 'testnet' as const,
   // Fee configuration (in basis points)
   PRESCRIPTION_FEE_BPS: 50, // 0.5%
   RESEARCH_COMMISSION_BPS: 100, // 1%
@@ -28,34 +28,41 @@ export const ACCESS_DURATION_MS = {
 // Doctor Subscription Tiers
 export const SUBSCRIPTION_TIERS = {
   FREE: { tier: 0, name: 'Free', monthlyCost: 0, maxPatients: 10 },
-  PRO: { tier: 1, name: 'Pro', monthlyCost: 2, maxPatients: 100 }, // 2 SUI
-  ENTERPRISE: { tier: 2, name: 'Enterprise', monthlyCost: 10, maxPatients: Infinity }, // 10 SUI
+  PRO: { tier: 1, name: 'Pro', monthlyCost: 2, maxPatients: 100 }, // 2 IOTA
+  ENTERPRISE: { tier: 2, name: 'Enterprise', monthlyCost: 10, maxPatients: Infinity }, // 10 IOTA
 } as const;
 
-// Walrus Storage Configuration
+// IPFS Storage Configuration (replacing Walrus)
+export const IPFS_CONFIG = {
+  // Default IPFS gateway
+  GATEWAY_URL: 'https://ipfs.io/ipfs',
+  // Pinata API credentials (set via environment/secrets)
+  PINATA_API_KEY: undefined as string | undefined,
+  PINATA_SECRET_KEY: undefined as string | undefined,
+} as const;
+
+// Legacy Walrus config - kept for migration purposes
 export const WALRUS_CONFIG = {
-  // Walrus aggregator endpoint for testnet
   AGGREGATOR_URL: 'https://aggregator.walrus-testnet.walrus.space',
   PUBLISHER_URL: 'https://publisher.walrus-testnet.walrus.space',
-  // Default storage epochs (how long data persists)
   DEFAULT_EPOCHS: 5,
 } as const;
 
-// Supported Networks
+// Supported Networks - IOTA
 export const NETWORKS = {
   devnet: {
-    name: 'Sui Devnet',
-    rpcUrl: 'https://fullnode.devnet.sui.io:443',
-    faucetUrl: 'https://faucet.devnet.sui.io/gas',
+    name: 'IOTA Devnet',
+    rpcUrl: 'https://api.devnet.iota.cafe',
+    faucetUrl: 'https://faucet.devnet.iota.cafe',
   },
   testnet: {
-    name: 'Sui Testnet',
-    rpcUrl: 'https://fullnode.testnet.sui.io:443',
-    faucetUrl: 'https://faucet.testnet.sui.io/gas',
+    name: 'IOTA Testnet',
+    rpcUrl: 'https://api.testnet.iota.cafe',
+    faucetUrl: 'https://faucet.testnet.iota.cafe',
   },
   mainnet: {
-    name: 'Sui Mainnet',
-    rpcUrl: 'https://fullnode.mainnet.sui.io:443',
+    name: 'IOTA Mainnet',
+    rpcUrl: 'https://api.mainnet.iota.cafe',
   },
 } as const;
 

@@ -10,7 +10,7 @@ export const Footer = () => {
           <div className="md:col-span-1">
             <Logo />
             <p className="text-muted-foreground text-sm mt-4">
-              Decentralized health platform built on Sui. Private, secure, and human-centered.
+              Decentralized health platform built on IOTA. Private, secure, and human-centered.
             </p>
           </div>
 
@@ -99,7 +99,7 @@ export const Footer = () => {
             © Selora, 2025. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
-            Powered by Sui & Walrus
+            Powered by IOTA
           </p>
         </div>
       </div>

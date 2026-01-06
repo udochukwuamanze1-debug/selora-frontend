@@ -4,7 +4,7 @@ import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, Wallet, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
+import { useCurrentAccount, useDisconnectWallet } from "@iota/dapp-kit";
 import { AuthModal } from "@/components/AuthModal";
 
 interface NavbarProps {

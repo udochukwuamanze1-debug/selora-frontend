@@ -1,4 +1,4 @@
-import { useSuiClient, useCurrentAccount } from "@mysten/dapp-kit";
+import { useIotaClient, useCurrentAccount } from "@iota/dapp-kit";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ interface WalletBalanceProps {
 }
 
 export const WalletBalance = ({ className }: WalletBalanceProps) => {
-  const suiClient = useSuiClient();
+  const iotaClient = useIotaClient();
   const currentAccount = useCurrentAccount();
   const [balance, setBalance] = useState<string>("0.00");
   const [isLoading, setIsLoading] = useState(true);
@@ -21,13 +21,13 @@ export const WalletBalance = ({ className }: WalletBalanceProps) => {
       }
 
       try {
-        const balanceResponse = await suiClient.getBalance({
+        const balanceResponse = await iotaClient.getBalance({
           owner: currentAccount.address,
         });
         
-        // Convert from MIST to SUI (1 SUI = 10^9 MIST)
-        const suiBalance = Number(balanceResponse.totalBalance) / 1_000_000_000;
-        setBalance(suiBalance.toFixed(2));
+        // Convert from nanoIOTA to IOTA (1 IOTA = 10^9 nanoIOTA)
+        const iotaBalance = Number(balanceResponse.totalBalance) / 1_000_000_000;
+        setBalance(iotaBalance.toFixed(2));
       } catch (error) {
         console.error("Failed to fetch balance:", error);
         setBalance("0.00");
@@ -37,15 +37,14 @@ export const WalletBalance = ({ className }: WalletBalanceProps) => {
     };
 
     fetchBalance();
-    // Refresh balance every 30 seconds
     const interval = setInterval(fetchBalance, 30000);
     return () => clearInterval(interval);
-  }, [currentAccount?.address, suiClient]);
+  }, [currentAccount?.address, iotaClient]);
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className="px-3 py-1.5 rounded-lg bg-foreground text-background text-sm font-medium">
-        {isLoading ? "..." : `${balance} SUI`}
+        {isLoading ? "..." : `${balance} IOTA`}
       </div>
     </div>
   );

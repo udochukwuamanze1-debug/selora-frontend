@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { SuiProvider } from "@/providers/SuiProvider";
+import { IotaProvider } from "@/providers/IotaProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
