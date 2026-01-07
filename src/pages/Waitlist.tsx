@@ -72,7 +72,7 @@ const faqs = [
   },
   {
     question: "Do I need cryptocurrency to use Selora?",
-    answer: "While Selora is built on the Sui blockchain, we've made it easy for everyone to use. You'll need a small amount of IOTA tokens for transactions, but our onboarding process helps you get started even if you're new to crypto."
+    answer: "While Selora is built on the IOTA blockchain, we've made it easy for everyone to use. You'll need a small amount of IOTA tokens for transactions, but our onboarding process helps you get started even if you're new to crypto."
   },
   {
     question: "Can doctors really send me prescriptions directly?",
