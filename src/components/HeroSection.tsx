@@ -64,7 +64,7 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
 
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         <div className="animate-fade-up">
-          {/* Powered by Sui Tag */}
+          {/* Powered by IOTA Tag */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect mb-8 text-sm text-muted-foreground">
             <Shield className="w-4 h-4 text-primary" />
             <span>Powered by IOTA</span>
