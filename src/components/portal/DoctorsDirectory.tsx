@@ -18,7 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { addLocalNotification } from "@/lib/wallet-keyphrase";
 
 interface Doctor {
@@ -37,6 +36,45 @@ interface DoctorsDirectoryProps {
   patientWalletAddress: string;
 }
 
+const DOCTORS_STORAGE_KEY = "selora_doctors_directory";
+
+// Sample doctors for demonstration
+const sampleDoctors: Doctor[] = [
+  {
+    id: "doc_1",
+    full_name: "Dr. Sarah Chen",
+    specialty: "Cardiology",
+    clinic_name: "Heart Care Center",
+    city: "San Francisco",
+    country: "USA",
+    verified: true,
+    accepts_new_patients: true,
+    wallet_address: "0x1234...5678",
+  },
+  {
+    id: "doc_2",
+    full_name: "Dr. Michael Okonkwo",
+    specialty: "General Practice",
+    clinic_name: "Family Health Clinic",
+    city: "Lagos",
+    country: "Nigeria",
+    verified: true,
+    accepts_new_patients: true,
+    wallet_address: "0x2345...6789",
+  },
+  {
+    id: "doc_3",
+    full_name: "Dr. Emma Rodriguez",
+    specialty: "Dermatology",
+    clinic_name: null,
+    city: "Madrid",
+    country: "Spain",
+    verified: true,
+    accepts_new_patients: true,
+    wallet_address: "0x3456...7890",
+  },
+];
+
 export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
@@ -46,22 +84,23 @@ export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isSending, setIsSending] = useState(false);
 
-  // Load verified doctors
+  // Load doctors from localStorage
   useEffect(() => {
-    const loadDoctors = async () => {
+    const loadDoctors = () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("doctor_profiles")
-          .select("*")
-          .eq("verified", true)
-          .eq("accepts_new_patients", true);
-
-        if (error) throw error;
-        setDoctors(data || []);
+        const stored = localStorage.getItem(DOCTORS_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setDoctors(parsed);
+        } else {
+          // Initialize with sample doctors
+          localStorage.setItem(DOCTORS_STORAGE_KEY, JSON.stringify(sampleDoctors));
+          setDoctors(sampleDoctors);
+        }
       } catch (error) {
         console.error("Error loading doctors:", error);
-        toast.error("Failed to load doctors directory");
+        setDoctors(sampleDoctors);
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +111,7 @@ export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps
 
   // Filter doctors
   useEffect(() => {
-    let filtered = [...doctors];
+    let filtered = doctors.filter((d) => d.verified && d.accepts_new_patients);
 
     if (specialtyFilter !== "all") {
       filtered = filtered.filter((d) => d.specialty === specialtyFilter);

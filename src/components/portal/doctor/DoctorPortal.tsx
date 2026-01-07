@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@iota/dapp-kit";
 import { DoctorSidebar } from "./DoctorSidebar";
 import { CareWorkspace } from "./CareWorkspace";
 import { PatientInsights } from "./PatientInsights";

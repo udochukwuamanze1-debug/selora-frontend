@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
@@ -85,12 +86,13 @@ const faqs = [
 ];
 
 function generateReferralCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const timestamp = Date.now().toString(36).slice(-3).toUpperCase();
+  let random = "";
+  for (let i = 0; i < 5; i++) {
+    random += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return code;
+  return `SEL${timestamp}${random}`;
 }
 
 export default function Waitlist() {
@@ -99,7 +101,7 @@ export default function Waitlist() {
   
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successData, setSuccessData] = useState<{ email: string; referralCode: string } | null>(null);
+  const [successData, setSuccessData] = useState<{ email: string; referralCode: string; referralCount: number } | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { resolvedTheme } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -136,15 +138,15 @@ export default function Waitlist() {
 
       if (error) {
         if (error.code === "23505") {
-          // Duplicate email - fetch existing
+          // Duplicate email - fetch existing with referral count
           const { data: existing } = await supabase
             .from("waitlist")
-            .select("referral_code")
+            .select("referral_code, referral_count")
             .eq("email", email)
             .single();
 
           if (existing) {
-            setSuccessData({ email, referralCode: existing.referral_code });
+            setSuccessData({ email, referralCode: existing.referral_code, referralCount: existing.referral_count || 0 });
           }
         } else {
           throw error;
@@ -157,7 +159,7 @@ export default function Waitlist() {
             // Ignore
           }
         }
-        setSuccessData({ email, referralCode: data.referral_code });
+        setSuccessData({ email, referralCode: data.referral_code, referralCount: 0 });
       }
     } catch (error) {
       console.error("Waitlist error:", error);
@@ -166,10 +168,11 @@ export default function Waitlist() {
     }
   };
 
-  const copyReferralLink = () => {
+  const copyReferralLink = async () => {
     if (!successData) return;
     const link = `${window.location.origin}/waitlist?r=${successData.referralCode}`;
-    navigator.clipboard.writeText(link);
+    await navigator.clipboard.writeText(link);
+    toast.success("Referral link copied!");
   };
 
   const closeSuccess = () => {
@@ -304,16 +307,33 @@ export default function Waitlist() {
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">You're on the list!</h3>
               <p className="text-muted-foreground mb-4">
-                Share your referral code to move up the priority list:
+                Share your referral link to move up the priority list:
               </p>
-              <div className="flex items-center justify-center gap-2">
-                <code className="px-4 py-2 rounded-lg bg-muted text-foreground font-mono">
-                  {successData.referralCode}
-                </code>
-                <Button size="sm" variant="outline" onClick={copyReferralLink}>
-                  Copy Link
+              
+              {/* Referral Stats */}
+              <div className="glass-effect rounded-lg p-4 mb-4 text-center">
+                <div className="text-3xl font-bold text-primary mb-1">
+                  {successData.referralCount}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {successData.referralCount === 1 ? "person" : "people"} signed up with your link
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 px-4 py-2 rounded-lg bg-muted text-foreground font-mono text-sm truncate">
+                    {window.location.origin}/waitlist?r={successData.referralCode}
+                  </code>
+                </div>
+                <Button className="w-full gap-2" onClick={copyReferralLink}>
+                  Copy Referral Link
                 </Button>
               </div>
+              
+              <p className="text-xs text-muted-foreground mt-4 text-center">
+                Your unique code: <span className="font-mono font-semibold">{successData.referralCode}</span>
+              </p>
             </div>
           )}
 
