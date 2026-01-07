@@ -19,10 +19,10 @@ import {
   Loader2,
   Shield,
 } from "lucide-react";
-import { useSuiTransaction } from "@/hooks/useSuiTransaction";
-import { suiToMist, calculatePrescriptionFee, mistToSui } from "@/lib/sui-contracts";
+import { useIotaTransaction } from "@/hooks/useIotaTransaction";
+import { iotaToNanos, nanosToIota, calculatePrescriptionFee } from "@/lib/sui-contracts";
 import { toast } from "sonner";
-import SuiLogo from "@/assets/sui-logo.svg";
+import IotaLogo from "@/assets/iota-logo.svg";
 
 interface PrescriptionData {
   id: string;
@@ -65,7 +65,7 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
   const [processing, setProcessing] = useState(false);
   const [viewModal, setViewModal] = useState<string | null>(null);
   
-  const { payPrescription, isPending, isConnected } = useSuiTransaction();
+  const { payPrescription, isPending, isConnected } = useIotaTransaction();
 
   // Load prescriptions on mount
   useEffect(() => {
@@ -84,8 +84,8 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
 
     setProcessing(true);
     try {
-      const amountInMist = suiToMist(prescription.amountSui);
-      const result = await payPrescription(prescription.objectId, amountInMist);
+      const amountInNanos = iotaToNanos(prescription.amountSui);
+      const result = await payPrescription(prescription.objectId, amountInNanos);
 
       if (result) {
         // Update local state
@@ -95,9 +95,9 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
         setPrescriptions(updated);
         savePrescriptions(updated);
         
-        const fee = calculatePrescriptionFee(amountInMist);
+        const fee = calculatePrescriptionFee(amountInNanos);
         toast.success("Payment successful!", {
-          description: `Paid ${prescription.amountSui} SUI. Platform fee: ${mistToSui(fee).toFixed(4)} SUI`,
+          description: `Paid ${prescription.amountSui} IOTA. Platform fee: ${nanosToIota(fee).toFixed(4)} IOTA`,
         });
         setPaymentModal(null);
       }
@@ -132,10 +132,10 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
       const totalAmount = prescription.amountSui;
       const insuranceCoverage = prescription.insuranceCoverage || 80;
       const patientPortion = totalAmount * (1 - insuranceCoverage / 100);
-      const amountInMist = suiToMist(patientPortion);
+      const amountInNanos = iotaToNanos(patientPortion);
 
       // Call on-chain payment with insurance
-      const result = await payPrescription(prescription.objectId, amountInMist);
+      const result = await payPrescription(prescription.objectId, amountInNanos);
 
       if (result) {
         const updated = prescriptions.map((p) =>
@@ -334,14 +334,14 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
               <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">Amount Due</p>
                 <div className="flex items-center justify-center gap-2">
-                  <img src={SuiLogo} alt="SUI" className="w-8 h-8" />
+                  <img src={IotaLogo} alt="IOTA" className="w-8 h-8" />
                   <span className="text-4xl font-heading font-bold">
                     {selectedPrescription.amountSui}
                   </span>
-                  <span className="text-xl text-muted-foreground">SUI</span>
+                  <span className="text-xl text-muted-foreground">IOTA</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Platform fee: {(selectedPrescription.amountSui * 0.005).toFixed(4)} SUI (0.5%)
+                  Platform fee: {(selectedPrescription.amountSui * 0.005).toFixed(4)} IOTA (0.5%)
                 </p>
               </div>
 
@@ -355,8 +355,8 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      <img src={SuiLogo} alt="SUI" className="w-5 h-5" />
-                      Pay with SUI Wallet
+                      <img src={IotaLogo} alt="IOTA" className="w-5 h-5" />
+                      Pay with IOTA Wallet
                     </>
                   )}
                 </Button>

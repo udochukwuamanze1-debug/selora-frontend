@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import {
   ZkLoginState,
   loadZkLoginState,
-  saveZkLoginState,
   clearZkLoginState,
   initZkLoginState,
   buildGoogleOAuthUrl,
   extractJwtFromUrl,
-  fetchZkProof,
+  processJwtCallback,
   isZkLoginReady,
 } from "@/lib/zklogin";
 import { toast } from "sonner";
@@ -62,21 +61,16 @@ export function useZkLogin() {
       setError(null);
 
       try {
-        // Update state with JWT
-        const updatedState: ZkLoginState = { ...state, jwt };
-        saveZkLoginState(updatedState);
-        setState(updatedState);
-
-        // Fetch ZK proof from prover
-        const finalState = await fetchZkProof(updatedState);
+        // Process JWT and derive address
+        const finalState = await processJwtCallback(jwt);
         setState(finalState);
-        toast.success("Logged in with zkLogin!");
+        toast.success("Logged in successfully!");
 
         // Clean up URL fragment
         window.history.replaceState(null, "", window.location.pathname);
       } catch (e: any) {
         setError(e.message);
-        toast.error("ZK proof failed: " + e.message);
+        toast.error("Login failed: " + e.message);
       } finally {
         setLoading(false);
       }

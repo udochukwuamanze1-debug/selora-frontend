@@ -1,4 +1,5 @@
-// Sui smart contract interactions for Selora Health Platform
+// IOTA smart contract interactions for Selora Health Platform
+// (Compatible layer - originally for Sui, now adapted for IOTA)
 import { SELORA_CONFIG } from '@/config/constants';
 
 export interface AvatarData {
@@ -370,15 +371,19 @@ export function calculateResearchCommission(rewardInMist: number): number {
 }
 
 /**
- * Convert SUI to MIST (1 SUI = 1,000,000,000 MIST)
+ * Convert IOTA to nanos (1 IOTA = 1,000,000,000 nanos)
+ * Alias: suiToMist for backward compatibility
  */
-export function suiToMist(sui: number): number {
-  return Math.floor(sui * 1_000_000_000);
+export function iotaToNanos(iota: number): number {
+  return Math.floor(iota * 1_000_000_000);
 }
+export const suiToMist = iotaToNanos;
 
 /**
- * Convert MIST to SUI
+ * Convert nanos to IOTA
+ * Alias: mistToSui for backward compatibility
  */
-export function mistToSui(mist: number): number {
-  return mist / 1_000_000_000;
+export function nanosToIota(nanos: number): number {
+  return nanos / 1_000_000_000;
 }
+export const mistToSui = nanosToIota;

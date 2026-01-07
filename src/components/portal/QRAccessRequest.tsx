@@ -21,7 +21,7 @@ import { ACCESS_DURATION_MS } from "@/config/constants";
 import { addLocalNotification } from "@/lib/wallet-keyphrase";
 import { QRCodeSVG } from "qrcode.react";
 import { Html5Qrcode } from "html5-qrcode";
-import { useSuiTransaction } from "@/hooks/useSuiTransaction";
+import { useIotaTransaction } from "@/hooks/useIotaTransaction";
 
 interface AccessRequest {
   id: string;
@@ -70,7 +70,7 @@ export function QRAccessRequest({ walletAddress, userType, recordId }: QRAccessR
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerId = "qr-scanner-container";
 
-  const { grantAccess, revokeAccess, isPending } = useSuiTransaction();
+  const { grantAccess, revokeAccess, isPending } = useIotaTransaction();
 
   // Generate QR code data for patient
   const generateQRData = () => {
