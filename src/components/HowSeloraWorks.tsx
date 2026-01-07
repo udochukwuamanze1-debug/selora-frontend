@@ -5,7 +5,7 @@ const steps = [
   {
     icon: Wallet,
     title: "Connect Wallet / zkLogin",
-    description: "Secure access to your health portal using your Sui wallet or zkLogin for a seamless experience.",
+    description: "Secure access to your health portal using your IOTA wallet or zkLogin for a seamless experience.",
   },
   {
     icon: Upload,
