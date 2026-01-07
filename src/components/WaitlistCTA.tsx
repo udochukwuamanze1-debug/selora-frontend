@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, X, Clock, Users } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface WaitlistCTAProps {
@@ -10,18 +11,19 @@ interface WaitlistCTAProps {
 }
 
 function generateReferralCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const timestamp = Date.now().toString(36).slice(-3).toUpperCase();
+  let random = "";
+  for (let i = 0; i < 5; i++) {
+    random += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return code;
+  return `SEL${timestamp}${random}`;
 }
 
 export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAProps) {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successData, setSuccessData] = useState<{ email: string; referralCode: string } | null>(null);
+  const [successData, setSuccessData] = useState<{ email: string; referralCode: string; referralCount: number } | null>(null);
   const [countdown] = useState({ days: "00", hours: "00", mins: "00", secs: "00" });
   const reducedMotion = useReducedMotion();
 
@@ -50,15 +52,15 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
 
       if (error) {
         if (error.code === "23505") {
-          // Duplicate email - fetch existing
+          // Duplicate email - fetch existing with referral count
           const { data: existing } = await supabase
             .from("waitlist")
-            .select("referral_code")
+            .select("referral_code, referral_count")
             .eq("email", email)
             .single();
 
           if (existing) {
-            setSuccessData({ email, referralCode: existing.referral_code });
+            setSuccessData({ email, referralCode: existing.referral_code, referralCount: existing.referral_count || 0 });
           }
         } else {
           throw error;
@@ -72,7 +74,7 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
             // Ignore referral increment errors
           }
         }
-        setSuccessData({ email, referralCode: data.referral_code });
+        setSuccessData({ email, referralCode: data.referral_code, referralCount: 0 });
       }
     } catch (error) {
       console.error("Waitlist error:", error);
@@ -86,10 +88,11 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
     setEmail("");
   };
 
-  const copyReferralLink = () => {
+  const copyReferralLink = async () => {
     if (!successData) return;
     const link = `${window.location.origin}/waitlist?r=${successData.referralCode}`;
-    navigator.clipboard.writeText(link);
+    await navigator.clipboard.writeText(link);
+    toast.success("Referral link copied!");
   };
 
   return (
@@ -175,19 +178,28 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
 
       {/* Success Notification */}
       {successData && (
-        <div className="fixed bottom-4 right-4 z-50 max-w-md animate-fade-in">
+        <div className="fixed bottom-4 right-4 z-50 max-w-sm animate-fade-in">
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 shadow-lg backdrop-blur-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <p className="font-medium text-green-500 mb-1">You're on the list! 🎉</p>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Share your referral code to move up the priority list:
+                
+                {/* Referral Stats */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="text-2xl font-bold text-primary">{successData.referralCount}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {successData.referralCount === 1 ? "referral" : "referrals"}
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground mb-2">
+                  Share your link to move up:
                 </p>
-                <div className="flex items-center gap-2">
-                  <code className="px-3 py-1.5 rounded-lg bg-background/50 text-foreground font-mono text-sm">
-                    {successData.referralCode}
+                <div className="space-y-2">
+                  <code className="block px-3 py-1.5 rounded-lg bg-background/50 text-foreground font-mono text-xs truncate">
+                    {window.location.origin}/waitlist?r={successData.referralCode}
                   </code>
-                  <Button size="sm" variant="outline" onClick={copyReferralLink}>
+                  <Button size="sm" variant="outline" className="w-full" onClick={copyReferralLink}>
                     Copy Link
                   </Button>
                 </div>
