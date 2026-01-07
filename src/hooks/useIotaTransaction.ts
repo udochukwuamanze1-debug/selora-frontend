@@ -1,14 +1,14 @@
-import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
+import { useSignAndExecuteTransaction, useCurrentAccount, useIotaClient } from '@iota/dapp-kit';
+import { Transaction } from '@iota/iota-sdk/transactions';
 import { SELORA_CONFIG } from '@/config/constants';
 import { toast } from 'sonner';
 
-// Type assertion to handle version mismatch between @mysten/sui and @mysten/dapp-kit
+// Type assertion to handle version mismatch
 type AnyTransaction = any;
 
-export function useSuiTransaction() {
+export function useIotaTransaction() {
   const currentAccount = useCurrentAccount();
-  const suiClient = useSuiClient();
+  const iotaClient = useIotaClient();
   const { mutateAsync: signAndExecute, isPending } = useSignAndExecuteTransaction();
 
   const uploadScannedRecord = async (
@@ -40,7 +40,7 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      await suiClient.waitForTransaction({
+      await iotaClient.waitForTransaction({
         digest: result.digest,
       });
 
@@ -79,17 +79,18 @@ export function useSuiTransaction() {
       });
 
       // Wait for transaction to be confirmed
-      const txResponse = await suiClient.waitForTransaction({
+      const txResponse = await iotaClient.waitForTransaction({
         digest: result.digest,
         options: { showEffects: true, showObjectChanges: true },
       });
 
       toast.success('Avatar minted successfully!');
+      const createdObject = txResponse.objectChanges?.find(
+        (change: any) => change.type === 'created'
+      ) as any;
       return {
         digest: result.digest,
-        objectId: txResponse.objectChanges?.find(
-          (change) => change.type === 'created'
-        )?.objectId,
+        objectId: createdObject?.objectId,
       };
     } catch (error: any) {
       console.error('Mint avatar error:', error);
@@ -128,17 +129,18 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      const txResponse = await suiClient.waitForTransaction({
+      const txResponse = await iotaClient.waitForTransaction({
         digest: result.digest,
         options: { showObjectChanges: true },
       });
 
       toast.success('Prescription created on-chain!');
+      const createdObject = txResponse.objectChanges?.find(
+        (change: any) => change.type === 'created'
+      ) as any;
       return { 
         digest: result.digest,
-        objectId: txResponse.objectChanges?.find(
-          (change) => change.type === 'created'
-        )?.objectId,
+        objectId: createdObject?.objectId,
       };
     } catch (error: any) {
       console.error('Create prescription error:', error);
@@ -147,7 +149,7 @@ export function useSuiTransaction() {
     }
   };
 
-  const payPrescription = async (prescriptionId: string, amountInMist: number) => {
+  const payPrescription = async (prescriptionId: string, amountInNanos: number) => {
     if (!currentAccount) {
       toast.error('Please connect your wallet first');
       return null;
@@ -157,7 +159,7 @@ export function useSuiTransaction() {
       const tx = new Transaction();
 
       // Split coins for payment
-      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(amountInMist)]);
+      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(amountInNanos)]);
 
       tx.moveCall({
         target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::pay_prescription_self_pay`,
@@ -173,7 +175,7 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      await suiClient.waitForTransaction({
+      await iotaClient.waitForTransaction({
         digest: result.digest,
       });
 
@@ -189,7 +191,7 @@ export function useSuiTransaction() {
   const payPrescriptionWithInsurance = async (
     prescriptionId: string,
     insuranceNftId: string,
-    patientPaymentInMist: number
+    patientPaymentInNanos: number
   ) => {
     if (!currentAccount) {
       toast.error('Please connect your wallet first');
@@ -200,7 +202,7 @@ export function useSuiTransaction() {
       const tx = new Transaction();
 
       // Split coins for patient portion
-      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(patientPaymentInMist)]);
+      const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(patientPaymentInNanos)]);
 
       tx.moveCall({
         target: `${SELORA_CONFIG.PACKAGE_ID}::health_platform::pay_prescription_with_insurance`,
@@ -217,7 +219,7 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      await suiClient.waitForTransaction({
+      await iotaClient.waitForTransaction({
         digest: result.digest,
       });
 
@@ -258,7 +260,7 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      await suiClient.waitForTransaction({
+      await iotaClient.waitForTransaction({
         digest: result.digest,
       });
 
@@ -293,7 +295,7 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      await suiClient.waitForTransaction({
+      await iotaClient.waitForTransaction({
         digest: result.digest,
       });
 
@@ -340,17 +342,18 @@ export function useSuiTransaction() {
         transaction: tx as AnyTransaction,
       });
 
-      const txResponse = await suiClient.waitForTransaction({
+      const txResponse = await iotaClient.waitForTransaction({
         digest: result.digest,
         options: { showObjectChanges: true },
       });
 
       toast.success('Visit report created and sent to patient!');
+      const createdObject = txResponse.objectChanges?.find(
+        (change: any) => change.type === 'created'
+      ) as any;
       return { 
         digest: result.digest,
-        objectId: txResponse.objectChanges?.find(
-          (change) => change.type === 'created'
-        )?.objectId,
+        objectId: createdObject?.objectId,
       };
     } catch (error: any) {
       console.error('Create visit report error:', error);

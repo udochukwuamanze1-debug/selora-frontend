@@ -3,15 +3,13 @@ import { useNavigate } from "react-router-dom";
 import {
   loadZkLoginState,
   extractJwtFromUrl,
-  fetchZkProof,
-  saveZkLoginState,
-  ZkLoginState,
+  processJwtCallback,
 } from "@/lib/zklogin";
 import { toast } from "sonner";
 
 /**
  * OAuth callback page for zkLogin.
- * Handles the id_token fragment from Google and fetches the ZK proof.
+ * Handles the id_token fragment from Google and processes the login.
  * This page is intentionally minimal - processing happens silently.
  */
 const AuthCallback = () => {
@@ -34,12 +32,8 @@ const AuthCallback = () => {
           return;
         }
 
-        // Update state with JWT
-        const updatedState: ZkLoginState = { ...state, jwt };
-        saveZkLoginState(updatedState);
-
-        // Fetch ZK proof silently
-        const finalState = await fetchZkProof(updatedState);
+        // Process JWT and derive IOTA address
+        const finalState = await processJwtCallback(jwt);
 
         toast.success("Welcome to Selora!");
         

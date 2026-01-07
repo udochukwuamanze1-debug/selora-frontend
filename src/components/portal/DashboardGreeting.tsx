@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Heart, TrendingUp, TrendingDown, Minus, Sparkles, Star, Loader2, Gift, PartyPopper } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useSuiTransaction } from "@/hooks/useSuiTransaction";
+import { useIotaTransaction } from "@/hooks/useIotaTransaction";
 import { AvatarMintModal } from "@/components/AvatarMintModal";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
@@ -162,7 +162,7 @@ export function DashboardGreeting({
 }: DashboardGreetingProps) {
   const [showMintModal, setShowMintModal] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-  const { mintAvatar, isPending } = useSuiTransaction();
+  const { mintAvatar, isPending } = useIotaTransaction();
 
   const handleMintAvatar = async (name: string) => {
     setIsMinting(true);

@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { extractTextFromImage } from '@/lib/ocrService';
-import { useSuiTransaction } from '@/hooks/useSuiTransaction';
+import { useIotaTransaction } from '@/hooks/useIotaTransaction';
 
 export function ScanOldRecord() {
   const [isScanning, setIsScanning] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const { uploadScannedRecord } = useSuiTransaction(); // You'll need to add this
+  const { uploadScannedRecord } = useIotaTransaction();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

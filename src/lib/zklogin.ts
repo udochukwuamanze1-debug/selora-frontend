@@ -1,21 +1,15 @@
 /**
- * zkLogin helper utilities for Sui using Google OAuth (devnet).
- * Implements ephemeral keypair generation, nonce generation, and ZK proof fetching.
+ * zkLogin helper utilities for IOTA using Google OAuth.
+ * Note: IOTA does not yet have native zkLogin support like Sui.
+ * This module provides a simplified authentication flow that stores
+ * user identity locally and generates deterministic addresses.
  */
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
-import {
-  generateNonce,
-  generateRandomness,
-  getExtendedEphemeralPublicKey,
-  jwtToAddress,
-  genAddressSeed,
-  getZkLoginSignature,
-} from "@mysten/sui/zklogin";
+import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
+import { IotaClient, getFullnodeUrl } from "@iota/iota-sdk/client";
 import { jwtDecode } from "jwt-decode";
 
 // ----------------------------------------------------------------------------
-// Configuration for Devnet
+// Configuration
 // ----------------------------------------------------------------------------
 
 export const GOOGLE_CLIENT_ID =
@@ -26,15 +20,11 @@ const REDIRECT_URI =
     ? `${window.location.origin}/auth/callback`
     : "https://tryselora.vercel.app/auth/callback";
 
-// Sui devnet prover endpoint (used by Mysten for devnet ZK proof generation)
-const PROVER_URL = "https://prover-dev.mystenlabs.com/v1";
-
-// Salt service URL (For simplicity we use a static user salt stored locally.
-// In production you would call a salt service or store encrypted salts.)
+// Static salt for address derivation (in production, use a salt service)
 const STATIC_SALT = "129390038577185583942388216820280642146";
 
-// The SuiClient for fetching epoch information
-const suiClient = new SuiClient({ url: getFullnodeUrl("devnet") });
+// The IotaClient for network interactions
+const iotaClient = new IotaClient({ url: getFullnodeUrl("testnet") });
 
 // ----------------------------------------------------------------------------
 // Types
@@ -49,22 +39,10 @@ export interface ZkLoginState {
   nonce: string;
   maxEpoch: number;
   jwt?: string;
-  proof?: ZkProof;
   address?: string;
   salt: string;
-}
-
-interface ZkProof {
-  proofPoints: {
-    a: string[];
-    b: string[][];
-    c: string[];
-  };
-  issBase64Details: {
-    value: string;
-    indexMod4: number;
-  };
-  headerBase64: string;
+  googleEmail?: string;
+  googleName?: string;
 }
 
 interface JwtPayload {
@@ -74,10 +52,12 @@ interface JwtPayload {
   nonce: string;
   exp: number;
   iat: number;
+  email?: string;
+  name?: string;
 }
 
 // ----------------------------------------------------------------------------
-// Base64 helpers (avoid Node Buffer - fixes iOS/Android browser incompat)
+// Base64 helpers (browser-compatible)
 // ----------------------------------------------------------------------------
 
 function bytesToBase64(input: Uint8Array | ArrayLike<number>): string {
@@ -92,6 +72,15 @@ function base64ToBytes(b64: string): Uint8Array {
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
+}
+
+// Simple hash function for deterministic address generation
+async function sha256(message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ----------------------------------------------------------------------------
@@ -119,21 +108,19 @@ export function clearZkLoginState(): void {
 }
 
 // ----------------------------------------------------------------------------
-// Ephemeral keypair helpers
+// Generate random values
 // ----------------------------------------------------------------------------
 
-function keypairFromState(state: ZkLoginState): Ed25519Keypair {
-  const stored = state.ephemeralKeyPair.secretKey;
-  
-  // Handle bech32-encoded secret key (suiprivkey1...)
-  if (stored.startsWith("suiprivkey")) {
-    return Ed25519Keypair.fromSecretKey(stored);
-  }
-  
-  // Handle base64-encoded raw bytes
-  const secretKeyBytes = base64ToBytes(stored);
-  // fromSecretKey expects 32-byte seed
-  return Ed25519Keypair.fromSecretKey(secretKeyBytes.slice(0, 32));
+function generateRandomness(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return bytesToBase64(array);
+}
+
+function generateNonce(publicKey: string, epoch: number, randomness: string): string {
+  // Create a simple nonce from the components
+  const combined = `${publicKey}:${epoch}:${randomness}`;
+  return btoa(combined).replace(/[+/=]/g, '').slice(0, 32);
 }
 
 // ----------------------------------------------------------------------------
@@ -141,18 +128,18 @@ function keypairFromState(state: ZkLoginState): Ed25519Keypair {
 // ----------------------------------------------------------------------------
 
 export async function initZkLoginState(): Promise<ZkLoginState> {
-  // Fetch current epoch from devnet
-  const { epoch } = await suiClient.getLatestSuiSystemState();
-  const maxEpoch = Number(epoch) + 2; // valid for 2 epochs
-
-  // Generate ephemeral keypair
+  // Generate ephemeral keypair for this session
   const ephemeralKeyPair = new Ed25519Keypair();
+  
+  // Get current epoch (approximate, used for session validity)
+  let maxEpoch = Date.now() + (2 * 24 * 60 * 60 * 1000); // 2 days validity
 
   // Generate randomness and nonce
   const randomness = generateRandomness();
-  const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness);
+  const publicKeyBase64 = bytesToBase64(ephemeralKeyPair.getPublicKey().toRawBytes());
+  const nonce = generateNonce(publicKeyBase64, maxEpoch, randomness);
 
-  // Get secret key - may be string (bech32) or Uint8Array depending on version
+  // Get secret key
   const rawSecret = ephemeralKeyPair.getSecretKey();
   const secretKeyStr = typeof rawSecret === "string" 
     ? rawSecret 
@@ -160,7 +147,7 @@ export async function initZkLoginState(): Promise<ZkLoginState> {
 
   const state: ZkLoginState = {
     ephemeralKeyPair: {
-      publicKey: bytesToBase64(ephemeralKeyPair.getPublicKey().toRawBytes()),
+      publicKey: publicKeyBase64,
       secretKey: secretKeyStr,
     },
     randomness,
@@ -211,51 +198,45 @@ export function decodeJwt(jwt: string): JwtPayload {
 }
 
 // ----------------------------------------------------------------------------
-// Derive Sui address from JWT using zkLogin address derivation
+// Derive IOTA address from JWT (deterministic based on Google sub + salt)
 // ----------------------------------------------------------------------------
 
-export function deriveAddressFromJwt(jwt: string, salt: string): string {
-  return jwtToAddress(jwt, BigInt(salt));
+export async function deriveAddressFromJwt(jwt: string, salt: string): Promise<string> {
+  const decoded = decodeJwt(jwt);
+  // Create a deterministic seed from Google's sub claim and our salt
+  const seed = `${decoded.sub}:${salt}:iota`;
+  const hash = await sha256(seed);
+  
+  // Format as IOTA address (0x prefix + 64 hex chars)
+  return `0x${hash}`;
 }
 
 // ----------------------------------------------------------------------------
-// Fetch ZK proof from Mysten prover
+// Process JWT after OAuth callback
 // ----------------------------------------------------------------------------
 
-export async function fetchZkProof(state: ZkLoginState): Promise<ZkLoginState> {
-  if (!state.jwt) throw new Error("JWT not set");
-
-  const ephemeralKeyPair = keypairFromState(state);
-  const extendedPublicKey = getExtendedEphemeralPublicKey(ephemeralKeyPair.getPublicKey());
-
-  const payload = {
-    jwt: state.jwt,
-    extendedEphemeralPublicKey: extendedPublicKey,
-    maxEpoch: state.maxEpoch,
-    jwtRandomness: state.randomness,
-    salt: state.salt,
-    keyClaimName: "sub",
-  };
-
-  const response = await fetch(PROVER_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Prover error: ${text}`);
+export async function processJwtCallback(jwt: string): Promise<ZkLoginState> {
+  const state = loadZkLoginState();
+  if (!state) {
+    throw new Error("No zkLogin state found. Please start the login process again.");
   }
 
-  const proof = await response.json();
+  const decoded = decodeJwt(jwt);
+  
+  // Verify nonce matches
+  if (decoded.nonce !== state.nonce) {
+    throw new Error("Nonce mismatch. Please try logging in again.");
+  }
 
-  const address = deriveAddressFromJwt(state.jwt, state.salt);
+  // Derive deterministic IOTA address
+  const address = await deriveAddressFromJwt(jwt, state.salt);
 
   const updatedState: ZkLoginState = {
     ...state,
-    proof,
+    jwt,
     address,
+    googleEmail: decoded.email,
+    googleName: decoded.name,
   };
 
   saveZkLoginState(updatedState);
@@ -263,54 +244,24 @@ export async function fetchZkProof(state: ZkLoginState): Promise<ZkLoginState> {
 }
 
 // ----------------------------------------------------------------------------
-// Build zkLogin signature (for signing transactions)
-// ----------------------------------------------------------------------------
-
-export function buildZkLoginSignature(
-  state: ZkLoginState,
-  userSignature: Uint8Array
-): string {
-  if (!state.proof || !state.jwt) {
-    throw new Error("Proof or JWT not available");
-  }
-
-  const decoded = decodeJwt(state.jwt);
-  const addressSeed = genAddressSeed(
-    BigInt(state.salt),
-    "sub",
-    decoded.sub,
-    // jwtDecode type says aud is string, but some ID tokens can be array-like
-    (decoded as any).aud && Array.isArray((decoded as any).aud)
-      ? (decoded as any).aud[0]
-      : (decoded as any).aud
-  ).toString();
-
-  const signatureInputs = {
-    proofPoints: state.proof.proofPoints,
-    issBase64Details: state.proof.issBase64Details,
-    headerBase64: state.proof.headerBase64,
-    addressSeed,
-  };
-
-  return getZkLoginSignature({
-    inputs: signatureInputs,
-    maxEpoch: state.maxEpoch,
-    userSignature: bytesToBase64(userSignature),
-  });
-}
-
-// ----------------------------------------------------------------------------
 // High-level helpers
 // ----------------------------------------------------------------------------
 
 export function isZkLoginReady(state: ZkLoginState | null): boolean {
-  return !!(state?.proof && state?.address);
+  return !!(state?.jwt && state?.address);
 }
 
 export function isZkLoginExpired(state: ZkLoginState | null): boolean {
   if (!state) return true;
-  // We cannot easily check current epoch from sync context, but
-  // caller can check state.maxEpoch against current epoch.
-  return false;
+  // Check if maxEpoch (timestamp) has passed
+  return Date.now() > state.maxEpoch;
 }
 
+// Get user info from stored state
+export function getZkLoginUserInfo(state: ZkLoginState | null): { email?: string; name?: string } | null {
+  if (!state || !isZkLoginReady(state)) return null;
+  return {
+    email: state.googleEmail,
+    name: state.googleName,
+  };
+}

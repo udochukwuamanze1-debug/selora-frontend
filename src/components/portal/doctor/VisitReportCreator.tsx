@@ -22,7 +22,7 @@ import {
   Bell
 } from "lucide-react";
 import { toast } from "sonner";
-import { useSuiTransaction } from "@/hooks/useSuiTransaction";
+import { useIotaTransaction } from "@/hooks/useIotaTransaction";
 import { useWalrusStorage } from "@/hooks/useWalrusStorage";
 import { encryptWithPassphrase } from "@/lib/encryption";
 import { sendVisitReportNotification } from "@/lib/walrus-notifications";
@@ -59,7 +59,7 @@ export const VisitReportCreator = ({ doctorAddress, doctorName = "Doctor" }: Vis
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastCreatedReport, setLastCreatedReport] = useState<string | null>(null);
 
-  const { createVisitReport, isPending, isConnected } = useSuiTransaction();
+  const { createVisitReport, isPending, isConnected } = useIotaTransaction();
   const { uploadData } = useWalrusStorage(doctorAddress);
 
   const handleSubmit = async (e: React.FormEvent) => {
