@@ -35,10 +35,10 @@ export const SUBSCRIPTION_TIERS = {
 // IPFS Storage Configuration (replacing Walrus)
 export const IPFS_CONFIG = {
   // Default IPFS gateway
-  GATEWAY_URL: 'https://ipfs.io/ipfs',
-  // Pinata API credentials (set via environment/secrets)
-  PINATA_API_KEY: undefined as string | undefined,
-  PINATA_SECRET_KEY: undefined as string | undefined,
+  GATEWAY_URL: 'https://gateway.pinata.cloud/ipfs',
+  // Pinata API credentials
+  PINATA_API_KEY: 'fdec5420ab624cba93b5453344f60b8d',
+  PINATA_SECRET_KEY: 'eXg1ErE7Y0M6ilynBIUI5EiYQjfYId38txGcxf/VlQkgLmIyUxzeAg',
 } as const;
 
 // Legacy Walrus config - kept for migration purposes

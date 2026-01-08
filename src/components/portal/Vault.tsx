@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useWalrusStorage, type StoredRecord } from "@/hooks/useWalrusStorage";
+import { useIPFSStorage, type IPFSStoredRecord } from "@/hooks/useIPFSStorage";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { KeyphraseBackup } from "./KeyphraseBackup";
@@ -45,7 +45,7 @@ interface VaultFile {
   size: number;
   category: FileCategory;
   uploadedAt: Date;
-  blobId?: string;
+  cid?: string;
   iv: string;
   encrypted: boolean;
 }
@@ -80,7 +80,7 @@ const formatFileSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-function recordToVaultFile(r: StoredRecord): VaultFile {
+function recordToVaultFile(r: IPFSStoredRecord): VaultFile {
   return {
     id: r.id,
     name: r.originalName,
@@ -88,7 +88,7 @@ function recordToVaultFile(r: StoredRecord): VaultFile {
     size: r.size,
     category: getCategoryFromType(r.mimeType),
     uploadedAt: new Date(r.uploadedAt),
-    blobId: r.blobId,
+    cid: r.cid,
     iv: r.iv,
     encrypted: true,
   };
@@ -103,7 +103,7 @@ export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { records, uploadFile, downloadFile, isUploading, isDownloading, loadRecords, deleteRecord } =
-    useWalrusStorage(walletAddress);
+    useIPFSStorage(walletAddress);
 
   // Keep Vault search synced to the global header search (Patient portal)
   useEffect(() => {
@@ -298,7 +298,7 @@ export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
           </Button>
         </label>
         <p className="text-xs text-muted-foreground mt-3">
-          Files are encrypted with AES-256 before being stored on Walrus
+          Files are encrypted with AES-256 before being stored on IPFS
         </p>
       </div>
 

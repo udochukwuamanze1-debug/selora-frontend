@@ -164,7 +164,7 @@ export function DashboardGreeting({
   const [isMinting, setIsMinting] = useState(false);
   const { mintAvatar, isPending } = useIotaTransaction();
 
-  const handleMintAvatar = async (name: string) => {
+  const handleMintAvatar = async (name: string): Promise<{ success: boolean; error?: string }> => {
     setIsMinting(true);
     try {
       const result = await mintAvatar(name);
@@ -172,7 +172,11 @@ export function DashboardGreeting({
         toast.success("Avatar minted successfully!", {
           description: `Your Selora Avatar "${name}" is now on-chain.`,
         });
+        return { success: true };
       }
+      return { success: false, error: "Minting failed" };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Minting failed" };
     } finally {
       setIsMinting(false);
     }
