@@ -8,6 +8,8 @@ import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { cn } from "@/lib/utils";
+import { FileText, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface InsurerPortalProps {
   walletAddress: string;
@@ -67,18 +69,53 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
   );
 };
 
-const ClaimsProcessing = () => (
-  <div className="space-y-6">
-    <div>
-      <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-        Claims Processing
-      </h1>
-      <p className="text-muted-foreground">
-        Manage and process insurance claims
-      </p>
+const ClaimsProcessing = () => {
+  const [claims, setClaims] = useState<any[]>(() => {
+    const stored = localStorage.getItem("selora_insurance_claims");
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
+            Claims Processing
+          </h1>
+          <p className="text-muted-foreground">
+            Manage and process insurance claims
+          </p>
+        </div>
+      </div>
+      
+      {claims.length === 0 ? (
+        <div className="glass-card p-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="font-semibold text-lg mb-2">No claims to process</h3>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Claims will appear here when patients submit them through their portal. You'll be able to review, approve, or reject claims.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {claims.map((claim) => (
+            <div key={claim.id} className="glass-card p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{claim.patientName}</p>
+                  <p className="text-sm text-muted-foreground">{claim.type}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold">${claim.amount}</p>
+                  <p className="text-xs text-muted-foreground">{claim.status}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-    <div className="glass-card p-12 text-center">
-      <p className="text-muted-foreground">No claims to process yet. Claims will appear here when patients submit them.</p>
-    </div>
-  </div>
-);
+  );
+};

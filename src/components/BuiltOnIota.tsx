@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import IotaLogo from "@/assets/iota-logo.svg";
+import { IotaLogo } from "@/components/IotaLogo";
 import { Zap, Shield, Layers, Database } from "lucide-react";
 
 const features = [
@@ -43,7 +43,7 @@ export const BuiltOnIota = () => {
         >
           {/* IOTA Logo */}
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-8">
-            <img src={IotaLogo} alt="IOTA" className="w-12 h-12" />
+            <IotaLogo size={48} />
           </div>
 
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4 text-foreground">
