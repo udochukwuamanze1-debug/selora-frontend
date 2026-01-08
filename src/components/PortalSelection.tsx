@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { AvatarMintModal } from "@/components/AvatarMintModal";
 import { useAvatar } from "@/hooks/useAvatar";
+import { useXPRewards, XPRewardsProvider } from "@/hooks/useXPRewards";
 import {
   User,
   Stethoscope,
@@ -59,7 +60,8 @@ interface PortalSelectionProps {
   onDisconnect: () => void;
 }
 
-export const PortalSelection = ({
+// Inner component that uses XP context
+const PortalSelectionContent = ({
   walletAddress,
   onSelectPortal,
   onDisconnect,
@@ -68,6 +70,12 @@ export const PortalSelection = ({
   const { avatar, hasAvatar, isMinting, mintAvatar } = useAvatar(walletAddress);
   const [showMintModal, setShowMintModal] = useState(false);
   const [pendingPortal, setPendingPortal] = useState<string | null>(null);
+  const { checkDailyLogin, awardXP } = useXPRewards();
+
+  // Check daily login XP on mount
+  useEffect(() => {
+    checkDailyLogin();
+  }, []);
 
   // Show mint modal for first-time users
   useEffect(() => {
@@ -102,16 +110,25 @@ export const PortalSelection = ({
     }
   };
 
-  const handleMint = async (name: string) => {
-    await mintAvatar(name);
-    toast.success("Selora Avatar minted successfully!");
-    setShowMintModal(false);
+  const handleMint = async (name: string): Promise<{ success: boolean; error?: string }> => {
+    const result = await mintAvatar(name);
     
-    // If user was trying to enter a portal, proceed
-    if (pendingPortal) {
-      handlePortalClick(pendingPortal);
-      setPendingPortal(null);
+    if (result.success) {
+      // Award XP for minting avatar
+      awardXP("MINT_AVATAR");
+      toast.success("Selora Avatar minted successfully!");
+      setShowMintModal(false);
+      
+      // If user was trying to enter a portal, proceed
+      if (pendingPortal) {
+        setTimeout(() => {
+          handlePortalClick(pendingPortal);
+          setPendingPortal(null);
+        }, 500);
+      }
     }
+    
+    return result;
   };
 
   return (
@@ -209,5 +226,14 @@ export const PortalSelection = ({
         isMinting={isMinting}
       />
     </div>
+  );
+};
+
+// Wrapper that provides XP context
+export const PortalSelection = (props: PortalSelectionProps) => {
+  return (
+    <XPRewardsProvider walletAddress={props.walletAddress}>
+      <PortalSelectionContent {...props} />
+    </XPRewardsProvider>
   );
 };

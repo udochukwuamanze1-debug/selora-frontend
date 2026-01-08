@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Wallet, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ConnectModal } from "@iota/dapp-kit";
 import { toast } from "sonner";
 import { initZkLoginState, buildGoogleOAuthUrl, loadZkLoginState, isZkLoginReady } from "@/lib/zklogin";
-import IotaLogo from "@/assets/iota-logo.svg";
+import { IotaLogo } from "@/components/IotaLogo";
 
 interface AuthModalProps {
   open: boolean;
@@ -124,7 +124,7 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               disabled={isLoading}
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <img src={IotaLogo} alt="IOTA" className="w-5 h-5" />
+                <IotaLogo size={20} />
               </div>
               <div className="text-left">
                 <div className="font-medium">Connect IOTA Wallet</div>

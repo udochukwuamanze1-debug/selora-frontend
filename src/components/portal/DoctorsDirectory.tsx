@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, Stethoscope, CheckCircle, Send, Loader2 } from "lucide-react";
+import { Search, MapPin, Stethoscope, CheckCircle, Send, Loader2, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,43 +38,6 @@ interface DoctorsDirectoryProps {
 
 const DOCTORS_STORAGE_KEY = "selora_doctors_directory";
 
-// Sample doctors for demonstration
-const sampleDoctors: Doctor[] = [
-  {
-    id: "doc_1",
-    full_name: "Dr. Sarah Chen",
-    specialty: "Cardiology",
-    clinic_name: "Heart Care Center",
-    city: "San Francisco",
-    country: "USA",
-    verified: true,
-    accepts_new_patients: true,
-    wallet_address: "0x1234...5678",
-  },
-  {
-    id: "doc_2",
-    full_name: "Dr. Michael Okonkwo",
-    specialty: "General Practice",
-    clinic_name: "Family Health Clinic",
-    city: "Lagos",
-    country: "Nigeria",
-    verified: true,
-    accepts_new_patients: true,
-    wallet_address: "0x2345...6789",
-  },
-  {
-    id: "doc_3",
-    full_name: "Dr. Emma Rodriguez",
-    specialty: "Dermatology",
-    clinic_name: null,
-    city: "Madrid",
-    country: "Spain",
-    verified: true,
-    accepts_new_patients: true,
-    wallet_address: "0x3456...7890",
-  },
-];
-
 export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps) {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
@@ -84,7 +47,7 @@ export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isSending, setIsSending] = useState(false);
 
-  // Load doctors from localStorage
+  // Load doctors from localStorage - only user-registered doctors
   useEffect(() => {
     const loadDoctors = () => {
       setIsLoading(true);
@@ -94,13 +57,13 @@ export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps
           const parsed = JSON.parse(stored);
           setDoctors(parsed);
         } else {
-          // Initialize with sample doctors
-          localStorage.setItem(DOCTORS_STORAGE_KEY, JSON.stringify(sampleDoctors));
-          setDoctors(sampleDoctors);
+          // Start with empty list - no fake data
+          localStorage.setItem(DOCTORS_STORAGE_KEY, JSON.stringify([]));
+          setDoctors([]);
         }
       } catch (error) {
         console.error("Error loading doctors:", error);
-        setDoctors(sampleDoctors);
+        setDoctors([]);
       } finally {
         setIsLoading(false);
       }
@@ -200,31 +163,41 @@ export function DoctorsDirectory({ patientWalletAddress }: DoctorsDirectoryProps
             className="pl-10"
           />
         </div>
-        <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <Stethoscope className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="Specialty" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Specialties</SelectItem>
-            {specialties.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {specialties.length > 0 && (
+          <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <Stethoscope className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Specialty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Specialties</SelectItem>
+              {specialties.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Doctors Grid */}
-      {filteredDoctors.length === 0 ? (
+      {doctors.length === 0 ? (
+        <div className="glass-card p-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <UserPlus className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="font-semibold text-lg mb-2">No doctors registered yet</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Doctors can register through the Doctor Portal. Once verified, they will appear here for you to connect with.
+          </p>
+        </div>
+      ) : filteredDoctors.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <Stethoscope className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-semibold mb-2">No doctors found</h3>
           <p className="text-sm text-muted-foreground">
-            {doctors.length === 0
-              ? "No verified doctors are available yet."
-              : "Try adjusting your search or filters."}
+            Try adjusting your search or filters.
           </p>
         </div>
       ) : (
