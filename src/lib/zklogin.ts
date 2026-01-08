@@ -1,8 +1,7 @@
 /**
  * zkLogin helper utilities for IOTA using Google OAuth.
- * Note: IOTA does not yet have native zkLogin support like Sui.
- * This module provides a simplified authentication flow that stores
- * user identity locally and generates deterministic addresses.
+ * Provides a deterministic wallet address based on Google identity.
+ * Session persists across logins using the same Google account.
  */
 import { Ed25519Keypair } from "@iota/iota-sdk/keypairs/ed25519";
 import { IotaClient, getFullnodeUrl } from "@iota/iota-sdk/client";
@@ -20,8 +19,8 @@ const REDIRECT_URI =
     ? `${window.location.origin}/auth/callback`
     : "https://tryselora.vercel.app/auth/callback";
 
-// Static salt for address derivation (in production, use a salt service)
-const STATIC_SALT = "129390038577185583942388216820280642146";
+// Static salt for address derivation - combined with Google sub for determinism
+const STATIC_SALT = "selora_iota_health_v1_129390038577185583942388216820280642146";
 
 // The IotaClient for network interactions
 const iotaClient = new IotaClient({ url: getFullnodeUrl("testnet") });
@@ -43,6 +42,8 @@ export interface ZkLoginState {
   salt: string;
   googleEmail?: string;
   googleName?: string;
+  googleSub?: string; // Store Google's unique user ID for session persistence
+  createdAt: number;
 }
 
 interface JwtPayload {
@@ -74,7 +75,7 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes;
 }
 
-// Simple hash function for deterministic address generation
+// Deterministic hash for address generation
 async function sha256(message: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(message);
@@ -83,18 +84,53 @@ async function sha256(message: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Generate deterministic seed bytes from a string
+async function deterministicSeedBytes(seed: string): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(seed);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return new Uint8Array(hashBuffer);
+}
+
 // ----------------------------------------------------------------------------
-// Storage helpers
+// Storage helpers - persist by Google sub (user ID) for cross-session support
 // ----------------------------------------------------------------------------
 
 const STORAGE_KEY = "selora_zklogin_state";
+const USER_INDEX_KEY = "selora_zklogin_users";
 
 export function saveZkLoginState(state: ZkLoginState): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  
+  // Also index by Google sub for user lookup
+  if (state.googleSub) {
+    const userKey = `selora_zklogin_user_${state.googleSub}`;
+    localStorage.setItem(userKey, JSON.stringify(state));
+    
+    // Update user index
+    const indexStr = localStorage.getItem(USER_INDEX_KEY);
+    const index: string[] = indexStr ? JSON.parse(indexStr) : [];
+    if (!index.includes(state.googleSub)) {
+      index.push(state.googleSub);
+      localStorage.setItem(USER_INDEX_KEY, JSON.stringify(index));
+    }
+  }
 }
 
 export function loadZkLoginState(): ZkLoginState | null {
   const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as ZkLoginState;
+  } catch {
+    return null;
+  }
+}
+
+// Load existing user state by Google sub (for returning users)
+export function loadUserByGoogleSub(sub: string): ZkLoginState | null {
+  const userKey = `selora_zklogin_user_${sub}`;
+  const raw = localStorage.getItem(userKey);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as ZkLoginState;
@@ -118,7 +154,6 @@ function generateRandomness(): string {
 }
 
 function generateNonce(publicKey: string, epoch: number, randomness: string): string {
-  // Create a simple nonce from the components
   const combined = `${publicKey}:${epoch}:${randomness}`;
   return btoa(combined).replace(/[+/=]/g, '').slice(0, 32);
 }
@@ -128,13 +163,12 @@ function generateNonce(publicKey: string, epoch: number, randomness: string): st
 // ----------------------------------------------------------------------------
 
 export async function initZkLoginState(): Promise<ZkLoginState> {
-  // Generate ephemeral keypair for this session
+  // Generate ephemeral keypair for this OAuth session
   const ephemeralKeyPair = new Ed25519Keypair();
   
-  // Get current epoch (approximate, used for session validity)
-  let maxEpoch = Date.now() + (2 * 24 * 60 * 60 * 1000); // 2 days validity
+  // Session validity: 7 days
+  const maxEpoch = Date.now() + (7 * 24 * 60 * 60 * 1000);
 
-  // Generate randomness and nonce
   const randomness = generateRandomness();
   const publicKeyBase64 = bytesToBase64(ephemeralKeyPair.getPublicKey().toRawBytes());
   const nonce = generateNonce(publicKeyBase64, maxEpoch, randomness);
@@ -154,6 +188,7 @@ export async function initZkLoginState(): Promise<ZkLoginState> {
     nonce,
     maxEpoch,
     salt: STATIC_SALT,
+    createdAt: Date.now(),
   };
 
   saveZkLoginState(state);
@@ -198,17 +233,46 @@ export function decodeJwt(jwt: string): JwtPayload {
 }
 
 // ----------------------------------------------------------------------------
-// Derive IOTA address from JWT (deterministic based on Google sub + salt)
+// Derive IOTA address deterministically from Google identity
+// The same Google account will ALWAYS get the same IOTA address
 // ----------------------------------------------------------------------------
 
-export async function deriveAddressFromJwt(jwt: string, salt: string): Promise<string> {
-  const decoded = decodeJwt(jwt);
-  // Create a deterministic seed from Google's sub claim and our salt
-  const seed = `${decoded.sub}:${salt}:iota`;
+export async function deriveAddressFromGoogleSub(sub: string, salt: string): Promise<string> {
+  // Create a deterministic seed from Google's unique sub claim and our salt
+  const seed = `iota:${sub}:${salt}:address`;
   const hash = await sha256(seed);
   
   // Format as IOTA address (0x prefix + 64 hex chars)
   return `0x${hash}`;
+}
+
+// Generate a deterministic keypair for signing transactions
+export async function deriveKeypairFromGoogleSub(sub: string, salt: string): Promise<Ed25519Keypair> {
+  const seed = `iota:${sub}:${salt}:keypair`;
+  const seedBytes = await deterministicSeedBytes(seed);
+  return Ed25519Keypair.fromSecretKey(seedBytes);
+}
+
+// Generate a deterministic mnemonic/recovery phrase
+export async function deriveMnemonicFromGoogleSub(sub: string, salt: string): Promise<string> {
+  const seed = `iota:${sub}:${salt}:mnemonic`;
+  const hash = await sha256(seed);
+  
+  // Convert hash to a simple word-based recovery phrase
+  // In production, use proper BIP39 word list
+  const words = [
+    "apple", "brave", "coral", "delta", "eagle", "frost", "grace", "heart",
+    "ivory", "jewel", "karma", "lunar", "maple", "noble", "ocean", "pearl",
+    "quest", "river", "solar", "tiger", "unity", "vivid", "wave", "zenith"
+  ];
+  
+  const phrase: string[] = [];
+  for (let i = 0; i < 12; i++) {
+    const index = parseInt(hash.slice(i * 5, i * 5 + 5), 16) % words.length;
+    phrase.push(words[index]);
+  }
+  
+  return phrase.join(" ");
 }
 
 // ----------------------------------------------------------------------------
@@ -216,30 +280,54 @@ export async function deriveAddressFromJwt(jwt: string, salt: string): Promise<s
 // ----------------------------------------------------------------------------
 
 export async function processJwtCallback(jwt: string): Promise<ZkLoginState> {
-  const state = loadZkLoginState();
-  if (!state) {
+  const currentState = loadZkLoginState();
+  if (!currentState) {
     throw new Error("No zkLogin state found. Please start the login process again.");
   }
 
   const decoded = decodeJwt(jwt);
   
   // Verify nonce matches
-  if (decoded.nonce !== state.nonce) {
+  if (decoded.nonce !== currentState.nonce) {
     throw new Error("Nonce mismatch. Please try logging in again.");
   }
 
-  // Derive deterministic IOTA address
-  const address = await deriveAddressFromJwt(jwt, state.salt);
+  // Check if this is a returning user
+  const existingUser = loadUserByGoogleSub(decoded.sub);
+  
+  // Derive deterministic IOTA address from Google sub
+  const address = await deriveAddressFromGoogleSub(decoded.sub, STATIC_SALT);
+  
+  // Generate deterministic keypair for this user
+  const keypair = await deriveKeypairFromGoogleSub(decoded.sub, STATIC_SALT);
+  const publicKeyBase64 = bytesToBase64(keypair.getPublicKey().toRawBytes());
+  const rawSecret = keypair.getSecretKey();
+  const secretKeyStr = typeof rawSecret === "string" 
+    ? rawSecret 
+    : bytesToBase64(rawSecret as unknown as Uint8Array);
 
   const updatedState: ZkLoginState = {
-    ...state,
+    ...currentState,
+    ephemeralKeyPair: {
+      publicKey: publicKeyBase64,
+      secretKey: secretKeyStr,
+    },
     jwt,
     address,
     googleEmail: decoded.email,
     googleName: decoded.name,
+    googleSub: decoded.sub,
   };
 
   saveZkLoginState(updatedState);
+  
+  // Log returning user status
+  if (existingUser) {
+    console.log("Welcome back! Restored session for:", decoded.email);
+  } else {
+    console.log("New user registered:", decoded.email);
+  }
+
   return updatedState;
 }
 
@@ -253,15 +341,33 @@ export function isZkLoginReady(state: ZkLoginState | null): boolean {
 
 export function isZkLoginExpired(state: ZkLoginState | null): boolean {
   if (!state) return true;
-  // Check if maxEpoch (timestamp) has passed
   return Date.now() > state.maxEpoch;
 }
 
 // Get user info from stored state
-export function getZkLoginUserInfo(state: ZkLoginState | null): { email?: string; name?: string } | null {
+export function getZkLoginUserInfo(state: ZkLoginState | null): { 
+  email?: string; 
+  name?: string; 
+  address?: string;
+  isReturningUser?: boolean;
+} | null {
   if (!state || !isZkLoginReady(state)) return null;
+  
+  // Check if this is a returning user
+  const isReturningUser = state.googleSub 
+    ? !!loadUserByGoogleSub(state.googleSub) 
+    : false;
+  
   return {
     email: state.googleEmail,
     name: state.googleName,
+    address: state.address,
+    isReturningUser,
   };
+}
+
+// Get the recovery phrase for the user
+export async function getRecoveryPhrase(state: ZkLoginState | null): Promise<string | null> {
+  if (!state?.googleSub) return null;
+  return deriveMnemonicFromGoogleSub(state.googleSub, STATIC_SALT);
 }

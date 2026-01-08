@@ -5,8 +5,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { IotaProvider } from "@/providers/IotaProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ScrollToTop } from "@/components/ScrollToTop";
-// ✅ FIXED: Changed from @mysten/dapp-kit to @iota/dapp-kit
 import { useCurrentAccount, useDisconnectWallet } from "@iota/dapp-kit";
+import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
 import Index from "./pages/Index";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -25,11 +25,19 @@ function ProtectedPortal({ portal }: { portal: "doctor" | "lab" | "insurer" | "r
   const { mutate: disconnect } = useDisconnectWallet();
   const navigate = useNavigate();
   
-  const walletAddress = currentAccount?.address;
+  // Check both IOTA wallet and zkLogin for authentication
+  const zkLoginState = loadZkLoginState();
+  const zkLoginAddress = isZkLoginReady(zkLoginState) ? zkLoginState?.address : null;
+  const walletAddress = currentAccount?.address || zkLoginAddress;
 
   const handleSignOut = () => {
-    // Disable auto-connect for this tab/session so the user stays signed out.
+    // Disable auto-connect for this tab/session
     window.sessionStorage.setItem("selora_disable_autoconnect", "1");
+    window.sessionStorage.removeItem("selora_app_state");
+    window.sessionStorage.removeItem("selora_last_portal");
+    
+    // Clear zkLogin state
+    clearZkLoginState();
     
     // Clear all user-specific localStorage
     const keysToRemove: string[] = [];
@@ -38,7 +46,7 @@ function ProtectedPortal({ portal }: { portal: "doctor" | "lab" | "insurer" | "r
       if (
         key &&
         (key.startsWith("selora_") || 
-         key.startsWith("iota-dapp-kit") || // ✅ FIXED: Changed from sui-dapp-kit
+         key.startsWith("iota-dapp-kit") ||
          key.startsWith("dapp-kit") || 
          key.includes("wallet"))
       ) {
