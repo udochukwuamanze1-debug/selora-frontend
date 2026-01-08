@@ -12,7 +12,7 @@ import {
   Database,
   Upload,
 } from "lucide-react";
-import { useWalrusStorage } from "@/hooks/useWalrusStorage";
+import { useIPFSStorage } from "@/hooks/useIPFSStorage";
 import { toast } from "sonner";
 import { OCRDocumentScanner } from "./OCRDocumentScanner";
 
@@ -26,7 +26,7 @@ export const HealthArchive = ({ walletAddress, onRecordUploaded }: HealthArchive
   const [filterType, setFilterType] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { records, isUploading, uploadFile, downloadFile, loadRecords } = useWalrusStorage(walletAddress);
+  const { records, isUploading, uploadFile, downloadFile, loadRecords } = useIPFSStorage(walletAddress);
 
   useEffect(() => {
     loadRecords();
