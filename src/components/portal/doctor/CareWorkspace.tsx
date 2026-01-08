@@ -1,4 +1,5 @@
-import { Activity, Users, FileText, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Activity, Users, FileText, Clock, UserPlus } from "lucide-react";
 import { QRAccessRequest } from "../QRAccessRequest";
 
 interface CareWorkspaceProps {
@@ -6,20 +7,58 @@ interface CareWorkspaceProps {
   walletAddress?: string;
 }
 
+interface Patient {
+  id: string;
+  name: string;
+  lastVisit: string;
+  condition: string;
+}
+
+interface ActivityItem {
+  id: string;
+  type: string;
+  description: string;
+  timestamp: string;
+}
+
 export const CareWorkspace = ({ isNewUser = false, walletAddress = "" }: CareWorkspaceProps) => {
-  const stats = isNewUser
-    ? [
-        { label: "Active Patients", value: "0", icon: Users, change: "No patients yet" },
-        { label: "Pending Reviews", value: "0", icon: FileText, change: "No reviews pending" },
-        { label: "Prescriptions Today", value: "0", icon: Activity, change: "No prescriptions yet" },
-        { label: "Avg. Response Time", value: "--", icon: Clock, change: "N/A" },
-      ]
-    : [
-        { label: "Active Patients", value: "24", icon: Users, change: "+3 this week" },
-        { label: "Pending Reviews", value: "8", icon: FileText, change: "2 urgent" },
-        { label: "Prescriptions Today", value: "12", icon: Activity, change: "+4 from yesterday" },
-        { label: "Avg. Response Time", value: "2.4h", icon: Clock, change: "-0.5h improvement" },
-      ];
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [prescriptionsToday, setPrescriptionsToday] = useState(0);
+
+  // Load data from localStorage
+  useEffect(() => {
+    if (!walletAddress) return;
+    
+    const storedPatients = localStorage.getItem(`selora_doctor_patients_${walletAddress}`);
+    if (storedPatients) {
+      setPatients(JSON.parse(storedPatients));
+    }
+    
+    const storedActivities = localStorage.getItem(`selora_doctor_activities_${walletAddress}`);
+    if (storedActivities) {
+      setActivities(JSON.parse(storedActivities));
+    }
+    
+    const storedPrescriptions = localStorage.getItem(`selora_doctor_prescriptions_${walletAddress}`);
+    if (storedPrescriptions) {
+      const prescriptions = JSON.parse(storedPrescriptions);
+      const today = new Date().toISOString().split("T")[0];
+      const todayCount = prescriptions.filter((p: any) => 
+        p.date && p.date.startsWith(today)
+      ).length;
+      setPrescriptionsToday(todayCount);
+    }
+  }, [walletAddress]);
+
+  const hasData = patients.length > 0 || activities.length > 0;
+
+  const stats = [
+    { label: "Active Patients", value: patients.length.toString(), icon: Users, change: patients.length > 0 ? `${patients.length} connected` : "No patients yet" },
+    { label: "Pending Reviews", value: "0", icon: FileText, change: "No reviews pending" },
+    { label: "Prescriptions Today", value: prescriptionsToday.toString(), icon: Activity, change: prescriptionsToday > 0 ? `${prescriptionsToday} created` : "No prescriptions yet" },
+    { label: "Avg. Response Time", value: hasData ? "2.4h" : "--", icon: Clock, change: hasData ? "Good" : "N/A" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -29,7 +68,7 @@ export const CareWorkspace = ({ isNewUser = false, walletAddress = "" }: CareWor
           Care Workspace
         </h1>
         <p className="text-muted-foreground">
-          {isNewUser ? "Welcome! Start by connecting with patients" : "Overview of your patients and recent activity"}
+          {!hasData ? "Welcome! Start by connecting with patients" : "Overview of your patients and recent activity"}
         </p>
       </div>
 
@@ -54,17 +93,51 @@ export const CareWorkspace = ({ isNewUser = false, walletAddress = "" }: CareWor
         <h2 className="font-heading text-lg font-semibold mb-4 text-foreground">
           Recent Activity
         </h2>
-        {isNewUser ? (
+        {activities.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No recent activity yet.</p>
             <p className="text-sm text-muted-foreground mt-2">Patient activity will appear here once you start caring for patients.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <p className="text-muted-foreground text-center py-4">Activity will appear here</p>
+          <div className="space-y-3">
+            {activities.slice(0, 5).map((activity) => (
+              <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Activity className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">{activity.description}</p>
+                  <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Connected Patients or Empty State */}
+      {patients.length > 0 ? (
+        <div className="glass-card p-6">
+          <h2 className="font-heading text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary" />
+            Connected Patients
+          </h2>
+          <div className="space-y-3">
+            {patients.slice(0, 5).map((patient) => (
+              <div key={patient.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary">{patient.name.charAt(0)}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{patient.name}</p>
+                  <p className="text-xs text-muted-foreground">{patient.condition || "General care"}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">{patient.lastVisit}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

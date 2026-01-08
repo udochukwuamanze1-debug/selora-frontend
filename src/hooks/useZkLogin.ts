@@ -8,22 +8,37 @@ import {
   extractJwtFromUrl,
   processJwtCallback,
   isZkLoginReady,
+  isZkLoginExpired,
+  getZkLoginUserInfo,
+  getRecoveryPhrase,
 } from "@/lib/zklogin";
 import { toast } from "sonner";
 
 /**
- * React hook to manage zkLogin flow state.
+ * React hook to manage zkLogin flow state with session persistence.
  */
 export function useZkLogin() {
   const [state, setState] = useState<ZkLoginState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isReturningUser, setIsReturningUser] = useState(false);
+  const [recoveryPhrase, setRecoveryPhrase] = useState<string | null>(null);
 
   // Load persisted state on mount
   useEffect(() => {
     const persisted = loadZkLoginState();
     if (persisted) {
+      // Check if session is expired
+      if (isZkLoginExpired(persisted)) {
+        // Session expired, but we can restore from Google sub if user logs in again
+        console.log("Session expired, user will need to re-authenticate");
+      }
       setState(persisted);
+      
+      // Load recovery phrase
+      if (persisted.googleSub) {
+        getRecoveryPhrase(persisted).then(setRecoveryPhrase);
+      }
     }
   }, []);
 
@@ -47,7 +62,7 @@ export function useZkLogin() {
       window.location.href = url;
     } catch (e: any) {
       setError(e.message);
-      toast.error("Failed to start zkLogin");
+      toast.error("Failed to start login");
     } finally {
       setLoading(false);
     }
@@ -64,7 +79,22 @@ export function useZkLogin() {
         // Process JWT and derive address
         const finalState = await processJwtCallback(jwt);
         setState(finalState);
-        toast.success("Logged in successfully!");
+        
+        // Load recovery phrase
+        if (finalState.googleSub) {
+          const phrase = await getRecoveryPhrase(finalState);
+          setRecoveryPhrase(phrase);
+        }
+        
+        // Check if returning user
+        const userInfo = getZkLoginUserInfo(finalState);
+        setIsReturningUser(userInfo?.isReturningUser ?? false);
+        
+        if (userInfo?.isReturningUser) {
+          toast.success(`Welcome back, ${finalState.googleName || "user"}!`);
+        } else {
+          toast.success("Account created successfully!");
+        }
 
         // Clean up URL fragment
         window.history.replaceState(null, "", window.location.pathname);
@@ -82,6 +112,8 @@ export function useZkLogin() {
   const logout = useCallback(() => {
     clearZkLoginState();
     setState(null);
+    setRecoveryPhrase(null);
+    setIsReturningUser(false);
     toast.info("Logged out");
   }, []);
 
@@ -90,7 +122,12 @@ export function useZkLogin() {
     loading,
     error,
     isReady: isZkLoginReady(state),
+    isExpired: isZkLoginExpired(state),
+    isReturningUser,
     walletAddress: state?.address ?? null,
+    userEmail: state?.googleEmail ?? null,
+    userName: state?.googleName ?? null,
+    recoveryPhrase,
     startLogin,
     logout,
   };

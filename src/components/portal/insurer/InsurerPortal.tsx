@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentAccount } from "@iota/dapp-kit";
+import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
 import { InsurerSidebar } from "./InsurerSidebar";
 import { RiskOverview } from "./RiskOverview";
 import { DataMarketplace } from "./DataMarketplace";
@@ -21,8 +22,10 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
   
-  // Use real wallet address if connected, otherwise use prop
-  const walletAddress = currentAccount?.address || propWalletAddress;
+  // Check both IOTA wallet and zkLogin for authentication
+  const zkLoginState = loadZkLoginState();
+  const zkLoginAddress = isZkLoginReady(zkLoginState) ? zkLoginState?.address : null;
+  const walletAddress = currentAccount?.address || zkLoginAddress || propWalletAddress;
 
   const handleSignOut = () => {
     // Clear all user data
@@ -30,6 +33,14 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
     localStorage.removeItem(`selora_avatar_${walletAddress}`);
     localStorage.removeItem(`selora_notifications_${walletAddress}`);
     localStorage.removeItem(`selora_profile_${walletAddress}`);
+    
+    // Clear zkLogin state
+    clearZkLoginState();
+    
+    // Clear session storage
+    window.sessionStorage.removeItem("selora_app_state");
+    window.sessionStorage.removeItem("selora_last_portal");
+    
     // Navigate to landing page
     navigate("/");
     onSignOut();
