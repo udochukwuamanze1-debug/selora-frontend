@@ -10,9 +10,10 @@ import {
 
 interface DiagnosticsHubProps {
   isNewUser?: boolean;
+  walletAddress?: string;
 }
 
-export const DiagnosticsHub = ({ isNewUser = false }: DiagnosticsHubProps) => {
+export const DiagnosticsHub = ({ isNewUser = false, walletAddress = "" }: DiagnosticsHubProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
 

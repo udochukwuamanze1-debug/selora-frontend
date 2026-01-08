@@ -1,59 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Database, Users, Lock, CheckCircle, Clock } from "lucide-react";
+import { Search, Database, Users, Lock, CheckCircle, Clock, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-const dataPools = [
-  {
-    id: "1",
-    name: "General Health Demographics",
-    description: "Anonymized demographic and general health indicators",
-    size: "45,000 records",
-    contributors: 8420,
-    accessLevel: "approved",
-    categories: ["Demographics", "General Health"],
-    qualityScore: 94,
-  },
-  {
-    id: "2",
-    name: "Chronic Conditions Registry",
-    description: "Longitudinal data on chronic disease management",
-    size: "28,000 records",
-    contributors: 4200,
-    accessLevel: "pending",
-    categories: ["Chronic Disease", "Longitudinal"],
-    qualityScore: 97,
-  },
-  {
-    id: "3",
-    name: "Mental Health Indicators",
-    description: "Mental health screening and treatment outcomes",
-    size: "15,000 records",
-    contributors: 2100,
-    accessLevel: "approved",
-    categories: ["Mental Health", "Outcomes"],
-    qualityScore: 91,
-  },
-  {
-    id: "4",
-    name: "Pediatric Health Data",
-    description: "Child health metrics and development indicators",
-    size: "32,000 records",
-    contributors: 5600,
-    accessLevel: "restricted",
-    categories: ["Pediatric", "Development"],
-    qualityScore: 96,
-  },
-];
+interface DataPool {
+  id: string;
+  name: string;
+  description: string;
+  size: string;
+  contributors: number;
+  accessLevel: "approved" | "pending" | "restricted";
+  categories: string[];
+  qualityScore: number;
+}
 
 interface DataPoolsProps {
   isNewUser?: boolean;
+  walletAddress?: string;
 }
 
-export const DataPools = ({ isNewUser = false }: DataPoolsProps) => {
+export const DataPools = ({ isNewUser = false, walletAddress = "" }: DataPoolsProps) => {
+  const [dataPools, setDataPools] = useState<DataPool[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Load data pools from localStorage
+  useEffect(() => {
+    if (walletAddress) {
+      const stored = localStorage.getItem(`selora_data_pools_${walletAddress}`);
+      if (stored) {
+        try {
+          setDataPools(JSON.parse(stored));
+        } catch {
+          setDataPools([]);
+        }
+      }
+    }
+  }, [walletAddress]);
+
+  // Save data pools to localStorage
+  useEffect(() => {
+    if (walletAddress && dataPools.length > 0) {
+      localStorage.setItem(`selora_data_pools_${walletAddress}`, JSON.stringify(dataPools));
+    }
+  }, [dataPools, walletAddress]);
 
   const filteredPools = dataPools.filter(
     (pool) =>
@@ -90,8 +81,60 @@ export const DataPools = ({ isNewUser = false }: DataPoolsProps) => {
   };
 
   const handleRequestAccess = (poolId: string) => {
+    setDataPools(prev =>
+      prev.map(pool =>
+        pool.id === poolId ? { ...pool, accessLevel: "pending" as const } : pool
+      )
+    );
     toast.success("Access request submitted. You'll be notified when approved.");
   };
+
+  const createNewPool = () => {
+    const newPool: DataPool = {
+      id: `pool-${Date.now()}`,
+      name: "New Data Pool",
+      description: "Description of your data pool",
+      size: "0 records",
+      contributors: 0,
+      accessLevel: "approved",
+      categories: ["Custom"],
+      qualityScore: 0,
+    };
+    setDataPools(prev => [...prev, newPool]);
+    toast.success("New data pool created!");
+  };
+
+  if (dataPools.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
+            Data Pools
+          </h1>
+          <p className="text-muted-foreground">
+            Browse and request access to consented research datasets
+          </p>
+        </div>
+
+        <div className="glass-card p-12 text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Database className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="font-heading text-xl font-semibold mb-2 text-foreground">
+            No Data Pools Available
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto mb-6">
+            Data pools will appear here when patients consent to share their anonymized health data for research.
+            Create your first data pool to start collecting research data.
+          </p>
+          <Button onClick={createNewPool}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Data Pool
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -104,15 +147,21 @@ export const DataPools = ({ isNewUser = false }: DataPoolsProps) => {
         </p>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search data pools..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search & Create */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search data pools..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button onClick={createNewPool}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Pool
+        </Button>
       </div>
 
       {/* Pools Grid */}
@@ -188,13 +237,15 @@ export const DataPools = ({ isNewUser = false }: DataPoolsProps) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div>
             <Users className="w-6 h-6 text-primary mx-auto mb-2" />
-            <p className="text-xl font-bold text-foreground">20,320</p>
+            <p className="text-xl font-bold text-foreground">
+              {dataPools.reduce((sum, p) => sum + p.contributors, 0).toLocaleString()}
+            </p>
             <p className="text-sm text-muted-foreground">Total Contributors</p>
           </div>
           <div>
             <Database className="w-6 h-6 text-primary mx-auto mb-2" />
-            <p className="text-xl font-bold text-foreground">120K</p>
-            <p className="text-sm text-muted-foreground">Total Records</p>
+            <p className="text-xl font-bold text-foreground">{dataPools.length}</p>
+            <p className="text-sm text-muted-foreground">Data Pools</p>
           </div>
           <div>
             <CheckCircle className="w-6 h-6 text-green-500 mx-auto mb-2" />

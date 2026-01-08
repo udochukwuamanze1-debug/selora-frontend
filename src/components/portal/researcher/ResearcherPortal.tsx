@@ -9,6 +9,7 @@ import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { cn } from "@/lib/utils";
+import { getZkLoginUserInfo, loadZkLoginState, clearZkLoginState } from "@/lib/zklogin";
 
 interface ResearcherPortalProps {
   walletAddress: string;
@@ -20,8 +21,12 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
   
-  // Use real wallet address if connected, otherwise use prop
-  const walletAddress = currentAccount?.address || propWalletAddress;
+  // Check for zkLogin state
+  const zkLoginState = loadZkLoginState();
+  const zkLoginUser = zkLoginState ? getZkLoginUserInfo(zkLoginState) : null;
+  
+  // Use IOTA wallet address if connected, zkLogin address, or prop
+  const walletAddress = currentAccount?.address || zkLoginState?.address || propWalletAddress;
 
   const handleSignOut = () => {
     // Clear all user data
@@ -29,6 +34,17 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
     localStorage.removeItem(`selora_avatar_${walletAddress}`);
     localStorage.removeItem(`selora_notifications_${walletAddress}`);
     localStorage.removeItem(`selora_profile_${walletAddress}`);
+    localStorage.removeItem(`selora_research_studies_${walletAddress}`);
+    localStorage.removeItem(`selora_research_consents_${walletAddress}`);
+    localStorage.removeItem(`selora_data_pools_${walletAddress}`);
+    
+    // Clear zkLogin state if using zkLogin
+    if (zkLoginUser) {
+      clearZkLoginState();
+      sessionStorage.removeItem("selora_zklogin_address");
+      sessionStorage.removeItem("selora_app_state");
+    }
+    
     // Navigate to landing page
     navigate("/");
     onSignOut();
@@ -37,11 +53,11 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
   const renderContent = () => {
     switch (activeTab) {
       case "console":
-        return <ResearchConsole isNewUser={true} />;
+        return <ResearchConsole isNewUser={true} walletAddress={walletAddress} />;
       case "pools":
-        return <DataPools isNewUser={true} />;
+        return <DataPools isNewUser={true} walletAddress={walletAddress} />;
       case "consent":
-        return <ConsentManagement isNewUser={true} />;
+        return <ConsentManagement isNewUser={true} walletAddress={walletAddress} />;
       case "publications":
         return <PublicationsReports />;
       case "vault":
@@ -49,7 +65,7 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
       case "assistant":
         return <HealthAssistant walletAddress={walletAddress} />;
       default:
-        return <ResearchConsole isNewUser={true} />;
+        return <ResearchConsole isNewUser={true} walletAddress={walletAddress} />;
     }
   };
 
