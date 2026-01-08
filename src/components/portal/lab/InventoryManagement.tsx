@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -22,76 +22,35 @@ interface InventoryItem {
   expiresAt: string;
 }
 
-const mockInventory: InventoryItem[] = [
-  {
-    id: "INV-001",
-    name: "Amoxicillin 500mg",
-    category: "Antibiotics",
-    quantity: 150,
-    minStock: 50,
-    unit: "capsules",
-    lastRestocked: "2024-01-10",
-    expiresAt: "2025-06-15",
-  },
-  {
-    id: "INV-002",
-    name: "Ibuprofen 400mg",
-    category: "Pain Relief",
-    quantity: 320,
-    minStock: 100,
-    unit: "tablets",
-    lastRestocked: "2024-01-12",
-    expiresAt: "2025-08-20",
-  },
-  {
-    id: "INV-003",
-    name: "Omeprazole 20mg",
-    category: "Gastrointestinal",
-    quantity: 45,
-    minStock: 60,
-    unit: "capsules",
-    lastRestocked: "2024-01-05",
-    expiresAt: "2025-04-10",
-  },
-  {
-    id: "INV-004",
-    name: "Metformin 850mg",
-    category: "Diabetes",
-    quantity: 200,
-    minStock: 80,
-    unit: "tablets",
-    lastRestocked: "2024-01-14",
-    expiresAt: "2025-09-30",
-  },
-  {
-    id: "INV-005",
-    name: "Lisinopril 10mg",
-    category: "Cardiovascular",
-    quantity: 25,
-    minStock: 40,
-    unit: "tablets",
-    lastRestocked: "2024-01-08",
-    expiresAt: "2025-05-25",
-  },
-  {
-    id: "INV-006",
-    name: "Paracetamol 500mg",
-    category: "Pain Relief",
-    quantity: 500,
-    minStock: 150,
-    unit: "tablets",
-    lastRestocked: "2024-01-15",
-    expiresAt: "2026-01-15",
-  },
-];
-
 interface InventoryManagementProps {
   isNewUser?: boolean;
+  walletAddress?: string;
 }
 
-export const InventoryManagement = ({ isNewUser = false }: InventoryManagementProps) => {
-  const [inventory, setInventory] = useState(mockInventory);
+export const InventoryManagement = ({ isNewUser = false, walletAddress = "" }: InventoryManagementProps) => {
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Load inventory from localStorage
+  useEffect(() => {
+    if (walletAddress) {
+      const stored = localStorage.getItem(`selora_lab_inventory_${walletAddress}`);
+      if (stored) {
+        try {
+          setInventory(JSON.parse(stored));
+        } catch {
+          setInventory([]);
+        }
+      }
+    }
+  }, [walletAddress]);
+
+  // Save inventory to localStorage
+  useEffect(() => {
+    if (walletAddress && inventory.length > 0) {
+      localStorage.setItem(`selora_lab_inventory_${walletAddress}`, JSON.stringify(inventory));
+    }
+  }, [inventory, walletAddress]);
 
   const filteredInventory = inventory.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -110,6 +69,52 @@ export const InventoryManagement = ({ isNewUser = false }: InventoryManagementPr
       )
     );
   };
+
+  const addNewItem = () => {
+    const newItem: InventoryItem = {
+      id: `INV-${Date.now()}`,
+      name: "New Medication",
+      category: "Uncategorized",
+      quantity: 0,
+      minStock: 10,
+      unit: "units",
+      lastRestocked: new Date().toISOString().split("T")[0],
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    };
+    setInventory(prev => [...prev, newItem]);
+  };
+
+  if (inventory.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
+            Inventory & Prescriptions
+          </h1>
+          <p className="text-muted-foreground">
+            Manage medication stock and track inventory levels
+          </p>
+        </div>
+
+        <div className="glass-card p-12 text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <Package className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="font-heading text-xl font-semibold mb-2 text-foreground">
+            No Inventory Items Yet
+          </h3>
+          <p className="text-muted-foreground max-w-md mx-auto mb-6">
+            Start building your inventory by adding medications and supplies.
+            Track stock levels, set minimum thresholds, and manage expiry dates.
+          </p>
+          <Button onClick={addNewItem}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add First Item
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -170,15 +175,21 @@ export const InventoryManagement = ({ isNewUser = false }: InventoryManagementPr
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search inventory..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search & Add */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search inventory..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button onClick={addNewItem}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Item
+        </Button>
       </div>
 
       {/* Inventory Table */}

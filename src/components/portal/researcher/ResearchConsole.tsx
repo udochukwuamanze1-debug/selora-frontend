@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 
 interface ResearchConsoleProps {
   isNewUser?: boolean;
+  walletAddress?: string;
 }
 
-export const ResearchConsole = ({ isNewUser = false }: ResearchConsoleProps) => {
+export const ResearchConsole = ({ isNewUser = false, walletAddress = "" }: ResearchConsoleProps) => {
   const stats = isNewUser
     ? [
         { label: "Active Studies", value: "0", icon: FileText, change: "Start a study" },

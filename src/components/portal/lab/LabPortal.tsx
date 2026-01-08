@@ -8,6 +8,7 @@ import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { cn } from "@/lib/utils";
+import { getZkLoginUserInfo, loadZkLoginState, clearZkLoginState } from "@/lib/zklogin";
 
 interface LabPortalProps {
   walletAddress: string;
@@ -19,8 +20,12 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
   
-  // Use real wallet address if connected, otherwise use prop
-  const walletAddress = currentAccount?.address || propWalletAddress;
+  // Check for zkLogin state
+  const zkLoginState = loadZkLoginState();
+  const zkLoginUser = zkLoginState ? getZkLoginUserInfo(zkLoginState) : null;
+  
+  // Use IOTA wallet address if connected, zkLogin address, or prop
+  const walletAddress = currentAccount?.address || zkLoginState?.address || propWalletAddress;
 
   const handleSignOut = () => {
     // Clear all user data
@@ -28,6 +33,16 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
     localStorage.removeItem(`selora_avatar_${walletAddress}`);
     localStorage.removeItem(`selora_notifications_${walletAddress}`);
     localStorage.removeItem(`selora_profile_${walletAddress}`);
+    localStorage.removeItem(`selora_lab_inventory_${walletAddress}`);
+    localStorage.removeItem(`selora_lab_prescriptions_${walletAddress}`);
+    
+    // Clear zkLogin state if using zkLogin
+    if (zkLoginUser) {
+      clearZkLoginState();
+      sessionStorage.removeItem("selora_zklogin_address");
+      sessionStorage.removeItem("selora_app_state");
+    }
+    
     // Navigate to landing page
     navigate("/");
     onSignOut();
@@ -36,9 +51,9 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
   const renderContent = () => {
     switch (activeTab) {
       case "diagnostics":
-        return <DiagnosticsHub isNewUser={true} />;
+        return <DiagnosticsHub isNewUser={true} walletAddress={walletAddress} />;
       case "inventory":
-        return <InventoryManagement isNewUser={true} />;
+        return <InventoryManagement isNewUser={true} walletAddress={walletAddress} />;
       case "vault":
         return <Vault walletAddress={walletAddress} />;
       case "assistant":
@@ -46,7 +61,7 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
       case "profile":
         return <ProfilePreferences walletAddress={walletAddress} />;
       default:
-        return <DiagnosticsHub isNewUser={true} />;
+        return <DiagnosticsHub isNewUser={true} walletAddress={walletAddress} />;
     }
   };
 
