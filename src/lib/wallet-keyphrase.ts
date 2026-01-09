@@ -309,3 +309,43 @@ export function formatMnemonicForEmail(mnemonic: string): string {
   const words = mnemonic.split(' ');
   return words.map((word, i) => `${i + 1}. ${word}`).join('\n');
 }
+
+// ==================== Wallet Import ====================
+
+/**
+ * Import a wallet from an existing mnemonic
+ * Returns the derived wallet address if successful
+ */
+export async function importWalletFromMnemonic(mnemonic: string): Promise<{
+  success: boolean;
+  walletAddress?: string;
+  error?: string;
+}> {
+  // Normalize mnemonic (trim, lowercase, single spaces)
+  const normalized = mnemonic.trim().toLowerCase().replace(/\s+/g, ' ');
+  
+  // Validate the mnemonic
+  if (!isValidMnemonic(normalized)) {
+    return { success: false, error: 'Invalid recovery phrase. Please check your 12 words.' };
+  }
+  
+  try {
+    // Import Ed25519Keypair dynamically to derive address
+    const { Ed25519Keypair } = await import('@iota/iota-sdk/keypairs/ed25519');
+    
+    // Derive keypair from mnemonic using standard derivation path
+    const keypair = Ed25519Keypair.deriveKeypair(normalized);
+    const walletAddress = keypair.getPublicKey().toIotaAddress();
+    
+    // Store the mnemonic in vault
+    await storeKeyphraseInVault(walletAddress, normalized);
+    
+    // Mark as backed up since user already has it
+    markKeyphraseBackedUp(walletAddress);
+    
+    return { success: true, walletAddress };
+  } catch (error) {
+    console.error('Failed to import wallet:', error);
+    return { success: false, error: 'Failed to derive wallet from recovery phrase.' };
+  }
+}
