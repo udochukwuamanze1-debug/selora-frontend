@@ -39,21 +39,25 @@ export function KeyphraseBackup({ walletAddress }: KeyphraseBackupProps) {
   });
 
   useEffect(() => {
-    // Check if keyphrase exists and get backup status
-    const status = getKeyphraseBackupStatus(walletAddress);
-    setBackupStatus(status);
+    const initKeyphrase = async () => {
+      // Check if keyphrase exists and get backup status
+      const status = getKeyphraseBackupStatus(walletAddress);
+      setBackupStatus(status);
 
-    // If no keyphrase exists, generate one
-    if (!status.exists) {
-      const newMnemonic = generateAndStoreWalletMnemonic(walletAddress);
-      setKeyphrase(newMnemonic);
-      setBackupStatus({ exists: true, backedUp: false, emailSent: false });
-    }
+      // If no keyphrase exists, generate one
+      if (!status.exists) {
+        const newMnemonic = await generateAndStoreWalletMnemonic(walletAddress);
+        setKeyphrase(newMnemonic);
+        setBackupStatus({ exists: true, backedUp: false, emailSent: false });
+      }
+    };
+    
+    initKeyphrase();
   }, [walletAddress]);
 
-  const handleViewKeyphrase = () => {
+  const handleViewKeyphrase = async () => {
     if (!keyphrase) {
-      const stored = getKeyphraseFromVault(walletAddress);
+      const stored = await getKeyphraseFromVault(walletAddress);
       setKeyphrase(stored);
     }
     setShowModal(true);
