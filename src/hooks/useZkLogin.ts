@@ -36,9 +36,8 @@ export function useZkLogin() {
       setState(persisted);
       
       // Load recovery phrase
-      if (persisted.googleSub) {
-        getRecoveryPhrase(persisted).then(setRecoveryPhrase);
-      }
+      const phrase = getRecoveryPhrase(persisted);
+      if (phrase) setRecoveryPhrase(phrase);
     }
   }, []);
 

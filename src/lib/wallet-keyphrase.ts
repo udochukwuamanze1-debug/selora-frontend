@@ -1,5 +1,8 @@
 // Wallet keyphrase/mnemonic secure storage
-// Stores encrypted keyphrases in the user's vault
+// Uses real BIP-39 mnemonics for wallet generation
+
+import * as bip39 from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 
 const VAULT_KEYPHRASES_KEY = 'selora_vault_keyphrases';
 const NOTIFICATIONS_KEY = 'selora_local_notifications';
@@ -25,82 +28,113 @@ export interface LocalNotification {
 // ==================== Mnemonic Generation ====================
 
 /**
- * Generate a BIP-39 compatible mnemonic (12 words)
- * This is a simplified version - in production, use a proper crypto library
+ * Generate a valid BIP-39 mnemonic (12 words)
+ * Uses cryptographically secure random generation
  */
 export function generateMnemonic(): string {
-  const wordList = [
-    'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract',
-    'absurd', 'abuse', 'access', 'accident', 'account', 'accuse', 'achieve', 'acid',
-    'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual',
-    'adapt', 'add', 'addict', 'address', 'adjust', 'admit', 'adult', 'advance',
-    'advice', 'aerobic', 'affair', 'afford', 'afraid', 'again', 'age', 'agent',
-    'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album',
-    'alcohol', 'alert', 'alien', 'all', 'alley', 'allow', 'almost', 'alone',
-    'alpha', 'already', 'also', 'alter', 'always', 'amateur', 'amazing', 'among',
-    'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger', 'angle', 'angry',
-    'animal', 'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique',
-    'anxiety', 'any', 'apart', 'apology', 'appear', 'apple', 'approve', 'april',
-    'arch', 'arctic', 'area', 'arena', 'argue', 'arm', 'armed', 'armor',
-    'army', 'around', 'arrange', 'arrest', 'arrive', 'arrow', 'art', 'artefact',
-    'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset', 'assist', 'assume',
-    'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction',
-    'audit', 'august', 'aunt', 'author', 'auto', 'autumn', 'average', 'avocado',
-    'avoid', 'awake', 'aware', 'away', 'awesome', 'awful', 'awkward', 'axis',
-    'baby', 'bachelor', 'bacon', 'badge', 'bag', 'balance', 'balcony', 'ball',
-    'bamboo', 'banana', 'banner', 'bar', 'barely', 'bargain', 'barrel', 'base',
-    'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because', 'become',
-    'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt',
-    'bench', 'benefit', 'best', 'betray', 'better', 'between', 'beyond', 'bicycle',
-    'bid', 'bike', 'bind', 'biology', 'bird', 'birth', 'bitter', 'black',
-    'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless', 'blind', 'blood',
-    'blossom', 'blouse', 'blue', 'blur', 'blush', 'board', 'boat', 'body',
-  ];
+  // Generate 128 bits of entropy for 12 words
+  return bip39.generateMnemonic(wordlist, 128);
+}
 
-  const mnemonic: string[] = [];
-  const randomValues = new Uint32Array(12);
-  crypto.getRandomValues(randomValues);
-
-  for (let i = 0; i < 12; i++) {
-    const index = randomValues[i] % wordList.length;
-    mnemonic.push(wordList[index]);
-  }
-
-  return mnemonic.join(' ');
+/**
+ * Validate if a mnemonic is a valid BIP-39 mnemonic
+ */
+export function isValidMnemonic(mnemonic: string): boolean {
+  return bip39.validateMnemonic(mnemonic, wordlist);
 }
 
 // ==================== Encryption/Decryption ====================
 
 /**
- * Simple XOR-based encryption for demo purposes
- * In production, use Web Crypto API with AES-GCM
+ * AES-GCM encryption using Web Crypto API
  */
-function simpleEncrypt(text: string, key: string): string {
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(
-      text.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-    );
-  }
-  return btoa(result);
+async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits', 'deriveKey']
+  );
+  
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: salt.buffer as ArrayBuffer,
+      iterations: 100000,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
 }
 
-function simpleDecrypt(encrypted: string, key: string): string {
-  const decoded = atob(encrypted);
-  let result = '';
-  for (let i = 0; i < decoded.length; i++) {
-    result += String.fromCharCode(
-      decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+async function encryptMnemonic(mnemonic: string, walletAddress: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  const key = await deriveKey(`selora_${walletAddress}`, salt);
+  
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    encoder.encode(mnemonic)
+  );
+  
+  // Combine salt + iv + encrypted data
+  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, salt.length);
+  combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptMnemonic(encryptedData: string, walletAddress: string): Promise<string> {
+  try {
+    const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    
+    const salt = combined.slice(0, 16);
+    const iv = combined.slice(16, 28);
+    const encrypted = combined.slice(28);
+    
+    const key = await deriveKey(`selora_${walletAddress}`, salt);
+    
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      encrypted
     );
+    
+    return new TextDecoder().decode(decrypted);
+  } catch {
+    // Fallback for legacy simple encryption
+    return simpleDecrypt(encryptedData, `selora_${walletAddress.slice(0, 16)}`);
   }
-  return result;
+}
+
+// Legacy decryption for backwards compatibility
+function simpleDecrypt(encrypted: string, key: string): string {
+  try {
+    const decoded = atob(encrypted);
+    let result = '';
+    for (let i = 0; i < decoded.length; i++) {
+      result += String.fromCharCode(
+        decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+      );
+    }
+    return result;
+  } catch {
+    return '';
+  }
 }
 
 // ==================== Vault Storage ====================
 
-/**
- * Get all stored keyphrases from vault
- */
 function getStoredKeyphrases(): StoredKeyphrase[] {
   try {
     const stored = localStorage.getItem(VAULT_KEYPHRASES_KEY);
@@ -110,20 +144,17 @@ function getStoredKeyphrases(): StoredKeyphrase[] {
   }
 }
 
-/**
- * Save keyphrases to vault
- */
 function saveKeyphrases(keyphrases: StoredKeyphrase[]): void {
   localStorage.setItem(VAULT_KEYPHRASES_KEY, JSON.stringify(keyphrases));
 }
 
 /**
- * Store a new wallet keyphrase in the vault
+ * Store a new wallet keyphrase in the vault with AES-GCM encryption
  */
-export function storeKeyphraseInVault(
+export async function storeKeyphraseInVault(
   walletAddress: string,
   mnemonic: string
-): void {
+): Promise<void> {
   const keyphrases = getStoredKeyphrases();
   
   // Check if already exists
@@ -133,9 +164,7 @@ export function storeKeyphraseInVault(
     return;
   }
 
-  // Encrypt using wallet address as part of the key
-  const encryptionKey = `selora_${walletAddress.slice(0, 16)}`;
-  const encryptedMnemonic = simpleEncrypt(mnemonic, encryptionKey);
+  const encryptedMnemonic = await encryptMnemonic(mnemonic, walletAddress);
 
   keyphrases.push({
     walletAddress,
@@ -150,36 +179,43 @@ export function storeKeyphraseInVault(
   // Create notification about keyphrase storage
   addLocalNotification({
     type: 'keyphrase',
-    title: 'Recovery Phrase Stored',
-    message: 'Your wallet recovery phrase has been securely stored in your vault. Please back it up!',
+    title: 'Recovery Phrase Generated',
+    message: 'Your wallet recovery phrase has been securely stored. Please back it up immediately!',
     data: { walletAddress },
   });
 }
 
 /**
- * Retrieve keyphrase from vault (requires authentication)
+ * Retrieve keyphrase from vault
  */
-export function getKeyphraseFromVault(walletAddress: string): string | null {
+export async function getKeyphraseFromVault(walletAddress: string): Promise<string | null> {
   const keyphrases = getStoredKeyphrases();
   const stored = keyphrases.find((k) => k.walletAddress === walletAddress);
   
   if (!stored) return null;
 
+  return decryptMnemonic(stored.encryptedMnemonic, walletAddress);
+}
+
+/**
+ * Synchronous version for backwards compatibility
+ */
+export function getKeyphraseFromVaultSync(walletAddress: string): string | null {
+  const keyphrases = getStoredKeyphrases();
+  const stored = keyphrases.find((k) => k.walletAddress === walletAddress);
+  
+  if (!stored) return null;
+
+  // Try legacy decryption first
   const encryptionKey = `selora_${walletAddress.slice(0, 16)}`;
   return simpleDecrypt(stored.encryptedMnemonic, encryptionKey);
 }
 
-/**
- * Check if keyphrase exists for a wallet
- */
 export function hasKeyphraseInVault(walletAddress: string): boolean {
   const keyphrases = getStoredKeyphrases();
   return keyphrases.some((k) => k.walletAddress === walletAddress);
 }
 
-/**
- * Mark keyphrase as backed up
- */
 export function markKeyphraseBackedUp(walletAddress: string): void {
   const keyphrases = getStoredKeyphrases();
   const index = keyphrases.findIndex((k) => k.walletAddress === walletAddress);
@@ -189,9 +225,6 @@ export function markKeyphraseBackedUp(walletAddress: string): void {
   }
 }
 
-/**
- * Get backup status
- */
 export function getKeyphraseBackupStatus(walletAddress: string): {
   exists: boolean;
   backedUp: boolean;
@@ -209,9 +242,6 @@ export function getKeyphraseBackupStatus(walletAddress: string): {
 
 // ==================== Local Notifications ====================
 
-/**
- * Get all local notifications
- */
 export function getLocalNotifications(): LocalNotification[] {
   try {
     const stored = localStorage.getItem(NOTIFICATIONS_KEY);
@@ -221,16 +251,10 @@ export function getLocalNotifications(): LocalNotification[] {
   }
 }
 
-/**
- * Save notifications
- */
 function saveNotifications(notifications: LocalNotification[]): void {
   localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
 }
 
-/**
- * Add a new local notification
- */
 export function addLocalNotification(
   notification: Omit<LocalNotification, 'id' | 'read' | 'createdAt'>
 ): void {
@@ -243,7 +267,6 @@ export function addLocalNotification(
     createdAt: new Date().toISOString(),
   });
 
-  // Keep only last 50 notifications
   if (notifications.length > 50) {
     notifications.splice(50);
   }
@@ -251,9 +274,6 @@ export function addLocalNotification(
   saveNotifications(notifications);
 }
 
-/**
- * Mark notification as read
- */
 export function markNotificationRead(id: string): void {
   const notifications = getLocalNotifications();
   const index = notifications.findIndex((n) => n.id === id);
@@ -263,16 +283,10 @@ export function markNotificationRead(id: string): void {
   }
 }
 
-/**
- * Get unread notification count
- */
 export function getUnreadCount(): number {
   return getLocalNotifications().filter((n) => !n.read).length;
 }
 
-/**
- * Delete a notification
- */
 export function deleteNotification(id: string): void {
   const notifications = getLocalNotifications();
   const filtered = notifications.filter((n) => n.id !== id);
@@ -285,16 +299,13 @@ export function deleteNotification(id: string): void {
  * Generate and store a new wallet's mnemonic
  * Returns the mnemonic for display to user (one-time only)
  */
-export function generateAndStoreWalletMnemonic(walletAddress: string): string {
+export async function generateAndStoreWalletMnemonic(walletAddress: string): Promise<string> {
   const mnemonic = generateMnemonic();
-  storeKeyphraseInVault(walletAddress, mnemonic);
+  await storeKeyphraseInVault(walletAddress, mnemonic);
   return mnemonic;
 }
 
-/**
- * Prepare mnemonic for email (formatted)
- */
 export function formatMnemonicForEmail(mnemonic: string): string {
   const words = mnemonic.split(' ');
-  return words.map((word, i) => `${i + 1}. ${word}`).join('\\n');
+  return words.map((word, i) => `${i + 1}. ${word}`).join('\n');
 }
