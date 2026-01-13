@@ -307,7 +307,7 @@ export function DashboardGreeting({
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row lg:flex-row items-stretch sm:items-center gap-4">
+          <div className="flex flex-row sm:flex-row lg:flex-row items-stretch sm:items-center gap-4">
             {/* Health Score Card */}
             <div className={cn(
               "flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br min-w-fit",
