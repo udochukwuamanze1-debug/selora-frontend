@@ -247,8 +247,8 @@ const ExecutiveSummary = () => {
               Ready to revolutionize health data ownership?
             </p>
             <div className="flex flex-col items-center gap-2">
-              <p className="font-mono">contact@selora.health</p>
-              <p className="text-sm text-muted-foreground">selora.health</p>
+              <a href="mailto:customer.selora@gmail.com" className="font-mono">customer.selora@gmail.com</a>
+              <p className="text-sm text-muted-foreground">Selora's Executive Summary Q1 2026.</p>
             </div>
           </section>
         </div>
