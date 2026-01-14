@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import ExecutiveSummary from "./pages/ExecutiveSummary";
 import DemoScript from "./pages/DemoScript";
+import InvestorFAQ from "./pages/InvestorFAQ";
 import { DoctorPortal } from "./components/portal/doctor/DoctorPortal";
 import { LabPortal } from "./components/portal/lab/LabPortal";
 import { InsurerPortal } from "./components/portal/insurer/InsurerPortal";
@@ -89,6 +90,7 @@ const AppRoutes = () => (
     <Route path="/whitepaper" element={<Whitepaper />} />
     <Route path="/executive-summary" element={<ExecutiveSummary />} />
     <Route path="/demo-script" element={<DemoScript />} />
+    <Route path="/investor-faq" element={<InvestorFAQ />} />
     <Route path="/portal/doctor" element={<ProtectedPortal portal="doctor" />} />
     <Route path="/portal/lab" element={<ProtectedPortal portal="lab" />} />
     <Route path="/portal/insurer" element={<ProtectedPortal portal="insurer" />} />

@@ -1,1 +1,4 @@
 project_id = "nzdbbmiqfkybqfzhzvtg"
+
+[functions.waitlist-notification]
+verify_jwt = false
