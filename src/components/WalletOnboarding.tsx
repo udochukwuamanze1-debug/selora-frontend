@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { 
   importWalletFromMnemonic, 
-  generateAndStoreWalletMnemonic,
   getKeyphraseFromVault,
   hasKeyphraseInVault,
 } from "@/lib/wallet-keyphrase";
@@ -65,6 +64,7 @@ export const WalletOnboarding = ({
       const { Ed25519Keypair } = await import("@iota/iota-sdk/keypairs/ed25519");
       const { generateMnemonic } = await import("@scure/bip39");
       const { wordlist } = await import("@scure/bip39/wordlists/english.js");
+      const { storeKeyphraseInVault } = await import("@/lib/wallet-keyphrase");
       
       const newMnemonic = generateMnemonic(wordlist, 128);
       const keypair = Ed25519Keypair.deriveKeypair(newMnemonic);
@@ -73,7 +73,8 @@ export const WalletOnboarding = ({
       setMnemonic(newMnemonic.split(" "));
       setGeneratedAddress(address);
       
-      await generateAndStoreWalletMnemonic(address);
+      // Store the mnemonic with the correct derived address
+      await storeKeyphraseInVault(address, newMnemonic);
       
       setStep("backup");
     } catch (error) {
