@@ -75,6 +75,15 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
           }
         }
         setSuccessData({ email, referralCode: data.referral_code, referralCount: 0 });
+        
+        // Call edge function to send notifications (non-blocking)
+        supabase.functions.invoke('waitlist-notification', {
+          body: { 
+            email, 
+            referral_code: data.referral_code, 
+            referred_by: initialReferralCode || null 
+          }
+        }).catch(console.error);
       }
     } catch (error) {
       console.error("Waitlist error:", error);
