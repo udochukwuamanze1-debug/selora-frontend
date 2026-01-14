@@ -14,7 +14,6 @@ import {
   Alert,
   AlertDescription,
 } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   getKeyphraseFromVault,
@@ -22,10 +21,11 @@ import {
   markKeyphraseBackedUp,
   getKeyphraseBackupStatus,
   formatMnemonicForEmail,
-  generateAndStoreWalletMnemonic,
+  storeKeyphraseInVault,
   importWalletFromMnemonic,
   isValidMnemonic,
 } from "@/lib/wallet-keyphrase";
+import { loadZkLoginState, getRecoveryPhrase } from "@/lib/zklogin";
 
 interface KeyphraseBackupProps {
   walletAddress: string;
@@ -52,11 +52,17 @@ export function KeyphraseBackup({ walletAddress, onWalletImported }: KeyphraseBa
       const status = getKeyphraseBackupStatus(walletAddress);
       setBackupStatus(status);
 
-      // If no keyphrase exists, generate one
+      // If no keyphrase exists in vault, try to get it from zkLogin state
       if (!status.exists) {
-        const newMnemonic = await generateAndStoreWalletMnemonic(walletAddress);
-        setKeyphrase(newMnemonic);
-        setBackupStatus({ exists: true, backedUp: false, emailSent: false });
+        const zkLoginState = loadZkLoginState();
+        const zkMnemonic = getRecoveryPhrase(zkLoginState);
+        
+        if (zkMnemonic && zkLoginState?.address === walletAddress) {
+          // Use the mnemonic from zkLogin (consistent with displayed address)
+          await storeKeyphraseInVault(walletAddress, zkMnemonic);
+          setKeyphrase(zkMnemonic);
+          setBackupStatus({ exists: true, backedUp: false, emailSent: false });
+        }
       }
     };
     
