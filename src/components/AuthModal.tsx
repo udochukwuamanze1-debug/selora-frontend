@@ -109,27 +109,22 @@ export const AuthModal = ({ open, onOpenChange, onSuccess }: AuthModalProps) => 
               </div>
             </Button>
 
-            {/* Wallet Connection - IOTA */}
-            <Button
-              variant="outline"
-              className="w-full h-14 gap-3 text-base justify-start px-6 hover:bg-muted/50"
-              onClick={() => {
-                if (isMobile) {
-                  toast.info("Opening wallet...", {
-                    description: "If prompted, select your installed IOTA wallet.",
-                  });
-                }
-                handleWalletConnect();
-              }}
-              disabled={isLoading}
-            >
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <IotaLogo size={20} />
-              </div>
-              <div className="text-left">
-                <div className="font-medium">Connect IOTA Wallet</div>
-              </div>
-            </Button>
+            {/* Wallet Connection - IOTA (Desktop only) */}
+            {!isMobile && (
+              <Button
+                variant="outline"
+                className="w-full h-14 gap-3 text-base justify-start px-6 hover:bg-muted/50"
+                onClick={handleWalletConnect}
+                disabled={isLoading}
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <IotaLogo size={20} />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Connect IOTA Wallet</div>
+                </div>
+              </Button>
+            )}
 
             <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border/50">
               By continuing, you agree to our{" "}
