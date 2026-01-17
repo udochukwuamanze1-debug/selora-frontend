@@ -268,70 +268,75 @@ export function DashboardGreeting({
   const TrendIcon = scoreDiff > 0 ? TrendingUp : scoreDiff < 0 ? TrendingDown : Minus;
   const trendColor = scoreDiff > 0 ? "text-green-500" : scoreDiff < 0 ? "text-red-500" : "text-muted-foreground";
 
+  // Check if user has dismissed mint modal before
+  const hasDismissedMintModal = typeof window !== 'undefined' && 
+    localStorage.getItem(`selora_mint_modal_seen_${walletAddress}`) === 'true';
+
   return (
     <>
-      <div className="glass-card p-6 mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Greeting */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
+      <div className="glass-card p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="flex flex-col gap-4">
+          {/* Greeting - always full width on mobile */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               {isHoliday && holidayIcon === "gift" && (
-                <Gift className="w-6 h-6 text-primary animate-pulse" />
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-pulse shrink-0" />
               )}
               {isHoliday && holidayIcon === "party" && (
-                <PartyPopper className="w-6 h-6 text-primary animate-pulse" />
+                <PartyPopper className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-pulse shrink-0" />
               )}
-              <h1 className="font-heading text-2xl md:text-3xl font-bold">
+              <h1 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold break-words">
                 {greeting}
               </h1>
             </div>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               {isNewUser 
                 ? "Welcome to Selora! Upload your first health record to get started."
                 : "Here's your health overview for today"
               }
             </p>
 
-            {/* XP Progress */}
-            <div className="mt-4 flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="font-bold text-sm">Lvl {level}</span>
+            {/* XP Progress - responsive */}
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20">
+                <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500" />
+                <span className="font-bold text-xs sm:text-sm">Lvl {level}</span>
               </div>
-              <div className="flex-1 max-w-40">
-                <Progress value={xpProgress} className="h-2" />
+              <div className="flex-1 min-w-[80px] max-w-[120px] sm:max-w-40">
+                <Progress value={xpProgress} className="h-1.5 sm:h-2" />
               </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
                 {xp} XP • {xpToNextLevel} to next
               </span>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row lg:flex-row items-stretch sm:items-center gap-4">
+          {/* Cards row - stack on mobile, side by side on larger screens */}
+          <div className="flex flex-col sm:flex-row items-stretch gap-3 sm:gap-4">
             {/* Health Score Card */}
             <div className={cn(
-              "flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br min-w-fit",
+              "flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br flex-1 sm:flex-none",
               getScoreBgColor(displayScore)
             )}>
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-background/50 flex items-center justify-center">
-                  <Heart className={cn("w-8 h-8", getScoreColor(displayScore))} />
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-background/50 flex items-center justify-center">
+                  <Heart className={cn("w-6 h-6 sm:w-8 sm:h-8", getScoreColor(displayScore))} />
                 </div>
                 {!isNewUser && (
-                  <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1">
-                    <TrendIcon className={cn("w-4 h-4", trendColor)} />
+                  <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 sm:p-1">
+                    <TrendIcon className={cn("w-3 h-3 sm:w-4 sm:h-4", trendColor)} />
                   </div>
                 )}
               </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className={cn("text-3xl font-bold", getScoreColor(displayScore))}>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1 sm:gap-2">
+                  <span className={cn("text-2xl sm:text-3xl font-bold", getScoreColor(displayScore))}>
                     {displayScore}
                   </span>
-                  <span className="text-sm text-muted-foreground">/100</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">/100</span>
                 </div>
-                <p className="text-sm font-medium text-muted-foreground">Health Score</p>
-                <p className={cn("text-xs", isNewUser ? "text-muted-foreground" : trendColor)}>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Health Score</p>
+                <p className={cn("text-[10px] sm:text-xs", isNewUser ? "text-muted-foreground" : trendColor)}>
                   {isNewUser ? getScoreLabel(displayScore) : (
                     scoreDiff !== 0 
                       ? `${scoreDiff > 0 ? "+" : ""}${scoreDiff} from last week`
@@ -341,19 +346,21 @@ export function DashboardGreeting({
               </div>
             </div>
   
-            {/* Avatar Mint Box - Only show if user hasn't minted yet */}
-            {!userName && (
-              <div className="glass-card-hover p-4 rounded-2xl flex flex-col items-center min-w-[140px] border border-primary/20">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center mb-2">
-                  <Sparkles className="w-6 h-6 text-primary" />
+            {/* Avatar Mint Box - Only show if user hasn't minted yet AND hasn't dismissed modal */}
+            {!userName && !hasDismissedMintModal && (
+              <div className="glass-card-hover p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-3 sm:gap-2 border border-primary/20 sm:min-w-[140px]">
+                <div className="flex items-center gap-3 sm:flex-col sm:gap-2">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  </div>
+                  <p className="text-xs text-muted-foreground sm:text-center">Mint Your Avatar</p>
                 </div>
-                <p className="text-xs text-muted-foreground mb-2 text-center">Mint Your Avatar</p>
                 <Button 
                   size="sm" 
                   variant="outline"
                   onClick={() => setShowMintModal(true)}
                   disabled={isPending}
-                  className="text-xs gap-1"
+                  className="text-xs gap-1 shrink-0"
                 >
                   {isPending ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -368,11 +375,15 @@ export function DashboardGreeting({
         </div>
       </div>
 
-      {/* Avatar Mint Modal - Only show if user hasn't minted yet */}
-      {!userName && (
+      {/* Avatar Mint Modal - Only show if user hasn't minted yet AND hasn't dismissed */}
+      {!userName && !hasDismissedMintModal && (
         <AvatarMintModal 
           isOpen={showMintModal} 
-          onClose={() => setShowMintModal(false)}
+          onClose={() => {
+            setShowMintModal(false);
+            // Mark modal as seen when closed
+            localStorage.setItem(`selora_mint_modal_seen_${walletAddress}`, 'true');
+          }}
           onMint={handleMintAvatar}
           isMinting={isMinting || isPending}
         />

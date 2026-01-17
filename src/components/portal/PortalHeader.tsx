@@ -31,32 +31,40 @@ export const PortalHeader = ({
   }));
 
   return (
-    <div className="mb-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-muted-foreground mt-1">{subtitle}</p>
-          )}
+    <div className="mb-6 md:mb-8">
+      <div className="flex flex-col gap-4 mb-4 md:mb-6">
+        {/* Title row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{subtitle}</p>
+            )}
+          </div>
+          
+          {/* Wallet info - always visible but compact on mobile */}
+          <div className="flex items-center gap-2 shrink-0">
+            <NotificationBell
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllRead}
+              onRemove={remove}
+            />
+            <WalletBalance />
+            <WalletAddress address={walletAddress} />
+          </div>
         </div>
         
-        <div className="flex items-center gap-3">
+        {/* Search row - full width on mobile */}
+        {onSearch && (
           <PortalSearch 
             placeholder="Search..." 
             onSearch={onSearch}
-            className="w-48 md:w-64"
+            className="w-full sm:w-64 md:w-72"
           />
-          <NotificationBell
-            notifications={notifications}
-            onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllRead}
-            onRemove={remove}
-          />
-          <WalletBalance />
-          <WalletAddress address={walletAddress} />
-        </div>
+        )}
       </div>
     </div>
   );
