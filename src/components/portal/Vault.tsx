@@ -213,27 +213,63 @@ export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
     <div className="space-y-6">
       <KeyphraseBackup walletAddress={walletAddress} />
 
-      {/* Video Tutorial Section */}
-      <div className="glass-card p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex-1">
-            <h3 className="font-medium flex items-center gap-2">
-              <Video className="w-4 h-4 text-primary" />
-              Wallet Tutorial
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Learn how to copy your recovery phrase and import your wallet
-            </p>
+      {/* Video Tutorial Section - Wallet Import */}
+      <div className="glass-card p-4 sm:p-5 border border-primary/20">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+              <Video className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base">How to Import Your Wallet</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                Learn how to copy your recovery keyphrase from above and import it into a wallet app like MetaMask, Trust Wallet, or any compatible wallet.
+              </p>
+            </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
-            className="gap-2"
-          >
-            <Play className="w-4 h-4" />
-            Watch Tutorial
-          </Button>
+          
+          {/* Tutorial Steps */}
+          <div className="bg-muted/30 rounded-lg p-3 sm:p-4 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Quick Steps:</p>
+            <ol className="text-xs sm:text-sm space-y-1.5 text-muted-foreground">
+              <li className="flex gap-2">
+                <span className="text-primary font-bold">1.</span>
+                <span>Click "Reveal" above to show your 12-word recovery phrase</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary font-bold">2.</span>
+                <span>Click "Copy" to copy the phrase to your clipboard</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary font-bold">3.</span>
+                <span>Open your wallet app and select "Import Wallet"</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary font-bold">4.</span>
+                <span>Paste your recovery phrase when prompted</span>
+              </li>
+            </ol>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open('https://youtu.be/wallet-import-tutorial', '_blank')}
+              className="gap-2 flex-1 sm:flex-none"
+            >
+              <Play className="w-4 h-4" />
+              Watch Video Tutorial
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => window.open('https://metamask.io/download/', '_blank')}
+              className="gap-2 text-muted-foreground"
+            >
+              Download MetaMask
+            </Button>
+          </div>
         </div>
       </div>
 
