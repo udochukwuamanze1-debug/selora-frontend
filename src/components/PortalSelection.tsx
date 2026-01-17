@@ -77,13 +77,15 @@ const PortalSelectionContent = ({
     checkDailyLogin();
   }, []);
 
-  // Show mint modal for first-time users
+  // Show mint modal for first-time users only (check localStorage to avoid repeat)
   useEffect(() => {
-    if (!hasAvatar) {
+    // Only show modal if user doesn't have avatar AND hasn't dismissed it before
+    const hasSeenMintModal = localStorage.getItem(`selora_mint_modal_seen_${walletAddress}`);
+    if (!hasAvatar && !hasSeenMintModal) {
       const timer = setTimeout(() => setShowMintModal(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [hasAvatar]);
+  }, [hasAvatar, walletAddress]);
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -215,16 +217,20 @@ const PortalSelectionContent = ({
         </div>
       </main>
 
-      {/* Avatar Mint Modal */}
-      <AvatarMintModal
-        isOpen={showMintModal}
-        onClose={() => {
-          setShowMintModal(false);
-          setPendingPortal(null);
-        }}
-        onMint={handleMint}
-        isMinting={isMinting}
-      />
+      {/* Avatar Mint Modal - only for users without avatar */}
+      {!hasAvatar && (
+        <AvatarMintModal
+          isOpen={showMintModal}
+          onClose={() => {
+            setShowMintModal(false);
+            setPendingPortal(null);
+            // Mark that user has seen the modal to prevent repeat prompts
+            localStorage.setItem(`selora_mint_modal_seen_${walletAddress}`, 'true');
+          }}
+          onMint={handleMint}
+          isMinting={isMinting}
+        />
+      )}
     </div>
   );
 };

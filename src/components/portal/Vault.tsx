@@ -10,6 +10,7 @@ import {
   Trash2,
   Lock,
   Filter,
+  Play,
   Grid,
   List,
   FolderOpen,
@@ -212,8 +213,32 @@ export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
     <div className="space-y-6">
       <KeyphraseBackup walletAddress={walletAddress} />
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* Video Tutorial Section */}
+      <div className="glass-card p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <h3 className="font-medium flex items-center gap-2">
+              <Video className="w-4 h-4 text-primary" />
+              Wallet Tutorial
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Learn how to copy your recovery phrase and import your wallet
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
+            className="gap-2"
+          >
+            <Play className="w-4 h-4" />
+            Watch Tutorial
+          </Button>
+        </div>
+      </div>
+
+      {/* Header - Responsive */}
+      <div className="flex flex-col gap-4">
         <div>
           <h2 className="font-heading text-xl font-bold flex items-center gap-2">
             <Lock className="w-5 h-5 text-primary" />
@@ -224,49 +249,52 @@ export const Vault = ({ walletAddress, externalSearchQuery }: VaultProps) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Controls - Stack on mobile */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search files..."
-              className="pl-9 w-48"
+              className="pl-9 w-full sm:w-48"
             />
           </div>
 
-          <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as FileCategory)}>
-            <SelectTrigger className="w-40">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label} ({cat.count})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as FileCategory)}>
+              <SelectTrigger className="flex-1 sm:w-40">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label} ({cat.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <div className="flex border border-border rounded-lg overflow-hidden">
-            <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("grid")}
-              className="rounded-none"
-            >
-              <Grid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className="rounded-none"
-            >
-              <List className="w-4 h-4" />
-            </Button>
+            <div className="flex border border-border rounded-lg overflow-hidden shrink-0">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="rounded-none"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

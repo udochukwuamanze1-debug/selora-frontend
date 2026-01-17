@@ -341,38 +341,42 @@ export function DashboardGreeting({
               </div>
             </div>
   
-            {/* Avatar Mint Box */}
-            <div className="glass-card-hover p-4 rounded-2xl flex justify-center min-w-[140px] border border-primary/20">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center mb-2">
-                <Sparkles className="w-6 h-6 text-primary" />
+            {/* Avatar Mint Box - Only show if user hasn't minted yet */}
+            {!userName && (
+              <div className="glass-card-hover p-4 rounded-2xl flex flex-col items-center min-w-[140px] border border-primary/20">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center mb-2">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+                <p className="text-xs text-muted-foreground mb-2 text-center">Mint Your Avatar</p>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setShowMintModal(true)}
+                  disabled={isPending}
+                  className="text-xs gap-1"
+                >
+                  {isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  Mint NFT
+                </Button>
               </div>
-              <p className="text-xs text-muted-foreground mb-2 text-center">Mint Your Avatar</p>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setShowMintModal(true)}
-                disabled={isPending}
-                className="text-xs gap-1"
-              >
-                {isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3 h-3" />
-                )}
-                Mint NFT
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Avatar Mint Modal */}
-      <AvatarMintModal 
-        isOpen={showMintModal} 
-        onClose={() => setShowMintModal(false)}
-        onMint={handleMintAvatar}
-        isMinting={isMinting || isPending}
-      />
+      {/* Avatar Mint Modal - Only show if user hasn't minted yet */}
+      {!userName && (
+        <AvatarMintModal 
+          isOpen={showMintModal} 
+          onClose={() => setShowMintModal(false)}
+          onMint={handleMintAvatar}
+          isMinting={isMinting || isPending}
+        />
+      )}
     </>
   );
 }

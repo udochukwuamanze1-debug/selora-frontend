@@ -176,34 +176,36 @@ Delete this email after saving it somewhere secure.
 
   return (
     <>
-      {/* Backup Status Card */}
+      {/* Backup Status Card - Responsive */}
       <div className="glass-card p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
+            <div className="p-2 rounded-lg bg-primary/10 shrink-0">
               <Key className="w-5 h-5 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="font-medium">Recovery Phrase</h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 {backupStatus.backedUp
                   ? "Backed up securely"
-                  : "Not backed up yet - action required"}
+                  : "Not backed up yet"}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={backupStatus.backedUp ? "default" : "destructive"}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant={backupStatus.backedUp ? "default" : "destructive"} className="shrink-0">
               {backupStatus.backedUp ? "Backed Up" : "Backup Needed"}
             </Badge>
-            <Button variant="outline" size="sm" onClick={handleViewKeyphrase}>
-              <Download className="w-4 h-4 mr-1" />
-              Backup
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)}>
-              <Upload className="w-4 h-4 mr-1" />
-              Import
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleViewKeyphrase} className="text-xs">
+                <Download className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Backup</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)} className="text-xs">
+                <Upload className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Import</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
