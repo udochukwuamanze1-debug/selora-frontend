@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, ExternalLink } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Download, FileText, HelpCircle } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 
 const ExecutiveSummary = () => {
   const navigate = useNavigate();
@@ -237,6 +237,27 @@ const ExecutiveSummary = () => {
                 <p className="font-semibold mb-2">Selora Advantage</p>
                 <p className="text-sm text-primary">IOTA L1, zkLogin, patient-owned, revenue share</p>
               </div>
+            </div>
+          </section>
+
+          {/* Related Resources */}
+          <section className="print:hidden">
+            <h2 className="text-2xl font-heading font-bold mb-4 text-primary">Related Resources</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Link to="/investor-faq" className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors flex items-center gap-3">
+                <HelpCircle className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-semibold">Investor FAQ</p>
+                  <p className="text-sm text-muted-foreground">Common questions about technology, security & market</p>
+                </div>
+              </Link>
+              <Link to="/demo-script" className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors flex items-center gap-3">
+                <FileText className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-semibold">Demo Script</p>
+                  <p className="text-sm text-muted-foreground">2-minute investor demo walkthrough</p>
+                </div>
+              </Link>
             </div>
           </section>
 
