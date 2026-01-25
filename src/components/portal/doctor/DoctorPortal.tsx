@@ -13,6 +13,7 @@ import { ProfilePreferences } from "../ProfilePreferences";
 import { DoctorProfileForm } from "./DoctorProfileForm";
 import { cn } from "@/lib/utils";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 interface DoctorPortalProps {
   walletAddress: string;
@@ -76,6 +77,9 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
 
   return (
     <div className="min-h-screen bg-background">
+      {/* PWA Install Prompt - only shown when logged in */}
+      <PWAInstallPrompt isLoggedIn={true} />
+      
       <DoctorSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}

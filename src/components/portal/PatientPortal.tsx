@@ -22,6 +22,7 @@ import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 interface PatientPortalProps {
   walletAddress: string;
@@ -79,6 +80,9 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
   return (
     <div className="min-h-screen bg-background">
       <OnboardingTutorial walletAddress={walletAddress} onComplete={() => {}} />
+      
+      {/* PWA Install Prompt - only shown when logged in */}
+      <PWAInstallPrompt isLoggedIn={true} />
       
       {/* Mobile Header */}
       {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Patient" />}

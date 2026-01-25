@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { IotaProvider } from "@/providers/IotaProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useCurrentAccount, useDisconnectWallet } from "@iota/dapp-kit";
 import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
 import Index from "./pages/Index";
@@ -111,7 +110,6 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <AppRoutes />
-          <PWAInstallPrompt />
         </BrowserRouter>
       </TooltipProvider>
     </IotaProvider>
