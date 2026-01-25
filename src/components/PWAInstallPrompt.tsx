@@ -4,32 +4,51 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { Download, X, Share, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function PWAInstallPrompt() {
+interface PWAInstallPromptProps {
+  isLoggedIn?: boolean;
+}
+
+export function PWAInstallPrompt({ isLoggedIn = false }: PWAInstallPromptProps) {
   const { isInstallable, isInstalled, isIOS, showIOSInstructions, installApp } = usePWAInstall();
   const [showBanner, setShowBanner] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const hasDismissed = localStorage.getItem("selora_pwa_dismissed");
+    // Only show when logged in
+    if (!isLoggedIn) {
+      setShowBanner(false);
+      return;
+    }
+
+    const hasDismissed = sessionStorage.getItem("selora_pwa_dismissed_session");
     if (hasDismissed) {
       setDismissed(true);
       return;
     }
 
-    // Show banner after 5 seconds if installable or iOS
+    // Show banner after 3 seconds if installable or iOS
     const timer = setTimeout(() => {
       if ((isInstallable || showIOSInstructions) && !isInstalled) {
         setShowBanner(true);
       }
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timer);
-  }, [isInstallable, showIOSInstructions, isInstalled]);
+  }, [isInstallable, showIOSInstructions, isInstalled, isLoggedIn]);
 
   const handleDismiss = () => {
     setShowBanner(false);
     setDismissed(true);
+    // Use sessionStorage so it only dismisses for this session
+    sessionStorage.setItem("selora_pwa_dismissed_session", "true");
+  };
+
+  const handleNeverShow = () => {
+    setShowBanner(false);
+    setDismissed(true);
+    // Use localStorage to permanently dismiss
     localStorage.setItem("selora_pwa_dismissed", "true");
+    sessionStorage.setItem("selora_pwa_dismissed_session", "true");
   };
 
   const handleInstall = async () => {
@@ -39,7 +58,14 @@ export function PWAInstallPrompt() {
     }
   };
 
-  if (isInstalled || dismissed || !showBanner) return null;
+  // Check permanent dismissal
+  useEffect(() => {
+    if (localStorage.getItem("selora_pwa_dismissed")) {
+      setDismissed(true);
+    }
+  }, []);
+
+  if (isInstalled || dismissed || !showBanner || !isLoggedIn) return null;
 
   return (
     <div
@@ -52,6 +78,7 @@ export function PWAInstallPrompt() {
       <button
         onClick={handleDismiss}
         className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+        aria-label="Dismiss"
       >
         <X className="w-4 h-4" />
       </button>
@@ -73,11 +100,18 @@ export function PWAInstallPrompt() {
           )}
           
           {!isIOS && (
-            <Button size="sm" onClick={handleInstall} className="w-full">
+            <Button size="sm" onClick={handleInstall} className="w-full mb-2">
               <Download className="w-4 h-4 mr-2" />
               Install Now
             </Button>
           )}
+          
+          <button
+            onClick={handleNeverShow}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center"
+          >
+            Don't show again
+          </button>
         </div>
       </div>
     </div>

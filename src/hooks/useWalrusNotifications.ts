@@ -7,6 +7,7 @@ import {
   markAllNotificationsAsRead,
   removeNotification,
 } from "@/lib/walrus-notifications";
+import { useNotificationFeedback } from "./useNotificationFeedback";
 
 interface Notification {
   id: string;
@@ -25,6 +26,7 @@ export function useWalrusNotifications(walletAddress: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const previousUnreadRef = useRef(0);
+  const { triggerFeedback } = useNotificationFeedback();
 
   // Load notifications
   const loadNotifications = useCallback(async () => {
@@ -45,10 +47,13 @@ export function useWalrusNotifications(walletAddress: string) {
       const walrusNotifications = await fetchNotificationsFromWalrus(walletAddress);
       const newUnreadCount = walrusNotifications.filter(n => !n.read).length;
       
-      // Show toast for new notifications
+      // Show toast and trigger feedback for new notifications
       if (newUnreadCount > previousUnreadRef.current && previousUnreadRef.current > 0) {
         const newestUnread = walrusNotifications.find(n => !n.read);
         if (newestUnread) {
+          // Trigger sound and vibration
+          triggerFeedback();
+          
           toast.info(newestUnread.title, {
             description: newestUnread.message.slice(0, 60) + (newestUnread.message.length > 60 ? '...' : ''),
             duration: 5000,
