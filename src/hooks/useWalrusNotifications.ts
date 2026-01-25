@@ -10,7 +10,7 @@ import {
 
 interface Notification {
   id: string;
-  type: "visit_report" | "prescription" | "access_request" | "access_granted";
+  type: "visit_report" | "prescription" | "access_request" | "access_granted" | "welcome" | "reminder";
   title: string;
   message: string;
   fromAddress: string;

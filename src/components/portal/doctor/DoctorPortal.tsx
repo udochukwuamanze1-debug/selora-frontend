@@ -12,6 +12,7 @@ import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { DoctorProfileForm } from "./DoctorProfileForm";
 import { cn } from "@/lib/utils";
+import { useLoginReminder } from "@/hooks/useLoginReminder";
 
 interface DoctorPortalProps {
   walletAddress: string;
@@ -27,6 +28,9 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
   const zkLoginState = loadZkLoginState();
   const zkLoginAddress = isZkLoginReady(zkLoginState) ? zkLoginState?.address : null;
   const walletAddress = currentAccount?.address || zkLoginAddress || propWalletAddress;
+
+  // Track login for reminder notifications
+  useLoginReminder(walletAddress);
 
   const handleSignOut = () => {
     // Clear all user data

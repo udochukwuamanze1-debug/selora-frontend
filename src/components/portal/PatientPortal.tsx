@@ -21,6 +21,7 @@ import { TrustedContacts } from "./TrustedContacts";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLoginReminder } from "@/hooks/useLoginReminder";
 
 interface PatientPortalProps {
   walletAddress: string;
@@ -125,6 +126,9 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
 };
 
 export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) => {
+  // Track login for reminder notifications
+  useLoginReminder(walletAddress);
+
   useEffect(() => {
     const userKey = `selora_user_${walletAddress}`;
     if (!localStorage.getItem(userKey)) {
