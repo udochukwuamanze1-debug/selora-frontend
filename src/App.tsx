@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { IotaProvider } from "@/providers/IotaProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useCurrentAccount, useDisconnectWallet } from "@iota/dapp-kit";
 import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
 import Index from "./pages/Index";
@@ -18,6 +19,7 @@ import AuthCallback from "./pages/AuthCallback";
 import ExecutiveSummary from "./pages/ExecutiveSummary";
 import DemoScript from "./pages/DemoScript";
 import InvestorFAQ from "./pages/InvestorFAQ";
+import Install from "./pages/Install";
 import { DoctorPortal } from "./components/portal/doctor/DoctorPortal";
 import { LabPortal } from "./components/portal/lab/LabPortal";
 import { InsurerPortal } from "./components/portal/insurer/InsurerPortal";
@@ -82,6 +84,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Index />} />
     <Route path="/waitlist" element={<Waitlist />} />
+    <Route path="/install" element={<Install />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/terms" element={<Terms />} />
@@ -108,6 +111,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <AppRoutes />
+          <PWAInstallPrompt />
         </BrowserRouter>
       </TooltipProvider>
     </IotaProvider>

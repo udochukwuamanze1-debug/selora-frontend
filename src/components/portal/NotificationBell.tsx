@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface Notification {
   id: string;
-  type: "prescription" | "access" | "alert" | "info" | "welcome" | "visit_report";
+  type: "prescription" | "access" | "alert" | "info" | "welcome" | "visit_report" | "reminder";
   title: string;
   message: string;
   time: string;
@@ -37,6 +37,8 @@ const getIcon = (type: Notification["type"]) => {
       return "⚠️";
     case "visit_report":
       return "🩺";
+    case "reminder":
+      return "🔔";
     default:
       return "ℹ️";
   }

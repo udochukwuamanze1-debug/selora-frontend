@@ -1,5 +1,6 @@
 import { Logo } from "@/components/Logo";
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -26,6 +27,12 @@ export const Footer = () => {
               <li>
                 <Link to="/whitepaper" className="hover:text-foreground transition-colors">
                   Whitepaper
+                </Link>
+              </li>
+              <li>
+                <Link to="/install" className="hover:text-foreground transition-colors inline-flex items-center gap-1.5">
+                  <Download className="w-3.5 h-3.5" />
+                  Install App
                 </Link>
               </li>
             </ul>
