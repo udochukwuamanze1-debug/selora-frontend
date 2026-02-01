@@ -55,7 +55,7 @@ const tutorialSteps = [
     title: "Prescriptions",
     description: "View and manage your medications.",
     icon: Pill,
-    content: "See all your prescriptions, refill history, and pay for medications using SUI tokens.",
+    content: "See all your prescriptions, refill history, and pay for medications using IOTA tokens.",
   },
   {
     title: "Data Exchange",
@@ -79,7 +79,7 @@ const tutorialSteps = [
     title: "Your Wallet",
     description: "Find your wallet info easily.",
     icon: Wallet,
-    content: "Your wallet address is in the sidebar and top bar. Your SUI balance is shown in the dark box next to it.",
+    content: "Your wallet address is in the sidebar and top bar. Your IOTA balance is shown in the dark box next to it.",
   },
   {
     title: "Theme Settings",
