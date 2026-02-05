@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const menuItems = [
+export const insurerMenuItems = [
   { id: "risk", label: "Risk Overview", icon: BarChart3 },
   { id: "marketplace", label: "Data Marketplace", icon: ShoppingCart },
   { id: "claims", label: "Claims", icon: FileCheck },
@@ -29,6 +29,8 @@ interface InsurerSidebarProps {
   onTabChange: (tab: string) => void;
   walletAddress: string;
   onSignOut: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export const InsurerSidebar = ({
@@ -36,8 +38,12 @@ export const InsurerSidebar = ({
   onTabChange,
   walletAddress,
   onSignOut,
+  collapsed: controlledCollapsed,
+  onCollapsedChange,
 }: InsurerSidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed ?? internalCollapsed;
+  const setCollapsed = onCollapsedChange ?? setInternalCollapsed;
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -46,7 +52,8 @@ export const InsurerSidebar = ({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-50 flex flex-col",
+        "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-50 flex-col",
+        "hidden md:flex", // Hidden on mobile
         collapsed ? "w-20" : "w-64"
       )}
     >
@@ -86,7 +93,7 @@ export const InsurerSidebar = ({
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {menuItems.map((item) => (
+        {insurerMenuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onTabChange(item.id)}
