@@ -12,16 +12,18 @@ import {
   Wallet,
   Lock,
   Bot,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const menuItems = [
+export const researcherMenuItems = [
   { id: "console", label: "Research Console", icon: LayoutDashboard },
   { id: "pools", label: "Data Pools", icon: Database },
   { id: "consent", label: "Consent Management", icon: FileCheck },
   { id: "publications", label: "Publications", icon: BookOpen },
   { id: "vault", label: "Secure Vault", icon: Lock },
   { id: "assistant", label: "Selora AI", icon: Bot },
+  { id: "profile", label: "Profile & Preferences", icon: Settings },
 ];
 
 interface ResearcherSidebarProps {
@@ -29,6 +31,8 @@ interface ResearcherSidebarProps {
   onTabChange: (tab: string) => void;
   walletAddress: string;
   onSignOut: () => void;
+  collapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export const ResearcherSidebar = ({
@@ -36,8 +40,12 @@ export const ResearcherSidebar = ({
   onTabChange,
   walletAddress,
   onSignOut,
+  collapsed: controlledCollapsed,
+  onCollapsedChange,
 }: ResearcherSidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed = controlledCollapsed ?? internalCollapsed;
+  const setCollapsed = onCollapsedChange ?? setInternalCollapsed;
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -46,7 +54,8 @@ export const ResearcherSidebar = ({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-50 flex flex-col",
+        "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-50 flex-col",
+        "hidden md:flex", // Hidden on mobile
         collapsed ? "w-20" : "w-64"
       )}
     >
@@ -86,7 +95,7 @@ export const ResearcherSidebar = ({
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {menuItems.map((item) => (
+        {researcherMenuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onTabChange(item.id)}

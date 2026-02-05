@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentAccount } from "@iota/dapp-kit";
-import { ResearcherSidebar } from "./ResearcherSidebar";
+import { ResearcherSidebar, researcherMenuItems } from "./ResearcherSidebar";
 import { ResearchConsole } from "./ResearchConsole";
 import { DataPools } from "./DataPools";
 import { ConsentManagement } from "./ConsentManagement";
 import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
+import { MobileHeader } from "../MobileHeader";
+import { PortalBottomNav } from "../PortalBottomNav";
 import { cn } from "@/lib/utils";
 import { getZkLoginUserInfo, loadZkLoginState, clearZkLoginState } from "@/lib/zklogin";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLoginReminder } from "@/hooks/useLoginReminder";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { LayoutDashboard, Lock } from "lucide-react";
 
 interface ResearcherPortalProps {
   walletAddress: string;
@@ -18,8 +24,10 @@ interface ResearcherPortalProps {
 
 export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }: ResearcherPortalProps) => {
   const [activeTab, setActiveTab] = useState("console");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
+  const isMobile = useIsMobile();
   
   // Check for zkLogin state
   const zkLoginState = loadZkLoginState();
@@ -27,6 +35,9 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
   
   // Use IOTA wallet address if connected, zkLogin address, or prop
   const walletAddress = currentAccount?.address || zkLoginState?.address || propWalletAddress;
+
+  // Track login for reminder notifications
+  useLoginReminder(walletAddress);
 
   const handleSignOut = () => {
     // Clear all user data
@@ -64,22 +75,59 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
         return <Vault walletAddress={walletAddress} />;
       case "assistant":
         return <HealthAssistant walletAddress={walletAddress} />;
+      case "profile":
+        return <ProfilePreferences walletAddress={walletAddress} />;
       default:
         return <ResearchConsole isNewUser={true} walletAddress={walletAddress} />;
     }
   };
 
+  // Convert menu items for bottom nav
+  const bottomNavItems = researcherMenuItems.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt isLoggedIn={true} />
+      
+      {/* Mobile Header */}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Researcher" />}
+      
+      {/* Desktop Sidebar */}
       <ResearcherSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         walletAddress={walletAddress}
         onSignOut={handleSignOut}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
       />
-      <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
+      
+      <main className={cn(
+        "transition-all duration-300 p-4 pb-24",
+        !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
+        !isMobile && "p-6 lg:p-8 pb-8"
+      )}>
         {renderContent()}
       </main>
+      
+      {/* Mobile Bottom Nav */}
+      {isMobile && (
+        <PortalBottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSignOut={handleSignOut}
+          menuItems={bottomNavItems}
+          primaryTabs={[
+            { id: "console", label: "Console", icon: LayoutDashboard },
+            { id: "vault", label: "Vault", icon: Lock },
+          ]}
+        />
+      )}
     </div>
   );
 };
@@ -87,14 +135,14 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
 const PublicationsReports = () => (
   <div className="space-y-6">
     <div>
-      <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
+      <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">
         Publications & Reports
       </h1>
-      <p className="text-muted-foreground">
+      <p className="text-sm sm:text-base text-muted-foreground">
         Manage your research publications and generate reports
       </p>
     </div>
-    <div className="glass-card p-12 text-center">
+    <div className="glass-card p-8 sm:p-12 text-center">
       <p className="text-muted-foreground">No publications yet. Start a study to create reports.</p>
     </div>
   </div>

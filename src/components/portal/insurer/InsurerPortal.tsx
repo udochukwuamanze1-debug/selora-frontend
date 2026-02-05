@@ -2,14 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentAccount } from "@iota/dapp-kit";
 import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
-import { InsurerSidebar } from "./InsurerSidebar";
+import { InsurerSidebar, insurerMenuItems } from "./InsurerSidebar";
 import { RiskOverview } from "./RiskOverview";
 import { DataMarketplace } from "./DataMarketplace";
 import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
+import { MobileHeader } from "../MobileHeader";
+import { PortalBottomNav } from "../PortalBottomNav";
 import { cn } from "@/lib/utils";
-import { FileText, Plus } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLoginReminder } from "@/hooks/useLoginReminder";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { FileText, BarChart3, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface InsurerPortalProps {
@@ -19,13 +24,18 @@ interface InsurerPortalProps {
 
 export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: InsurerPortalProps) => {
   const [activeTab, setActiveTab] = useState("risk");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
+  const isMobile = useIsMobile();
   
   // Check both IOTA wallet and zkLogin for authentication
   const zkLoginState = loadZkLoginState();
   const zkLoginAddress = isZkLoginReady(zkLoginState) ? zkLoginState?.address : null;
   const walletAddress = currentAccount?.address || zkLoginAddress || propWalletAddress;
+
+  // Track login for reminder notifications
+  useLoginReminder(walletAddress);
 
   const handleSignOut = () => {
     // Clear all user data
@@ -65,17 +75,52 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
     }
   };
 
+  // Convert menu items for bottom nav
+  const bottomNavItems = insurerMenuItems.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt isLoggedIn={true} />
+      
+      {/* Mobile Header */}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Insurer" />}
+      
+      {/* Desktop Sidebar */}
       <InsurerSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         walletAddress={walletAddress}
         onSignOut={handleSignOut}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
       />
-      <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
+      
+      <main className={cn(
+        "transition-all duration-300 p-4 pb-24",
+        !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
+        !isMobile && "p-6 lg:p-8 pb-8"
+      )}>
         {renderContent()}
       </main>
+      
+      {/* Mobile Bottom Nav */}
+      {isMobile && (
+        <PortalBottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSignOut={handleSignOut}
+          menuItems={bottomNavItems}
+          primaryTabs={[
+            { id: "risk", label: "Risk", icon: BarChart3 },
+            { id: "vault", label: "Vault", icon: Lock },
+          ]}
+        />
+      )}
     </div>
   );
 };
@@ -88,24 +133,24 @@ const ClaimsProcessing = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
+          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">
             Claims Processing
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage and process insurance claims
           </p>
         </div>
       </div>
       
       {claims.length === 0 ? (
-        <div className="glass-card p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-primary" />
+        <div className="glass-card p-8 sm:p-12 text-center">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           </div>
-          <h3 className="font-semibold text-lg mb-2">No claims to process</h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
+          <h3 className="font-semibold text-base sm:text-lg mb-2">No claims to process</h3>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
             Claims will appear here when patients submit them through their portal. You'll be able to review, approve, or reject claims.
           </p>
         </div>

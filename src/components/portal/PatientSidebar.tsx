@@ -64,7 +64,8 @@ export const PatientSidebar = ({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-card border-r border-border transition-all duration-300",
+        "fixed left-0 top-0 bottom-0 z-40 flex-col bg-card border-r border-border transition-all duration-300",
+        "hidden md:flex", // Hidden on mobile
         collapsed ? "w-20" : "w-64"
       )}
     >

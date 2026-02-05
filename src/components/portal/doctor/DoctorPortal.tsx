@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentAccount } from "@iota/dapp-kit";
 import { loadZkLoginState, clearZkLoginState, isZkLoginReady } from "@/lib/zklogin";
-import { DoctorSidebar } from "./DoctorSidebar";
+import { DoctorSidebar, doctorMenuItems } from "./DoctorSidebar";
 import { CareWorkspace } from "./CareWorkspace";
 import { PatientInsights } from "./PatientInsights";
 import { PrescriptionCreation } from "./PrescriptionCreation";
@@ -11,9 +11,13 @@ import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { DoctorProfileForm } from "./DoctorProfileForm";
+import { MobileHeader } from "../MobileHeader";
+import { PortalBottomNav } from "../PortalBottomNav";
 import { cn } from "@/lib/utils";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { LayoutDashboard, Lock } from "lucide-react";
 
 interface DoctorPortalProps {
   walletAddress: string;
@@ -22,8 +26,10 @@ interface DoctorPortalProps {
 
 export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: DoctorPortalProps) => {
   const [activeTab, setActiveTab] = useState("workspace");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const currentAccount = useCurrentAccount();
+  const isMobile = useIsMobile();
   
   // Check both IOTA wallet and zkLogin for authentication
   const zkLoginState = loadZkLoginState();
@@ -75,21 +81,52 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
     }
   };
 
+  // Convert menu items for bottom nav
+  const bottomNavItems = doctorMenuItems.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
       {/* PWA Install Prompt - only shown when logged in */}
       <PWAInstallPrompt isLoggedIn={true} />
       
+      {/* Mobile Header */}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Doctor" />}
+      
+      {/* Desktop Sidebar - hidden on mobile */}
       <DoctorSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         walletAddress={walletAddress}
         onSignOut={handleSignOut}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
       />
-      <main className={cn("transition-all duration-300 ml-64 p-6 lg:p-8")}>
+      
+      <main className={cn(
+        "transition-all duration-300 p-4 pb-24",
+        !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
+        !isMobile && "p-6 lg:p-8 pb-8"
+      )}>
         {renderContent()}
       </main>
+      
+      {/* Mobile Bottom Nav */}
+      {isMobile && (
+        <PortalBottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSignOut={handleSignOut}
+          menuItems={bottomNavItems}
+          primaryTabs={[
+            { id: "workspace", label: "Workspace", icon: LayoutDashboard },
+            { id: "vault", label: "Vault", icon: Lock },
+          ]}
+        />
+      )}
     </div>
   );
 };
-
