@@ -63,14 +63,6 @@ export const CareWorkspace = ({ isNewUser = false, walletAddress = "" }: CareWor
   return (
     <div className="space-y-6">
       <QRAccessRequest walletAddress={walletAddress} userType="doctor" />
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Care Workspace
-        </h1>
-        <p className="text-muted-foreground">
-          {!hasData ? "Welcome! Start by connecting with patients" : "Overview of your patients and recent activity"}
-        </p>
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -10,6 +10,7 @@ import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { MobileHeader } from "../MobileHeader";
 import { PortalBottomNav } from "../PortalBottomNav";
+import { PortalHeader } from "../PortalHeader";
 import { cn } from "@/lib/utils";
 import { getZkLoginUserInfo, loadZkLoginState, clearZkLoginState } from "@/lib/zklogin";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -95,7 +96,7 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
       <PWAInstallPrompt isLoggedIn={true} />
       
       {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Researcher" />}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Researcher" showQR={false} />}
       
       {/* Desktop Sidebar */}
       <ResearcherSidebar
@@ -112,6 +113,13 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
         !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
         !isMobile && "p-6 lg:p-8 pb-8"
       )}>
+        {!isMobile && (
+          <PortalHeader
+            walletAddress={walletAddress}
+            subtitle="Manage research studies and data pools"
+            showQR={false}
+          />
+        )}
         {renderContent()}
       </main>
       

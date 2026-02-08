@@ -16,6 +16,7 @@ import { DoctorsDirectory } from "./DoctorsDirectory";
 import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
 import { XPRewardsProvider } from "@/hooks/useXPRewards";
 import { cn } from "@/lib/utils";
+import { Upload, Database } from "lucide-react";
 import { CareNetwork } from "./CareNetwork";
 import { TrustedContacts } from "./TrustedContacts";
 import { BottomNav } from "./BottomNav";
@@ -107,10 +108,13 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
         {/* Desktop Header - hidden on mobile */}
         {!isMobile && (
           <PortalHeader
-            title="Dashboard"
-            subtitle="Manage your health data securely"
             walletAddress={walletAddress}
             onSearch={setSearchQuery}
+            subtitle="Your health data is secure and under your control"
+            actions={[
+              { label: "Upload Record", icon: Upload, onClick: () => setActiveTab("vault") },
+              { label: "Stake Data", icon: Database, onClick: () => setActiveTab("exchange"), variant: "glass" as const },
+            ]}
           />
         )}
         {renderContent()}
