@@ -6,13 +6,16 @@ import {
   FileText,
   Shield,
   Zap,
+  Heart,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import { useUserStats, formatRelativeTime } from "@/hooks/useUserStats";
-import { DashboardGreeting } from "./DashboardGreeting";
-import { QRAccessRequest } from "./QRAccessRequest";
 import { useAvatar } from "@/hooks/useAvatar";
 import { useXPRewards } from "@/hooks/useXPRewards";
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 interface PatientHomeProps {
   walletAddress: string;
@@ -24,77 +27,61 @@ export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => 
   const { avatar } = useAvatar(walletAddress);
   const { xp, level, xpProgress, xpToNextLevel, checkDailyLogin, records } = useXPRewards();
 
-  // Check for daily login XP on mount
   useEffect(() => {
     checkDailyLogin();
   }, []);
 
+  const isNewUser = stats.healthRecords === 0;
+  const healthScore = isNewUser ? 50 : 75 + Math.min(stats.healthRecords * 2, 20);
+  const previousScore = isNewUser ? 50 : 73 + Math.min(stats.healthRecords * 2, 18);
+  const scoreDiff = healthScore - previousScore;
+  const TrendIcon = scoreDiff > 0 ? TrendingUp : scoreDiff < 0 ? TrendingDown : Minus;
+  const trendColor = scoreDiff > 0 ? "text-green-500" : scoreDiff < 0 ? "text-red-500" : "text-muted-foreground";
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-500";
+    if (score >= 60) return "text-yellow-500";
+    if (score >= 40) return "text-orange-400";
+    return "text-red-500";
+  };
+
   const statCards = [
+    {
+      label: "Health Score",
+      value: healthScore.toString(),
+      suffix: "/100",
+      icon: Heart,
+      color: "primary",
+      extra: (
+        <div className="flex items-center gap-1 mt-1">
+          <TrendIcon className={cn("w-3 h-3", trendColor)} />
+          <span className={cn("text-[10px]", isNewUser ? "text-muted-foreground" : trendColor)}>
+            {isNewUser ? "Neutral" : scoreDiff !== 0 ? `${scoreDiff > 0 ? "+" : ""}${scoreDiff}` : "No change"}
+          </span>
+        </div>
+      ),
+    },
     { label: "Health Records", value: stats.healthRecords.toString(), icon: FileText, color: "primary" },
     { label: "Staked Datasets", value: stats.stakedDatasets.toString(), icon: Database, color: "secondary" },
     { label: "Total XP", value: xp.toString(), icon: Zap, color: "accent" },
     { label: "Active Guardians", value: stats.activeGuardians.toString(), icon: Shield, color: "primary" },
   ];
 
-  // Get recent activities with formatted time
   const recentActivities = activities.slice(0, 4).map(activity => ({
     ...activity,
     time: formatRelativeTime(activity.timestamp),
   }));
 
-  // Show empty state if no activities
-  const displayActivities = recentActivities.length > 0 
-    ? recentActivities 
-    : [
-        { id: "empty", action: "No activity yet", time: "", type: "info" as const, timestamp: 0 }
-      ];
+  const displayActivities = recentActivities.length > 0
+    ? recentActivities
+    : [{ id: "empty", action: "No activity yet", time: "", type: "info" as const, timestamp: 0 }];
 
-  // Get recent XP rewards
   const recentXPRewards = records.slice(0, 3);
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Greeting with Health Score and XP */}
-      <DashboardGreeting 
-        userName={avatar?.name}
-        healthScore={stats.healthRecords > 0 ? 75 + Math.min(stats.healthRecords * 2, 20) : undefined}
-        previousScore={stats.healthRecords > 0 ? 73 + Math.min(stats.healthRecords * 2, 18) : undefined}
-        healthRecordsCount={stats.healthRecords}
-        walletAddress={walletAddress}
-        xp={xp}
-        level={level}
-        xpProgress={xpProgress}
-        xpToNextLevel={xpToNextLevel}
-      />
-
-      <QRAccessRequest walletAddress={walletAddress} userType="patient" />
-
-      {/* Quick Actions */}
-      <div className="glass-card p-4 sm:p-6">
-        <div className="flex flex-col gap-3 sm:gap-4">
-          <div>
-            <h2 className="font-heading text-lg sm:text-xl font-semibold mb-1">
-              Quick Actions
-            </h2>
-            <p className="text-muted-foreground text-xs sm:text-sm">
-              Your health data is secure and under your control
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Button onClick={() => onNavigate("vault")} className="gap-2 w-full sm:w-auto">
-              <Upload className="w-4 h-4" />
-              Upload Record
-            </Button>
-            <Button variant="glass" onClick={() => onNavigate("exchange")} className="gap-2 w-full sm:w-auto">
-              <Database className="w-4 h-4" />
-              Stake Data
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/* Stats Grid - includes Health Score */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         {statCards.map((stat) => (
           <div key={stat.label} className="glass-card-hover p-3 sm:p-5">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
@@ -102,8 +89,14 @@ export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => 
                 <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 text-${stat.color}`} />
               </div>
             </div>
-            <p className="font-heading text-xl sm:text-3xl font-bold mb-0.5 sm:mb-1">{stat.value}</p>
+            <div className="flex items-baseline gap-1">
+              <p className="font-heading text-xl sm:text-3xl font-bold mb-0.5 sm:mb-1">{stat.value}</p>
+              {"suffix" in stat && stat.suffix && (
+                <span className="text-xs text-muted-foreground">{stat.suffix}</span>
+              )}
+            </div>
             <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
+            {"extra" in stat && stat.extra}
           </div>
         ))}
       </div>
@@ -137,9 +130,8 @@ export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => 
           </div>
         </div>
 
-        {/* XP Rewards & Quick Actions */}
+        {/* XP Rewards */}
         <div className="space-y-4 sm:space-y-6">
-          {/* Recent XP Rewards */}
           {recentXPRewards.length > 0 && (
             <div className="glass-card p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
@@ -159,37 +151,21 @@ export const PatientHome = ({ walletAddress, onNavigate }: PatientHomeProps) => 
 
           {/* Quick Actions Grid */}
           <div className="glass-card p-4 sm:p-6">
-            <h2 className="font-heading text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Quick Actions</h2>
+            <h2 className="font-heading text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Explore</h2>
             <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              <Button
-                variant="glass"
-                className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6"
-                onClick={() => onNavigate("archive")}
-              >
+              <Button variant="glass" className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6" onClick={() => onNavigate("archive")}>
                 <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 <span className="text-xs sm:text-sm">View Records</span>
               </Button>
-              <Button
-                variant="glass"
-                className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6"
-                onClick={() => onNavigate("prescriptions")}
-              >
+              <Button variant="glass" className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6" onClick={() => onNavigate("prescriptions")}>
                 <Database className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
                 <span className="text-xs sm:text-sm">Prescriptions</span>
               </Button>
-              <Button
-                variant="glass"
-                className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6"
-                onClick={() => onNavigate("contacts")}
-              >
+              <Button variant="glass" className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6" onClick={() => onNavigate("contacts")}>
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                 <span className="text-xs sm:text-sm">Guardians</span>
               </Button>
-              <Button
-                variant="glass"
-                className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6"
-                onClick={() => onNavigate("assistant")}
-              >
+              <Button variant="glass" className="h-auto flex-col gap-1.5 sm:gap-2 py-4 sm:py-6" onClick={() => onNavigate("assistant")}>
                 <Award className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 <span className="text-xs sm:text-sm">Selora AI</span>
               </Button>

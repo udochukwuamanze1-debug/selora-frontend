@@ -10,6 +10,7 @@ import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { MobileHeader } from "../MobileHeader";
 import { PortalBottomNav } from "../PortalBottomNav";
+import { PortalHeader } from "../PortalHeader";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
@@ -88,7 +89,7 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
       <PWAInstallPrompt isLoggedIn={true} />
       
       {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Insurer" />}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Insurer" showQR={false} />}
       
       {/* Desktop Sidebar */}
       <InsurerSidebar
@@ -105,6 +106,13 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
         !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
         !isMobile && "p-6 lg:p-8 pb-8"
       )}>
+        {!isMobile && (
+          <PortalHeader
+            walletAddress={walletAddress}
+            subtitle="Manage risk assessments and claims"
+            showQR={false}
+          />
+        )}
         {renderContent()}
       </main>
       

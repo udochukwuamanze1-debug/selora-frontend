@@ -13,11 +13,12 @@ import { ProfilePreferences } from "../ProfilePreferences";
 import { DoctorProfileForm } from "./DoctorProfileForm";
 import { MobileHeader } from "../MobileHeader";
 import { PortalBottomNav } from "../PortalBottomNav";
+import { PortalHeader } from "../PortalHeader";
 import { cn } from "@/lib/utils";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LayoutDashboard, Lock } from "lucide-react";
+import { LayoutDashboard, Lock, Scan } from "lucide-react";
 
 interface DoctorPortalProps {
   walletAddress: string;
@@ -94,7 +95,7 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
       <PWAInstallPrompt isLoggedIn={true} />
       
       {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Doctor" />}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Doctor" showQR={false} />}
       
       {/* Desktop Sidebar - hidden on mobile */}
       <DoctorSidebar
@@ -111,6 +112,16 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
         !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
         !isMobile && "p-6 lg:p-8 pb-8"
       )}>
+        {!isMobile && (
+          <PortalHeader
+            walletAddress={walletAddress}
+            subtitle="Overview of your patients and recent activity"
+            showQR={false}
+            actions={[
+              { label: "Scan QR Code", icon: Scan, onClick: () => {} },
+            ]}
+          />
+        )}
         {renderContent()}
       </main>
       

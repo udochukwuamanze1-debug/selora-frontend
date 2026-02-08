@@ -9,6 +9,7 @@ import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
 import { MobileHeader } from "../MobileHeader";
 import { PortalBottomNav } from "../PortalBottomNav";
+import { PortalHeader } from "../PortalHeader";
 import { cn } from "@/lib/utils";
 import { getZkLoginUserInfo, loadZkLoginState, clearZkLoginState } from "@/lib/zklogin";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -89,7 +90,7 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
       <PWAInstallPrompt isLoggedIn={true} />
       
       {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Lab" />}
+      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Lab" showQR={false} />}
       
       {/* Desktop Sidebar */}
       <LabSidebar
@@ -106,6 +107,13 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
         !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
         !isMobile && "p-6 lg:p-8 pb-8"
       )}>
+        {!isMobile && (
+          <PortalHeader
+            walletAddress={walletAddress}
+            subtitle="Manage diagnostics and lab operations"
+            showQR={false}
+          />
+        )}
         {renderContent()}
       </main>
       
