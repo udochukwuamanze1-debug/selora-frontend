@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { QrCode, Upload, Database, Gift, PartyPopper, Star } from "lucide-react";
+import { QrCode, Gift, PartyPopper, Star } from "lucide-react";
 import { PortalSearch } from "./PortalSearch";
 import { NotificationBell, Notification } from "./NotificationBell";
 import { WalletAddress } from "./WalletAddress";
@@ -53,7 +53,7 @@ const HOLIDAY_GREETINGS: HolidayGreeting[] = [
   { check: (d) => d.getMonth() === 11 && d.getDate() === 31, greetings: ["Happy New Year's Eve"], icon: "party" },
 ];
 
-function useGreeting(walletAddress: string, userName?: string) {
+export function useGreeting(walletAddress: string, userName?: string) {
   return useMemo(() => {
     const now = new Date();
     const hour = now.getHours();
@@ -93,17 +93,23 @@ export interface PortalAction {
 interface PortalHeaderProps {
   walletAddress: string;
   onSearch?: (query: string) => void;
+  /** Page title — defaults to greeting on "home" */
+  title?: string;
   subtitle?: string;
   actions?: PortalAction[];
   showQR?: boolean;
+  /** When true, show the greeting instead of title */
+  showGreeting?: boolean;
 }
 
 export const PortalHeader = ({
   walletAddress,
   onSearch,
+  title,
   subtitle,
   actions = [],
   showQR = true,
+  showGreeting = false,
 }: PortalHeaderProps) => {
   const { notifications: walrusNotifications, markAsRead, markAllRead, remove } =
     useWalrusNotifications(walletAddress);
@@ -121,6 +127,8 @@ export const PortalHeader = ({
     read: n.read,
   }));
 
+  const displayTitle = showGreeting ? greeting : title;
+
   const qrData = JSON.stringify({
     type: "selora_access_request",
     patientAddress: walletAddress,
@@ -132,34 +140,36 @@ export const PortalHeader = ({
   return (
     <div className="mb-6 md:mb-8">
       <div className="flex flex-col gap-3 md:gap-4">
-        {/* Row 1: Greeting + Wallet info */}
+        {/* Row 1: Title + Wallet info */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          {/* Greeting */}
+          {/* Title / Greeting */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              {isHoliday && holidayIcon === "gift" && <Gift className="w-5 h-5 text-primary animate-pulse shrink-0" />}
-              {isHoliday && holidayIcon === "party" && <PartyPopper className="w-5 h-5 text-primary animate-pulse shrink-0" />}
+              {showGreeting && isHoliday && holidayIcon === "gift" && <Gift className="w-5 h-5 text-primary animate-pulse shrink-0" />}
+              {showGreeting && isHoliday && holidayIcon === "party" && <PartyPopper className="w-5 h-5 text-primary animate-pulse shrink-0" />}
               <h1 className="font-heading text-lg sm:text-2xl md:text-3xl font-bold text-foreground">
-                {greeting}
+                {displayTitle}
               </h1>
             </div>
             {subtitle && (
-              <p className="text-muted-foreground text-sm mt-1">{subtitle}</p>
+              <p className="text-muted-foreground text-xs sm:text-sm mt-1">{subtitle}</p>
             )}
 
-            {/* XP Progress Bar */}
-            <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20">
-                <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500" />
-                <span className="font-bold text-xs sm:text-sm">Lvl {level}</span>
+            {/* XP Progress Bar — only on home/greeting */}
+            {showGreeting && (
+              <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20">
+                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500" />
+                  <span className="font-bold text-xs sm:text-sm">Lvl {level}</span>
+                </div>
+                <div className="flex-1 min-w-[80px] max-w-[120px] sm:max-w-40">
+                  <Progress value={xpProgress} className="h-1.5 sm:h-2" />
+                </div>
+                <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
+                  {xp} XP • {xpToNextLevel} to next
+                </span>
               </div>
-              <div className="flex-1 min-w-[80px] max-w-[120px] sm:max-w-40">
-                <Progress value={xpProgress} className="h-1.5 sm:h-2" />
-              </div>
-              <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
-                {xp} XP • {xpToNextLevel} to next
-              </span>
-            </div>
+            )}
           </div>
 
           {/* Wallet + Notifications */}

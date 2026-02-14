@@ -18,6 +18,16 @@ import { useLoginReminder } from "@/hooks/useLoginReminder";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { LayoutDashboard, Lock } from "lucide-react";
 
+const TAB_META: Record<string, { title: string; subtitle: string }> = {
+  console: { title: "", subtitle: "Manage research studies and data pools" },
+  pools: { title: "Data Pools", subtitle: "Browse and contribute to anonymized data pools" },
+  consent: { title: "Consent Management", subtitle: "Track and manage participant consent records" },
+  publications: { title: "Publications & Reports", subtitle: "Manage your research publications" },
+  vault: { title: "Secure Vault", subtitle: "Encrypted storage for research documents" },
+  assistant: { title: "Selora AI", subtitle: "Your AI-powered research assistant" },
+  profile: { title: "Settings", subtitle: "Manage your account preferences" },
+};
+
 interface ResearcherPortalProps {
   walletAddress: string;
   onSignOut: () => void;
@@ -90,15 +100,24 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
     icon: item.icon,
   }));
 
+  const tabMeta = TAB_META[activeTab] || TAB_META.console;
+  const isHome = activeTab === "console";
+
   return (
     <div className="min-h-screen bg-background">
-      {/* PWA Install Prompt */}
       <PWAInstallPrompt isLoggedIn={true} />
       
-      {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Researcher" showQR={false} />}
+      {isMobile && (
+        <MobileHeader
+          walletAddress={walletAddress}
+          portalType="Researcher"
+          showQR={false}
+          title={isHome ? undefined : tabMeta.title}
+          subtitle={tabMeta.subtitle}
+          showGreeting={isHome}
+        />
+      )}
       
-      {/* Desktop Sidebar */}
       <ResearcherSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -116,14 +135,15 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
         {!isMobile && (
           <PortalHeader
             walletAddress={walletAddress}
-            subtitle="Manage research studies and data pools"
+            title={tabMeta.title}
+            subtitle={tabMeta.subtitle}
+            showGreeting={isHome}
             showQR={false}
           />
         )}
         {renderContent()}
       </main>
       
-      {/* Mobile Bottom Nav */}
       {isMobile && (
         <PortalBottomNav
           activeTab={activeTab}

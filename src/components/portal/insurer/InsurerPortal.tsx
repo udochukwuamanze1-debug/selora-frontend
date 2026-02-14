@@ -18,6 +18,15 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { FileText, BarChart3, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const TAB_META: Record<string, { title: string; subtitle: string }> = {
+  risk: { title: "", subtitle: "Manage risk assessments and claims" },
+  marketplace: { title: "Data Marketplace", subtitle: "Browse and purchase anonymized health datasets" },
+  claims: { title: "Claims Processing", subtitle: "Review and process insurance claims" },
+  vault: { title: "Secure Vault", subtitle: "Encrypted storage for sensitive documents" },
+  assistant: { title: "Selora AI", subtitle: "Your AI-powered insurance assistant" },
+  settings: { title: "Settings", subtitle: "Manage your account preferences" },
+};
+
 interface InsurerPortalProps {
   walletAddress: string;
   onSignOut: () => void;
@@ -83,15 +92,24 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
     icon: item.icon,
   }));
 
+  const tabMeta = TAB_META[activeTab] || TAB_META.risk;
+  const isHome = activeTab === "risk";
+
   return (
     <div className="min-h-screen bg-background">
-      {/* PWA Install Prompt */}
       <PWAInstallPrompt isLoggedIn={true} />
       
-      {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Insurer" showQR={false} />}
+      {isMobile && (
+        <MobileHeader
+          walletAddress={walletAddress}
+          portalType="Insurer"
+          showQR={false}
+          title={isHome ? undefined : tabMeta.title}
+          subtitle={tabMeta.subtitle}
+          showGreeting={isHome}
+        />
+      )}
       
-      {/* Desktop Sidebar */}
       <InsurerSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -109,14 +127,15 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
         {!isMobile && (
           <PortalHeader
             walletAddress={walletAddress}
-            subtitle="Manage risk assessments and claims"
+            title={tabMeta.title}
+            subtitle={tabMeta.subtitle}
+            showGreeting={isHome}
             showQR={false}
           />
         )}
         {renderContent()}
       </main>
       
-      {/* Mobile Bottom Nav */}
       {isMobile && (
         <PortalBottomNav
           activeTab={activeTab}

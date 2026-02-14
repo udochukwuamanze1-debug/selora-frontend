@@ -1,11 +1,11 @@
 // Selora Smart Contract Configuration - Deployed on IOTA
 export const SELORA_CONFIG = {
-  // Main package ID - will be updated after IOTA contract deployment
-  PACKAGE_ID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  // Main package ID - deployed on IOTA testnet
+  PACKAGE_ID: '0x919ffb01408ace4aa4e47532699f2dd85bd1ee3d9692853835efd2c0ee302b29',
   // Registry object for storing platform state
-  REGISTRY_ID: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  REGISTRY_ID: '0xbf9a5493d708cbea493c4ce99db082a2c7af9b77403f134b2bfb3528554e1ce1',
   // Upgrade capability (for future upgrades)
-  UPGRADE_CAP: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  UPGRADE_CAP: '0x01664fb1f4b6e0596ad4d5ebc7a6f30cf96a05f8af673b94fa3ba0be385d67cd',
   // Network configuration
   NETWORK: 'testnet' as const,
   // Fee configuration (in basis points)

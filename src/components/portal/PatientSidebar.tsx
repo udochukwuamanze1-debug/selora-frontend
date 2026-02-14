@@ -5,10 +5,8 @@ import {
   Home,
   Archive,
   Lock,
-  Shield,
   Users,
   ArrowLeftRight,
-  UserCheck,
   Pill,
   Bot,
   Settings,
@@ -17,23 +15,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
-  Stethoscope,
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { id: "home", label: "Home", icon: Home },
   { id: "inbox", label: "Access Inbox", icon: Inbox },
-  { id: "doctors", label: "Find Doctors", icon: Stethoscope },
-  { id: "archive", label: "Health Archive", icon: Archive },
-  { id: "vault", label: "Secure Vault", icon: Lock },
-  { id: "coverage", label: "Coverage & Protection", icon: Shield },
+  { id: "archive", label: "Records & Vault", icon: Archive },
   { id: "network", label: "Care Network", icon: Users },
-  { id: "exchange", label: "Data Exchange", icon: ArrowLeftRight },
-  { id: "contacts", label: "Trusted Contacts", icon: UserCheck },
   { id: "prescriptions", label: "Prescriptions", icon: Pill },
+  { id: "exchange", label: "Data Exchange", icon: ArrowLeftRight },
   { id: "assistant", label: "Selora AI", icon: Bot },
-  { id: "profile", label: "Profile & Preferences", icon: Settings },
+  { id: "profile", label: "Settings", icon: Settings },
 ];
 
 interface PatientSidebarProps {
@@ -65,45 +58,24 @@ export const PatientSidebar = ({
     <aside
       className={cn(
         "fixed left-0 top-0 bottom-0 z-40 flex-col bg-card border-r border-border transition-all duration-300",
-        "hidden md:flex", // Hidden on mobile
+        "hidden md:flex",
         collapsed ? "w-20" : "w-64"
       )}
     >
-      {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <Logo showText={!collapsed} role={collapsed ? undefined : "PATIENT"} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <ChevronLeft className="w-4 h-4" />
-          )}
+        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setCollapsed(!collapsed)}>
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
       </div>
 
-      {/* Wallet Address */}
       <div className={cn("p-4 border-b border-border", collapsed && "px-2")}>
-        <div
-          className={cn(
-            "flex items-center gap-2 p-2 rounded-lg bg-muted text-sm",
-            collapsed && "justify-center"
-          )}
-        >
+        <div className={cn("flex items-center gap-2 p-2 rounded-lg bg-muted text-sm", collapsed && "justify-center")}>
           <Wallet className="w-4 h-4 text-primary shrink-0" />
-          {!collapsed && (
-            <span className="truncate text-muted-foreground">
-              {truncateAddress(walletAddress)}
-            </span>
-          )}
+          {!collapsed && <span className="truncate text-muted-foreground">{truncateAddress(walletAddress)}</span>}
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-2">
         <ul className="space-y-1">
           {menuItems.map((item) => (
@@ -126,7 +98,6 @@ export const PatientSidebar = ({
         </ul>
       </nav>
 
-      {/* Sign Out */}
       <div className="p-4 border-t border-border">
         <Button
           variant="ghost"

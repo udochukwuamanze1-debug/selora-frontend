@@ -20,6 +20,17 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LayoutDashboard, Lock, Scan } from "lucide-react";
 
+const TAB_META: Record<string, { title: string; subtitle: string }> = {
+  workspace: { title: "", subtitle: "Overview of your patients and recent activity" },
+  "visit-report": { title: "Visit Report", subtitle: "Create and manage visit reports for your patients" },
+  "doctor-profile": { title: "My Doctor Profile", subtitle: "Manage your professional profile and credentials" },
+  insights: { title: "Patient Insights", subtitle: "View analytics and trends across your patient base" },
+  prescriptions: { title: "Prescriptions", subtitle: "Create and manage prescriptions" },
+  vault: { title: "Secure Vault", subtitle: "Encrypted storage for sensitive documents" },
+  assistant: { title: "Selora AI", subtitle: "Your AI-powered clinical assistant" },
+  profile: { title: "Settings", subtitle: "Manage your account preferences" },
+};
+
 interface DoctorPortalProps {
   walletAddress: string;
   onSignOut: () => void;
@@ -89,15 +100,24 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
     icon: item.icon,
   }));
 
+  const tabMeta = TAB_META[activeTab] || TAB_META.workspace;
+  const isHome = activeTab === "workspace";
+
   return (
     <div className="min-h-screen bg-background">
-      {/* PWA Install Prompt - only shown when logged in */}
       <PWAInstallPrompt isLoggedIn={true} />
       
-      {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Doctor" showQR={false} />}
+      {isMobile && (
+        <MobileHeader
+          walletAddress={walletAddress}
+          portalType="Doctor"
+          showQR={false}
+          title={isHome ? undefined : tabMeta.title}
+          subtitle={tabMeta.subtitle}
+          showGreeting={isHome}
+        />
+      )}
       
-      {/* Desktop Sidebar - hidden on mobile */}
       <DoctorSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -115,7 +135,9 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
         {!isMobile && (
           <PortalHeader
             walletAddress={walletAddress}
-            subtitle="Overview of your patients and recent activity"
+            title={tabMeta.title}
+            subtitle={tabMeta.subtitle}
+            showGreeting={isHome}
             showQR={false}
             actions={[
               { label: "Scan QR Code", icon: Scan, onClick: () => {} },
@@ -125,7 +147,6 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
         {renderContent()}
       </main>
       
-      {/* Mobile Bottom Nav */}
       {isMobile && (
         <PortalBottomNav
           activeTab={activeTab}
