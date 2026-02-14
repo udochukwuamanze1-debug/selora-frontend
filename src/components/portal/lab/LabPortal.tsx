@@ -17,6 +17,14 @@ import { useLoginReminder } from "@/hooks/useLoginReminder";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { FlaskConical, Lock } from "lucide-react";
 
+const TAB_META: Record<string, { title: string; subtitle: string }> = {
+  diagnostics: { title: "", subtitle: "Manage diagnostics and lab operations" },
+  inventory: { title: "Inventory", subtitle: "Track lab supplies and equipment" },
+  vault: { title: "Secure Vault", subtitle: "Encrypted storage for lab documents" },
+  assistant: { title: "Selora AI", subtitle: "Your AI-powered lab assistant" },
+  profile: { title: "Settings", subtitle: "Manage your account preferences" },
+};
+
 interface LabPortalProps {
   walletAddress: string;
   onSignOut: () => void;
@@ -84,15 +92,24 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
     icon: item.icon,
   }));
 
+  const tabMeta = TAB_META[activeTab] || TAB_META.diagnostics;
+  const isHome = activeTab === "diagnostics";
+
   return (
     <div className="min-h-screen bg-background">
-      {/* PWA Install Prompt */}
       <PWAInstallPrompt isLoggedIn={true} />
       
-      {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Lab" showQR={false} />}
+      {isMobile && (
+        <MobileHeader
+          walletAddress={walletAddress}
+          portalType="Lab"
+          showQR={false}
+          title={isHome ? undefined : tabMeta.title}
+          subtitle={tabMeta.subtitle}
+          showGreeting={isHome}
+        />
+      )}
       
-      {/* Desktop Sidebar */}
       <LabSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -110,14 +127,15 @@ export const LabPortal = ({ walletAddress: propWalletAddress, onSignOut }: LabPo
         {!isMobile && (
           <PortalHeader
             walletAddress={walletAddress}
-            subtitle="Manage diagnostics and lab operations"
+            title={tabMeta.title}
+            subtitle={tabMeta.subtitle}
+            showGreeting={isHome}
             showQR={false}
           />
         )}
         {renderContent()}
       </main>
       
-      {/* Mobile Bottom Nav */}
       {isMobile && (
         <PortalBottomNav
           activeTab={activeTab}

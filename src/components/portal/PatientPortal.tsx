@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PatientSidebar } from "./PatientSidebar";
 import { PatientHome } from "./PatientHome";
 import { HealthArchive } from "./HealthArchive";
@@ -25,6 +25,22 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
+// Tab metadata: title + subtitle for each tab
+const TAB_META: Record<string, { title: string; subtitle: string }> = {
+  home: { title: "", subtitle: "Your health data is secure and under your control" }, // greeting used
+  inbox: { title: "Access Inbox", subtitle: "Review and manage access requests from providers" },
+  doctors: { title: "Find Doctors", subtitle: "Discover and connect with verified healthcare providers" },
+  archive: { title: "Health Archive", subtitle: "Browse and manage your uploaded health records" },
+  vault: { title: "Secure Vault", subtitle: "Encrypted storage for your sensitive health documents" },
+  prescriptions: { title: "Prescriptions", subtitle: "View and track your prescriptions" },
+  exchange: { title: "Data Exchange", subtitle: "Stake and monetize your anonymized health data" },
+  coverage: { title: "Coverage & Analytics", subtitle: "Track your health coverage and insights" },
+  network: { title: "Care Network", subtitle: "Find nearby doctors and manage your care team" },
+  contacts: { title: "Trusted Contacts", subtitle: "Manage guardians who can access your data in emergencies" },
+  assistant: { title: "Selora AI", subtitle: "Your AI-powered health assistant" },
+  profile: { title: "Profile & Preferences", subtitle: "Manage your account settings and preferences" },
+};
+
 interface PatientPortalProps {
   walletAddress: string;
   onSignOut: () => void;
@@ -42,6 +58,9 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
     addActivity("Uploaded health record", "upload");
   };
 
+  const tabMeta = TAB_META[activeTab] || TAB_META.home;
+  const isHome = activeTab === "home";
+
   const renderContent = () => {
     switch (activeTab) {
       case "home":
@@ -51,12 +70,7 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "doctors":
         return <DoctorsDirectory patientWalletAddress={walletAddress} />;
       case "archive":
-        return (
-          <HealthArchive
-            walletAddress={walletAddress}
-            onRecordUploaded={handleRecordUploaded}
-          />
-        );
+        return <HealthArchive walletAddress={walletAddress} onRecordUploaded={handleRecordUploaded} />;
       case "vault":
         return <Vault walletAddress={walletAddress} externalSearchQuery={searchQuery} />;
       case "prescriptions":
@@ -81,14 +95,20 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
   return (
     <div className="min-h-screen bg-background">
       <OnboardingTutorial walletAddress={walletAddress} onComplete={() => {}} />
-      
-      {/* PWA Install Prompt - only shown when logged in */}
       <PWAInstallPrompt isLoggedIn={true} />
-      
-      {/* Mobile Header */}
-      {isMobile && <MobileHeader walletAddress={walletAddress} portalType="Patient" />}
-      
-      {/* Desktop Sidebar - hidden on mobile */}
+
+      {/* Mobile Header — shows title per tab */}
+      {isMobile && (
+        <MobileHeader
+          walletAddress={walletAddress}
+          portalType="Patient"
+          title={isHome ? undefined : tabMeta.title}
+          subtitle={tabMeta.subtitle}
+          showGreeting={isHome}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
       {!isMobile && (
         <PatientSidebar
           activeTab={activeTab}
@@ -99,18 +119,20 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
           onCollapsedChange={setSidebarCollapsed}
         />
       )}
-      
+
       <main className={cn(
         "transition-all duration-300 p-4 pb-24",
         !isMobile && (sidebarCollapsed ? "ml-20" : "ml-64"),
         !isMobile && "p-6 lg:p-8 pb-8"
       )}>
-        {/* Desktop Header - hidden on mobile */}
+        {/* Desktop Header — per-tab title */}
         {!isMobile && (
           <PortalHeader
             walletAddress={walletAddress}
             onSearch={setSearchQuery}
-            subtitle="Your health data is secure and under your control"
+            title={tabMeta.title}
+            subtitle={tabMeta.subtitle}
+            showGreeting={isHome}
             actions={[
               { label: "Upload Record", icon: Upload, onClick: () => setActiveTab("vault") },
               { label: "Stake Data", icon: Database, onClick: () => setActiveTab("exchange"), variant: "glass" as const },
@@ -120,21 +142,15 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
         {renderContent()}
         {!isMobile && <PortalFooter />}
       </main>
-      
-      {/* Mobile Bottom Nav */}
+
       {isMobile && (
-        <BottomNav
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onSignOut={onSignOut}
-        />
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} onSignOut={onSignOut} />
       )}
     </div>
   );
 };
 
 export const PatientPortal = ({ walletAddress, onSignOut }: PatientPortalProps) => {
-  // Track login for reminder notifications
   useLoginReminder(walletAddress);
 
   useEffect(() => {

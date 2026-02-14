@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Lock, Menu } from "lucide-react";
+import { Home, Archive, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -7,7 +7,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
@@ -18,12 +17,10 @@ interface BottomNavProps {
 }
 
 const menuItems = [
-  { id: "archive", label: "Health Archive", icon: "📁" },
+  { id: "inbox", label: "Access Inbox", icon: "📬" },
   { id: "prescriptions", label: "Prescriptions", icon: "💊" },
   { id: "exchange", label: "Data Exchange", icon: "🔄" },
   { id: "network", label: "Care Network", icon: "🩺" },
-  { id: "contacts", label: "Trusted Contacts", icon: "👥" },
-  { id: "coverage", label: "Analytics", icon: "📊" },
   { id: "assistant", label: "Selora AI", icon: "🤖" },
   { id: "profile", label: "Settings", icon: "⚙️" },
 ];
@@ -33,38 +30,34 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
 
   const handleTabChange = (tab: string) => {
     onTabChange(tab);
-    setMenuOpen(false); // Close menu when tab is selected
+    setMenuOpen(false);
   };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border md:hidden">
       <div className="flex items-center justify-around h-16 px-4">
-        {/* Vault */}
-        <button
-          onClick={() => onTabChange("vault")}
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-colors",
-            activeTab === "vault"
-              ? "text-primary"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Lock className="w-5 h-5" />
-          <span className="text-xs font-medium">Vault</span>
-        </button>
-
-        {/* Dashboard */}
+        {/* Home */}
         <button
           onClick={() => onTabChange("home")}
           className={cn(
             "flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-colors",
-            activeTab === "home"
-              ? "text-primary"
-              : "text-muted-foreground hover:text-foreground"
+            activeTab === "home" ? "text-primary" : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Home className="w-5 h-5" />
-          <span className="text-xs font-medium">Dashboard</span>
+          <span className="text-xs font-medium">Home</span>
+        </button>
+
+        {/* Records & Vault */}
+        <button
+          onClick={() => onTabChange("archive")}
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-colors",
+            (activeTab === "archive" || activeTab === "vault") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Archive className="w-5 h-5" />
+          <span className="text-xs font-medium">Records</span>
         </button>
 
         {/* Menu Sheet */}
@@ -72,10 +65,10 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
           <SheetTrigger asChild>
             <button className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors">
               <Menu className="w-5 h-5" />
-              <span className="text-xs font-medium">Menu</span>
+              <span className="text-xs font-medium">More</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[70vh] rounded-t-3xl">
+          <SheetContent side="bottom" className="h-[60vh] rounded-t-3xl">
             <SheetHeader className="text-left">
               <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
@@ -86,9 +79,7 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
                   onClick={() => handleTabChange(item.id)}
                   className={cn(
                     "flex items-center gap-3 p-4 rounded-xl text-left transition-colors",
-                    activeTab === item.id
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted/50 hover:bg-muted"
+                    activeTab === item.id ? "bg-primary/10 text-primary" : "bg-muted/50 hover:bg-muted"
                   )}
                 >
                   <span className="text-xl">{item.icon}</span>
@@ -100,10 +91,7 @@ export function BottomNav({ activeTab, onTabChange, onSignOut }: BottomNavProps)
               <Button
                 variant="outline"
                 className="w-full text-destructive hover:text-destructive"
-                onClick={() => {
-                  onSignOut();
-                  setMenuOpen(false);
-                }}
+                onClick={() => { onSignOut(); setMenuOpen(false); }}
               >
                 Sign Out
               </Button>
