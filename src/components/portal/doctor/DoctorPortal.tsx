@@ -6,7 +6,9 @@ import { DoctorSidebar, doctorMenuItems } from "./DoctorSidebar";
 import { CareWorkspace } from "./CareWorkspace";
 import { PatientInsights } from "./PatientInsights";
 import { PrescriptionCreation } from "./PrescriptionCreation";
+import { PrescriptionHistory } from "./PrescriptionHistory";
 import { VisitReportCreator } from "./VisitReportCreator";
+import { SentReportsHistory } from "./SentReportsHistory";
 import { Vault } from "../Vault";
 import { HealthAssistant } from "../HealthAssistant";
 import { ProfilePreferences } from "../ProfilePreferences";
@@ -23,9 +25,11 @@ import { LayoutDashboard, Lock, Scan } from "lucide-react";
 const TAB_META: Record<string, { title: string; subtitle: string }> = {
   workspace: { title: "", subtitle: "Overview of your patients and recent activity" },
   "visit-report": { title: "Visit Report", subtitle: "Create and manage visit reports for your patients" },
+  "sent-reports": { title: "Sent Reports", subtitle: "History of all visit reports you've sent" },
   "doctor-profile": { title: "My Doctor Profile", subtitle: "Manage your professional profile and credentials" },
   insights: { title: "Patient Insights", subtitle: "View analytics and trends across your patient base" },
-  prescriptions: { title: "Prescriptions", subtitle: "Create and manage prescriptions" },
+  prescriptions: { title: "New Prescription", subtitle: "Create and send prescriptions to patients" },
+  "prescription-history": { title: "Prescription History", subtitle: "View all prescriptions you've created" },
   vault: { title: "Secure Vault", subtitle: "Encrypted storage for sensitive documents" },
   assistant: { title: "Selora AI", subtitle: "Your AI-powered clinical assistant" },
   profile: { title: "Settings", subtitle: "Manage your account preferences" },
@@ -76,10 +80,14 @@ export const DoctorPortal = ({ walletAddress: propWalletAddress, onSignOut }: Do
         return <CareWorkspace isNewUser={true} walletAddress={walletAddress} />;
       case "visit-report":
         return <VisitReportCreator doctorAddress={walletAddress} doctorName="Doctor" />;
+      case "sent-reports":
+        return <SentReportsHistory walletAddress={walletAddress} />;
       case "insights":
         return <PatientInsights isNewUser={true} />;
       case "prescriptions":
-        return <PrescriptionCreation />;
+        return <PrescriptionCreation walletAddress={walletAddress} doctorName="Doctor" />;
+      case "prescription-history":
+        return <PrescriptionHistory walletAddress={walletAddress} />;
       case "vault":
         return <Vault walletAddress={walletAddress} />;
       case "assistant":

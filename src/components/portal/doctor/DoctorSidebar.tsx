@@ -14,18 +14,22 @@ import {
   Bot,
   UserCircle,
   Stethoscope,
+  Pill,
+  ClipboardList,
+  History,
 } from "lucide-react";
 import { useState } from "react";
 
 export const doctorMenuItems = [
   { id: "workspace", label: "Care Workspace", icon: LayoutDashboard },
   { id: "visit-report", label: "Create Visit Report", icon: Stethoscope },
-  { id: "doctor-profile", label: "My Doctor Profile", icon: UserCircle },
-  { id: "insights", label: "Patient Insights", icon: Users },
-  { id: "prescriptions", label: "Prescriptions", icon: FileText },
+  { id: "sent-reports", label: "Sent Reports", icon: History },
+  { id: "prescriptions", label: "New Prescription", icon: Pill },
+  { id: "prescription-history", label: "Rx History", icon: ClipboardList },
+  { id: "doctor-profile", label: "My Profile", icon: UserCircle },
   { id: "vault", label: "Secure Vault", icon: Lock },
   { id: "assistant", label: "Selora AI", icon: Bot },
-  { id: "profile", label: "Profile & Preferences", icon: Settings },
+  { id: "profile", label: "Settings", icon: Settings },
 ];
 
 interface DoctorSidebarProps {
