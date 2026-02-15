@@ -125,7 +125,7 @@ export const Footer = () => {
 
         <div className="pt-8 border-t border-border/30 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © Selora, 2025. All rights reserved.
+            © Selora, 2026. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Powered by IOTA
