@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { UserCountDisplay } from "@/components/UserCountDisplay";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeroSectionProps {
   onConnectWallet: () => void;
@@ -13,16 +14,15 @@ export const HeroSection = ({ onConnectWallet }: HeroSectionProps) => {
   const [userCount, setUserCount] = useState(0);
 
   useEffect(() => {
-    // Get user count from localStorage (simulating on-chain user count)
-    const storedCount = localStorage.getItem("selora_user_count");
-    if (storedCount) {
-      setUserCount(parseInt(storedCount, 10));
-    } else {
-      // Initialize with a starting count
-      const initialCount = 47; // Starting users
-      localStorage.setItem("selora_user_count", initialCount.toString());
-      setUserCount(initialCount);
-    }
+    const fetchCount = async () => {
+      const { count, error } = await supabase
+        .from("waitlist")
+        .select("*", { count: "exact", head: true });
+      if (!error && count !== null) {
+        setUserCount(count);
+      }
+    };
+    fetchCount();
   }, []);
 
   return (
