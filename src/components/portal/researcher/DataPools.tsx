@@ -107,14 +107,6 @@ export const DataPools = ({ isNewUser = false, walletAddress = "" }: DataPoolsPr
   if (dataPools.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Data Pools
-          </h1>
-          <p className="text-muted-foreground">
-            Browse and request access to consented research datasets
-          </p>
-        </div>
 
         <div className="glass-card p-12 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -138,14 +130,6 @@ export const DataPools = ({ isNewUser = false, walletAddress = "" }: DataPoolsPr
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Data Pools
-        </h1>
-        <p className="text-muted-foreground">
-          Browse and request access to consented research datasets
-        </p>
-      </div>
 
       {/* Search & Create */}
       <div className="flex flex-col sm:flex-row gap-4">

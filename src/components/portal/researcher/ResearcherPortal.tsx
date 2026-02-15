@@ -162,14 +162,6 @@ export const ResearcherPortal = ({ walletAddress: propWalletAddress, onSignOut }
 
 const PublicationsReports = () => (
   <div className="space-y-6">
-    <div>
-      <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">
-        Publications & Reports
-      </h1>
-      <p className="text-sm sm:text-base text-muted-foreground">
-        Manage your research publications and generate reports
-      </p>
-    </div>
     <div className="glass-card p-8 sm:p-12 text-center">
       <p className="text-muted-foreground">No publications yet. Start a study to create reports.</p>
     </div>

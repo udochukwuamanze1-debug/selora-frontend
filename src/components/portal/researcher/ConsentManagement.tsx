@@ -87,14 +87,6 @@ export const ConsentManagement = ({ isNewUser = false, walletAddress = "" }: Con
   if (consentRequests.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Consent Management
-          </h1>
-          <p className="text-muted-foreground">
-            Track and manage participant consent for your research studies
-          </p>
-        </div>
 
         <div className="glass-card p-12 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -118,14 +110,6 @@ export const ConsentManagement = ({ isNewUser = false, walletAddress = "" }: Con
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Consent Management
-        </h1>
-        <p className="text-muted-foreground">
-          Track and manage participant consent for your research studies
-        </p>
-      </div>
 
       {/* Search & Create */}
       <div className="flex flex-col sm:flex-row gap-4">

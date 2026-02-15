@@ -87,14 +87,6 @@ export const InventoryManagement = ({ isNewUser = false, walletAddress = "" }: I
   if (inventory.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Inventory & Prescriptions
-          </h1>
-          <p className="text-muted-foreground">
-            Manage medication stock and track inventory levels
-          </p>
-        </div>
 
         <div className="glass-card p-12 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -118,14 +110,6 @@ export const InventoryManagement = ({ isNewUser = false, walletAddress = "" }: I
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Inventory & Prescriptions
-        </h1>
-        <p className="text-muted-foreground">
-          Manage medication stock and track inventory levels
-        </p>
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

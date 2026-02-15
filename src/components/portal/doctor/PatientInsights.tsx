@@ -12,14 +12,6 @@ export const PatientInsights = ({ isNewUser = false }: PatientInsightsProps) => 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Patient Insights
-        </h1>
-        <p className="text-muted-foreground">
-          {isNewUser ? "Patients who share records with you will appear here" : "View and manage patient records with granted access"}
-        </p>
-      </div>
 
       {/* Search */}
       <div className="flex gap-4">

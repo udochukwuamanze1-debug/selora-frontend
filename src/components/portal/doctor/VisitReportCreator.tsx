@@ -167,15 +167,6 @@ export const VisitReportCreator = ({ doctorAddress, doctorName = "Doctor" }: Vis
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-          <Stethoscope className="w-8 h-8 text-primary" />
-          Create Visit Report
-        </h1>
-        <p className="text-muted-foreground">
-          Document patient visit, diagnosis, and prescription. The report will be minted as an NFT and sent directly to the patient's wallet.
-        </p>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form */}

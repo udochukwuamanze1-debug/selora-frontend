@@ -33,14 +33,6 @@ export const DiagnosticsHub = ({ isNewUser = false, walletAddress = "" }: Diagno
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Diagnostics Hub
-        </h1>
-        <p className="text-muted-foreground">
-          {isNewUser ? "Prescriptions will appear here when doctors send them" : "Manage prescription fulfillment and diagnostics"}
-        </p>
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

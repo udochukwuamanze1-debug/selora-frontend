@@ -116,10 +116,6 @@ export const AnalyticsDashboard = ({ walletAddress }: AnalyticsDashboardProps) =
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">Coverage & Protection</h1>
-        <p className="text-muted-foreground">Monitor your activity and data usage</p>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

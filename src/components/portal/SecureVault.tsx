@@ -29,17 +29,6 @@ export const SecureVault = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">
-            Secure Vault
-          </h1>
-          <p className="text-muted-foreground">
-            Encrypted storage for your most sensitive health data
-          </p>
-        </div>
-      </div>
 
       {/* Upload Section */}
       <div className="glass-card p-8">

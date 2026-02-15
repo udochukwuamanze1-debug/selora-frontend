@@ -111,16 +111,8 @@ export const HealthArchive = ({ walletAddress, onRecordUploaded }: HealthArchive
         accept="image/*,.pdf,.doc,.docx"
       />
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">
-            Health Archive
-          </h1>
-          <p className="text-muted-foreground">
-            All your encrypted health records in one place
-          </p>
-        </div>
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-2">
         <div className="flex gap-2">
           <OCRDocumentScanner walletAddress={walletAddress} onRecordSaved={loadRecords} />
           <Button 

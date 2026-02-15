@@ -160,17 +160,6 @@ const ClaimsProcessing = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Claims Processing
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Manage and process insurance claims
-          </p>
-        </div>
-      </div>
-      
       {claims.length === 0 ? (
         <div className="glass-card p-8 sm:p-12 text-center">
           <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -178,7 +167,7 @@ const ClaimsProcessing = () => {
           </div>
           <h3 className="font-semibold text-base sm:text-lg mb-2">No claims to process</h3>
           <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
-            Claims will appear here when patients submit them through their portal. You'll be able to review, approve, or reject claims.
+            Claims will appear here when patients submit them through their portal.
           </p>
         </div>
       ) : (
