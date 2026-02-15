@@ -74,6 +74,53 @@ export type Database = {
         }
         Relationships: []
       }
+      insurance_claims: {
+        Row: {
+          approved_amount: number | null
+          claim_amount: number | null
+          created_at: string
+          id: string
+          insurer_address: string
+          notes: string | null
+          patient_address: string
+          prescription_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_amount?: number | null
+          claim_amount?: number | null
+          created_at?: string
+          id?: string
+          insurer_address: string
+          notes?: string | null
+          patient_address: string
+          prescription_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_amount?: number | null
+          claim_amount?: number | null
+          created_at?: string
+          id?: string
+          insurer_address?: string
+          notes?: string | null
+          patient_address?: string
+          prescription_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_claims_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -101,6 +148,105 @@ export type Database = {
           title?: string
           type?: string
           wallet_address?: string
+        }
+        Relationships: []
+      }
+      prescriptions: {
+        Row: {
+          blob_id: string | null
+          created_at: string
+          doctor_address: string
+          doctor_name: string
+          dosage: string
+          duration: string
+          frequency: string
+          id: string
+          medication: string
+          notes: string | null
+          patient_address: string
+          pharmacy_id: string | null
+          pharmacy_name: string | null
+          status: string
+          tx_digest: string | null
+          updated_at: string
+        }
+        Insert: {
+          blob_id?: string | null
+          created_at?: string
+          doctor_address: string
+          doctor_name?: string
+          dosage?: string
+          duration?: string
+          frequency?: string
+          id?: string
+          medication: string
+          notes?: string | null
+          patient_address: string
+          pharmacy_id?: string | null
+          pharmacy_name?: string | null
+          status?: string
+          tx_digest?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blob_id?: string | null
+          created_at?: string
+          doctor_address?: string
+          doctor_name?: string
+          dosage?: string
+          duration?: string
+          frequency?: string
+          id?: string
+          medication?: string
+          notes?: string | null
+          patient_address?: string
+          pharmacy_id?: string | null
+          pharmacy_name?: string | null
+          status?: string
+          tx_digest?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      research_data_requests: {
+        Row: {
+          budget_tokens: number | null
+          consent_count: number | null
+          created_at: string
+          data_type: string
+          description: string | null
+          id: string
+          patient_count: number | null
+          researcher_address: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget_tokens?: number | null
+          consent_count?: number | null
+          created_at?: string
+          data_type?: string
+          description?: string | null
+          id?: string
+          patient_count?: number | null
+          researcher_address: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget_tokens?: number | null
+          consent_count?: number | null
+          created_at?: string
+          data_type?: string
+          description?: string | null
+          id?: string
+          patient_count?: number | null
+          researcher_address?: string
+          status?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -134,6 +280,63 @@ export type Database = {
           staked_datasets?: number
           updated_at?: string
           wallet_address?: string
+        }
+        Relationships: []
+      }
+      visit_reports: {
+        Row: {
+          blob_id: string | null
+          chief_complaint: string | null
+          created_at: string
+          diagnosis: string
+          doctor_address: string
+          doctor_name: string
+          id: string
+          notes: string | null
+          patient_address: string
+          patient_name: string | null
+          prescription_details: string | null
+          report_type: string
+          status: string
+          tx_digest: string | null
+          updated_at: string
+          vital_signs: Json | null
+        }
+        Insert: {
+          blob_id?: string | null
+          chief_complaint?: string | null
+          created_at?: string
+          diagnosis: string
+          doctor_address: string
+          doctor_name?: string
+          id?: string
+          notes?: string | null
+          patient_address: string
+          patient_name?: string | null
+          prescription_details?: string | null
+          report_type?: string
+          status?: string
+          tx_digest?: string | null
+          updated_at?: string
+          vital_signs?: Json | null
+        }
+        Update: {
+          blob_id?: string | null
+          chief_complaint?: string | null
+          created_at?: string
+          diagnosis?: string
+          doctor_address?: string
+          doctor_name?: string
+          id?: string
+          notes?: string | null
+          patient_address?: string
+          patient_name?: string | null
+          prescription_details?: string | null
+          report_type?: string
+          status?: string
+          tx_digest?: string | null
+          updated_at?: string
+          vital_signs?: Json | null
         }
         Relationships: []
       }

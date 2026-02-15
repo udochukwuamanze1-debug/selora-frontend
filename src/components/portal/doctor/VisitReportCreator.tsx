@@ -19,13 +19,13 @@ import {
   Pill,
   ClipboardList,
   User,
-  Bell
 } from "lucide-react";
 import { toast } from "sonner";
 import { useIotaTransaction } from "@/hooks/useIotaTransaction";
 import { useWalrusStorage } from "@/hooks/useWalrusStorage";
 import { encryptWithPassphrase } from "@/lib/encryption";
 import { sendVisitReportNotification } from "@/lib/walrus-notifications";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VisitReportCreatorProps {
   doctorAddress: string;
@@ -106,57 +106,77 @@ export const VisitReportCreator = ({ doctorAddress, doctorName = "Doctor" }: Vis
 
       const blobId = uploadResult?.blobId || `local-${Date.now()}`;
 
+      let txDigest = "";
+
       // Mint the Visit Report NFT and send to patient
-      const result = await createVisitReport(
-        formData.patientAddress,
-        formData.diagnosis,
-        formData.prescriptionDetails,
-        formData.notes,
-        blobId,
-        formData.reportType
-      );
-
-      if (result) {
-        setLastCreatedReport(result.digest);
-        
-        // Send Walrus notification to patient
-        try {
-          await sendVisitReportNotification(
-            formData.patientAddress,
-            doctorName,
-            doctorAddress,
-            formData.reportType,
-            formData.diagnosis
-          );
-          
-          toast.success("Visit Report created and sent to patient!", {
-            description: `Patient has been notified. TX: ${result.digest.slice(0, 12)}...`,
-            icon: <Bell className="w-4 h-4" />,
-          });
-        } catch (notifError) {
-          console.error("Failed to send notification:", notifError);
-          toast.success("Visit Report created and sent to patient!", {
-            description: `Transaction: ${result.digest.slice(0, 12)}...`,
-          });
-        }
-
-        // Reset form
-        setFormData({
-          patientAddress: "",
-          patientName: "",
-          chiefComplaint: "",
-          diagnosis: "",
-          prescriptionDetails: "",
-          notes: "",
-          reportType: "general_visit",
-          vitalSigns: {
-            bloodPressure: "",
-            heartRate: "",
-            temperature: "",
-            weight: "",
-          },
-        });
+      try {
+        const result = await createVisitReport(
+          formData.patientAddress,
+          formData.diagnosis,
+          formData.prescriptionDetails,
+          formData.notes,
+          blobId,
+          formData.reportType
+        );
+        if (result) txDigest = result.digest;
+      } catch (txError) {
+        console.warn("On-chain minting failed, saving to database only:", txError);
       }
+
+      // Save to database for persistence
+      const { error: dbError } = await supabase.from("visit_reports").insert({
+        doctor_address: doctorAddress,
+        doctor_name: doctorName,
+        patient_address: formData.patientAddress,
+        patient_name: formData.patientName,
+        chief_complaint: formData.chiefComplaint,
+        diagnosis: formData.diagnosis,
+        prescription_details: formData.prescriptionDetails,
+        notes: formData.notes,
+        report_type: formData.reportType,
+        vital_signs: formData.vitalSigns,
+        blob_id: blobId,
+        tx_digest: txDigest,
+        status: "sent",
+      });
+
+      if (dbError) console.error("DB save error:", dbError);
+
+      setLastCreatedReport(txDigest || blobId);
+
+      // Send notification to patient
+      try {
+        await sendVisitReportNotification(
+          formData.patientAddress,
+          doctorName,
+          doctorAddress,
+          formData.reportType,
+          formData.diagnosis
+        );
+      } catch (notifError) {
+        console.error("Failed to send notification:", notifError);
+      }
+
+      toast.success("Visit Report created and sent to patient!", {
+        description: txDigest ? `TX: ${txDigest.slice(0, 12)}...` : "Saved successfully",
+      });
+
+      // Reset form
+      setFormData({
+        patientAddress: "",
+        patientName: "",
+        chiefComplaint: "",
+        diagnosis: "",
+        prescriptionDetails: "",
+        notes: "",
+        reportType: "general_visit",
+        vitalSigns: {
+          bloodPressure: "",
+          heartRate: "",
+          temperature: "",
+          weight: "",
+        },
+      });
     } catch (error: any) {
       console.error("Create visit report error:", error);
       toast.error(error.message || "Failed to create visit report");

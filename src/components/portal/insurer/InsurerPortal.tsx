@@ -16,7 +16,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useLoginReminder } from "@/hooks/useLoginReminder";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { FileText, BarChart3, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const TAB_META: Record<string, { title: string; subtitle: string }> = {
   risk: { title: "", subtitle: "Manage risk assessments and claims" },
@@ -69,7 +70,7 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
   const renderContent = () => {
     switch (activeTab) {
       case "risk":
-        return <RiskOverview isNewUser={true} />;
+        return <RiskOverview isNewUser={true} walletAddress={walletAddress} />;
       case "marketplace":
         return <DataMarketplace isNewUser={true} />;
       case "claims":
@@ -153,10 +154,28 @@ export const InsurerPortal = ({ walletAddress: propWalletAddress, onSignOut }: I
 };
 
 const ClaimsProcessing = () => {
-  const [claims, setClaims] = useState<any[]>(() => {
-    const stored = localStorage.getItem("selora_insurance_claims");
-    return stored ? JSON.parse(stored) : [];
+  const [claims, setClaims] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useState(() => {
+    const fetchClaims = async () => {
+      const { data } = await supabase
+        .from("insurance_claims")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setClaims(data);
+      setLoading(false);
+    };
+    fetchClaims();
   });
+
+  if (loading) {
+    return (
+      <div className="glass-card p-8 text-center">
+        <p className="text-muted-foreground">Loading claims...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -176,12 +195,12 @@ const ClaimsProcessing = () => {
             <div key={claim.id} className="glass-card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{claim.patientName}</p>
-                  <p className="text-sm text-muted-foreground">{claim.type}</p>
+                  <p className="font-medium text-foreground">{claim.patient_address?.slice(0, 8)}...</p>
+                  <p className="text-sm text-muted-foreground">{claim.notes || "Insurance claim"}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">${claim.amount}</p>
-                  <p className="text-xs text-muted-foreground">{claim.status}</p>
+                  <p className="font-semibold text-foreground">${claim.claim_amount}</p>
+                  <Badge variant="outline" className="text-xs">{claim.status}</Badge>
                 </div>
               </div>
             </div>

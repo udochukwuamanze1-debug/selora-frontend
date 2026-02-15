@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { FileText, Send, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const mockPharmacies = [
   { id: "1", name: "Central Pharmacy", address: "0x1a2b...3c4d" },
@@ -19,7 +20,12 @@ const mockPharmacies = [
   { id: "3", name: "MediCare Plus", address: "0x9c0d...1e2f" },
 ];
 
-export const PrescriptionCreation = () => {
+interface PrescriptionCreationProps {
+  walletAddress?: string;
+  doctorName?: string;
+}
+
+export const PrescriptionCreation = ({ walletAddress = "", doctorName = "Doctor" }: PrescriptionCreationProps) => {
   const [formData, setFormData] = useState({
     patientAddress: "",
     medication: "",
@@ -36,8 +42,24 @@ export const PrescriptionCreation = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate prescription creation
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const selectedPharmacy = mockPharmacies.find(p => p.id === formData.pharmacy);
+      
+      const { error } = await supabase.from("prescriptions").insert({
+        doctor_address: walletAddress,
+        doctor_name: doctorName,
+        patient_address: formData.patientAddress,
+        medication: formData.medication,
+        dosage: formData.dosage,
+        frequency: formData.frequency,
+        duration: formData.duration,
+        pharmacy_id: formData.pharmacy,
+        pharmacy_name: selectedPharmacy?.name || "",
+        notes: formData.notes,
+        status: "pending",
+      });
+
+      if (error) throw error;
+
       toast.success("Prescription created and sent to patient");
       setFormData({
         patientAddress: "",
@@ -49,6 +71,7 @@ export const PrescriptionCreation = () => {
         pharmacy: "",
       });
     } catch (error) {
+      console.error("Prescription error:", error);
       toast.error("Failed to create prescription");
     } finally {
       setIsSubmitting(false);
