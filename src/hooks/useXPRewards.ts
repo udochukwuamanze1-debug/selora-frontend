@@ -55,12 +55,19 @@ interface XPContextType {
 
 const XPContext = createContext<XPContextType | null>(null);
 
+const DEFAULT_XP_CONTEXT: XPContextType = {
+  xp: 0,
+  level: 1,
+  xpToNextLevel: 100,
+  xpProgress: 0,
+  records: [],
+  awardXP: () => {},
+  checkDailyLogin: () => {},
+};
+
 export const useXPRewards = () => {
   const context = useContext(XPContext);
-  if (!context) {
-    throw new Error("useXPRewards must be used within XPRewardsProvider");
-  }
-  return context;
+  return context ?? DEFAULT_XP_CONTEXT;
 };
 
 interface XPRewardsProviderProps {
