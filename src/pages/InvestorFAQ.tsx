@@ -247,7 +247,7 @@ export default function InvestorFAQ() {
                 View Demo Script
               </Button>
             </Link>
-            <a href="mailto:customer.selora@gmail.com">
+            <a href="mailto:selorahealth@gmail.com">
               <Button className="gap-2">
                 Contact Us
               </Button>
