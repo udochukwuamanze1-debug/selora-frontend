@@ -66,14 +66,6 @@ export const DataMarketplace = ({ isNewUser = false }: DataMarketplaceProps) => 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Data Marketplace
-        </h1>
-        <p className="text-muted-foreground">
-          Access anonymized, consent-verified health datasets for risk analysis
-        </p>
-      </div>
 
       {/* Privacy Notice */}
       <div className="glass-card p-4 bg-primary/5 border-primary/20 flex items-start gap-3">

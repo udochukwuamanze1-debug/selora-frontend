@@ -18,16 +18,8 @@ export const DataExchange = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">
-            Data Exchange
-          </h1>
-          <p className="text-muted-foreground">
-            Stake your data and earn rewards transparently
-          </p>
-        </div>
+      {/* Action Buttons */}
+      <div className="flex justify-end">
         <Button className="gap-2">
           <Database className="w-4 h-4" />
           Stake New Data

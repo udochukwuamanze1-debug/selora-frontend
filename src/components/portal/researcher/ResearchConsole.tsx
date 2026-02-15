@@ -23,14 +23,6 @@ export const ResearchConsole = ({ isNewUser = false, walletAddress = "" }: Resea
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Research Console
-        </h1>
-        <p className="text-muted-foreground">
-          {isNewUser ? "Welcome! Start by creating a research study" : "Manage your research studies and data access"}
-        </p>
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -160,12 +160,6 @@ export function TrustedContacts({ walletAddress }: { walletAddress: string }) {
 
   return (
     <section className="space-y-6" aria-label="Trusted Contacts">
-      <header>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold">Trusted Contacts</h1>
-        <p className="text-muted-foreground">
-          Add guardians and control what they can do. They'll be notified automatically.
-        </p>
-      </header>
 
       <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">

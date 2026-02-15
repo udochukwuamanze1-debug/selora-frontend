@@ -21,14 +21,6 @@ export const RiskOverview = ({ isNewUser = false }: RiskOverviewProps) => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-          Risk Overview Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          {isNewUser ? "Welcome! Set up your coverage pools to get started" : "Monitor coverage pools, claims, and risk metrics"}
-        </p>
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -243,24 +243,16 @@ export function CareNetwork() {
 
   return (
     <section className="space-y-6" aria-label="Care Network">
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold">Care Network</h1>
-          <p className="text-muted-foreground">
-            Find nearby doctors within a {MILES_RADIUS}-mile radius.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2" onClick={handleSyncDoctors} disabled={isSyncing}>
-            {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            Sync Doctors
-          </Button>
-          <Button variant="glass" className="gap-2" onClick={handleUseLocation} disabled={locLoading}>
-            <Navigation className="w-4 h-4" />
-            {locLoading ? "Loading..." : location ? "Update" : "Location"}
-          </Button>
-        </div>
-      </header>
+      <div className="flex flex-wrap gap-2 justify-end">
+        <Button variant="outline" className="gap-2" onClick={handleSyncDoctors} disabled={isSyncing}>
+          {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          Sync Doctors
+        </Button>
+        <Button variant="glass" className="gap-2" onClick={handleUseLocation} disabled={locLoading}>
+          <Navigation className="w-4 h-4" />
+          {locLoading ? "Loading..." : location ? "Update" : "Location"}
+        </Button>
+      </div>
 
       <div className="glass-card p-4">
         <div className="flex flex-col md:flex-row gap-3">
