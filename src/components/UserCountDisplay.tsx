@@ -12,7 +12,7 @@ const formatUserCount = (count: number): string => {
   if (count >= 1000) return "1000+";
   if (count >= 500) return "500+";
   if (count >= 100) return `${count}+`;
-  return "100+";
+  return String(count);
 };
 
 export const UserCountDisplay = ({ count }: UserCountDisplayProps) => {
@@ -47,7 +47,7 @@ export const UserCountDisplay = ({ count }: UserCountDisplayProps) => {
       
       {/* User count text */}
       <p className="text-sm text-muted-foreground">
-        Join <span className="font-medium text-foreground">{displayText}</span> others and enjoy a self-sovereign identity.
+        Join <span className="font-medium text-foreground">{displayText}</span> others and own your self-sovereign identity.
       </p>
     </div>
   );
