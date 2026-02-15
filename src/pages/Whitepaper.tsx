@@ -11,7 +11,7 @@ const Whitepaper = () => {
             <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">
               Selora Whitepaper
             </h1>
-            <p className="text-muted-foreground mb-8">Version 1.0 — December 2024</p>
+            <p className="text-muted-foreground mb-8">Version 1.0 — December 2025</p>
 
             <div className="prose prose-lg max-w-none text-muted-foreground space-y-8">
               <section>
