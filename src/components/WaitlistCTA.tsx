@@ -25,7 +25,7 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<{ email: string; referralCode: string; referralCount: number } | null>(null);
 
-   const launchDate = "2026-05-01T16:00:00Z";
+   const launchDate = "2026-06-01T16:00:00Z";
 
   const calculateTimeLeft = () => {
     const difference = new Date(launchDate).getTime() - new Date().getTime();
