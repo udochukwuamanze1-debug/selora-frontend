@@ -24,7 +24,42 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<{ email: string; referralCode: string; referralCount: number } | null>(null);
-  const [countdown] = useState({ days: "00", hours: "00", mins: "00", secs: "00" });
+
+   const launchDate = "2026-05-01T16:00:00Z";
+
+  const calculateTimeLeft = () => {
+    const difference = new Date(launchDate).getTime() - new Date().getTime();
+
+    if (difference <= 0) {
+      return { days: "00", hours: "00", mins: "00", secs: "00" };
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((difference / (1000 * 60)) % 60);
+    const secs = Math.floor((difference / 1000) % 60);
+
+    const format = (num: number) => String(num).padStart(2, "0");
+
+    return {
+      days: format(days),
+      hours: format(hours),
+      mins: format(mins),
+      secs: format(secs),
+    };
+  };
+
+  const [countdown, setCountdown] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  
   const reducedMotion = useReducedMotion();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,10 +193,10 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
           <div className="glass-card p-8 flex flex-col justify-center items-center text-center">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-5 h-5 text-primary" />
-              <span className="text-sm text-primary font-medium">Launching Soon</span>
+              <span className="text-sm text-primary font-medium">A New Pulse for Healthcare.</span>
             </div>
             <h3 className="font-heading text-2xl md:text-3xl font-bold mb-6 text-foreground">
-              Countdown to Launch
+              Beats Start In:
             </h3>
 
             <div className="grid grid-cols-4 gap-4">
@@ -191,7 +226,7 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 shadow-lg backdrop-blur-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
-                <p className="font-medium text-green-500 mb-1">You're on the list! 🎉</p>
+                <p className="font-medium text-green-500 mb-1">You're on the list. Welcome to the future of decentralized health. 🎉</p>
                 
                 {/* Referral Stats */}
                 <div className="flex items-center gap-2 mb-3">
@@ -202,7 +237,7 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
                 </div>
                 
                 <p className="text-xs text-muted-foreground mb-2">
-                  Share your link to move up:
+                  Want earlier access? Invite friends to join.
                 </p>
                 <div className="space-y-2">
                   <code className="block px-3 py-1.5 rounded-lg bg-background/50 text-foreground font-mono text-xs truncate">
