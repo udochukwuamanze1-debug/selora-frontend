@@ -316,7 +316,7 @@ export default function Waitlist() {
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">You're on the list. Welcome to the future of decentralized health.</h3>
               <p className="text-muted-foreground mb-4">
-                "Want earlier access? Invite friends to join.
+                Want earlier access? Invite friends to join.
               </p>
               
               {/* Referral Stats */}
