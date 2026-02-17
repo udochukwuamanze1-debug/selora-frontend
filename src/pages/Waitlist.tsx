@@ -271,7 +271,7 @@ export default function Waitlist() {
             className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-up"
             style={{ animationDelay: "0.2s" }}
           >
-            The first decentralized health records platform where you own your data,
+            Your Health Data. Your Asset. The first decentralized platform where you own your data,
             control access, and earn from research contributions.
           </p>
 
