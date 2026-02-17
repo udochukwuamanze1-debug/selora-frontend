@@ -13,46 +13,30 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  CreditCard,
   Eye,
   RefreshCw,
-  Loader2,
   Shield,
+  FileText,
+  User,
 } from "lucide-react";
-import { useIotaTransaction } from "@/hooks/useIotaTransaction";
-import { iotaToNanos, nanosToIota, calculatePrescriptionFee } from "@/lib/sui-contracts";
-import { toast } from "sonner";
-import IotaLogo from "@/assets/iota-logo.svg";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
-interface PrescriptionData {
+interface PrescriptionRow {
   id: string;
-  objectId?: string; // On-chain object ID
-  name: string;
-  doctor: string;
-  doctorAddress: string;
-  pharmacyAddress: string;
-  date: string;
-  status: "pending" | "paid" | "fulfilled";
-  amountSui: number; // Amount in SUI
-  hasInsurance: boolean;
-  insuranceNftId?: string;
-  insuranceCoverage?: number; // percentage
-}
-
-// Local storage key
-const PRESCRIPTIONS_KEY = "selora_prescriptions";
-
-function getStoredPrescriptions(): PrescriptionData[] {
-  try {
-    const stored = localStorage.getItem(PRESCRIPTIONS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function savePrescriptions(prescriptions: PrescriptionData[]): void {
-  localStorage.setItem(PRESCRIPTIONS_KEY, JSON.stringify(prescriptions));
+  doctor_address: string;
+  doctor_name: string;
+  patient_address: string;
+  medication: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  pharmacy_name: string | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
+  blob_id: string | null;
+  tx_digest: string | null;
 }
 
 interface PrescriptionsProps {
@@ -60,102 +44,31 @@ interface PrescriptionsProps {
 }
 
 export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
-  const [prescriptions, setPrescriptions] = useState<PrescriptionData[]>([]);
-  const [paymentModal, setPaymentModal] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<PrescriptionRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewModal, setViewModal] = useState<string | null>(null);
-  
-  const { payPrescription, isPending, isConnected } = useIotaTransaction();
 
-  // Load prescriptions on mount
+  const fetchPrescriptions = async () => {
+    if (!walletAddress) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("prescriptions")
+      .select("*")
+      .eq("patient_address", walletAddress)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setPrescriptions(data as PrescriptionRow[]);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    setPrescriptions(getStoredPrescriptions());
-  }, []);
-
-  // Handle self-pay payment (on-chain)
-  const handleSelfPay = async () => {
-    if (!paymentModal) return;
-    
-    const prescription = prescriptions.find((p) => p.id === paymentModal);
-    if (!prescription || !prescription.objectId) {
-      toast.error("Prescription not found or not on-chain");
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      const amountInNanos = iotaToNanos(prescription.amountSui);
-      const result = await payPrescription(prescription.objectId, amountInNanos);
-
-      if (result) {
-        // Update local state
-        const updated = prescriptions.map((p) =>
-          p.id === paymentModal ? { ...p, status: "paid" as const } : p
-        );
-        setPrescriptions(updated);
-        savePrescriptions(updated);
-        
-        const fee = calculatePrescriptionFee(amountInNanos);
-        toast.success("Payment successful!", {
-          description: `Paid ${prescription.amountSui} IOTA. Platform fee: ${nanosToIota(fee).toFixed(4)} IOTA`,
-        });
-        setPaymentModal(null);
-      }
-    } catch (error) {
-      console.error("Payment failed:", error);
-      toast.error("Payment failed", {
-        description: "Transaction was rejected or failed. Please try again.",
-      });
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // Handle insurance payment (on-chain)
-  const handleInsurancePay = async () => {
-    if (!paymentModal) return;
-    
-    const prescription = prescriptions.find((p) => p.id === paymentModal);
-    if (!prescription || !prescription.objectId) {
-      toast.error("Prescription not found");
-      return;
-    }
-
-    if (!prescription.hasInsurance || !prescription.insuranceNftId) {
-      toast.error("No active insurance found");
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      // Calculate patient portion after insurance
-      const totalAmount = prescription.amountSui;
-      const insuranceCoverage = prescription.insuranceCoverage || 80;
-      const patientPortion = totalAmount * (1 - insuranceCoverage / 100);
-      const amountInNanos = iotaToNanos(patientPortion);
-
-      // Call on-chain payment with insurance
-      const result = await payPrescription(prescription.objectId, amountInNanos);
-
-      if (result) {
-        const updated = prescriptions.map((p) =>
-          p.id === paymentModal ? { ...p, status: "paid" as const } : p
-        );
-        setPrescriptions(updated);
-        savePrescriptions(updated);
-        
-        toast.success("Insurance payment successful!", {
-          description: `Insurance covered ${insuranceCoverage}%. You paid ${patientPortion.toFixed(2)} SUI`,
-        });
-        setPaymentModal(null);
-      }
-    } catch (error) {
-      console.error("Insurance payment failed:", error);
-      toast.error("Payment failed");
-    } finally {
-      setProcessing(false);
-    }
-  };
+    fetchPrescriptions();
+  }, [walletAddress]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -173,9 +86,9 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "pending":
-        return "Awaiting Payment";
+        return "Pending";
       case "paid":
-        return "Ready for Pickup";
+        return "Paid";
       case "fulfilled":
         return "Completed";
       default:
@@ -183,25 +96,38 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
     }
   };
 
-  const selectedPrescription = prescriptions.find((p) => p.id === paymentModal);
+  const getFrequencyLabel = (freq: string) => {
+    const map: Record<string, string> = {
+      once: "Once daily",
+      twice: "Twice daily",
+      three: "Three times daily",
+      asneeded: "As needed",
+    };
+    return map[freq] || freq;
+  };
+
   const viewPrescription = prescriptions.find((p) => p.id === viewModal);
 
-  // Calculate stats
   const pendingCount = prescriptions.filter((p) => p.status === "pending").length;
   const paidCount = prescriptions.filter((p) => p.status === "paid").length;
   const fulfilledCount = prescriptions.filter((p) => p.status === "fulfilled").length;
+
+  if (loading) {
+    return (
+      <div className="glass-card p-8 text-center">
+        <RefreshCw className="w-6 h-6 text-primary animate-spin mx-auto mb-2" />
+        <p className="text-muted-foreground">Loading prescriptions...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Action Buttons */}
       <div className="flex justify-end">
-        <Button 
-          variant="glass" 
-          className="gap-2"
-          onClick={() => setPrescriptions(getStoredPrescriptions())}
-        >
+        <Button variant="glass" className="gap-2" onClick={fetchPrescriptions}>
           <RefreshCw className="w-4 h-4" />
-          Sync Prescriptions
+          Refresh
         </Button>
       </div>
 
@@ -213,7 +139,7 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
         </div>
         <div className="glass-card p-4 text-center">
           <p className="text-2xl font-heading font-bold text-blue-500">{paidCount}</p>
-          <p className="text-sm text-muted-foreground">Ready</p>
+          <p className="text-sm text-muted-foreground">Paid</p>
         </div>
         <div className="glass-card p-4 text-center">
           <p className="text-2xl font-heading font-bold text-green-500">{fulfilledCount}</p>
@@ -228,178 +154,73 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
           <h2 className="font-heading font-semibold text-lg">No prescriptions yet</h2>
           <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
             Once a doctor issues prescriptions to your wallet, they'll appear here.
-            Payments are processed securely on the Sui blockchain.
           </p>
         </div>
       ) : (
-        <div className="glass-card overflow-hidden">
-          <div className="p-4 border-b border-border">
-            <h2 className="font-heading font-semibold">All Prescriptions</h2>
-          </div>
-          <div className="divide-y divide-border/50">
-            {prescriptions.map((prescription) => (
-              <div
-                key={prescription.id}
-                className="p-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="p-3 rounded-xl bg-primary/10">
-                      <Pill className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{prescription.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {prescription.doctor} • {prescription.date}
-                      </p>
-                      {prescription.hasInsurance && (
-                        <Badge variant="secondary" className="mt-1 text-xs">
-                          <Shield className="w-3 h-3 mr-1" />
-                          {prescription.insuranceCoverage}% Covered
-                        </Badge>
-                      )}
-                    </div>
+        <div className="space-y-3">
+          {prescriptions.map((rx) => (
+            <div key={rx.id} className="glass-card p-4 hover:border-primary/20 transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Pill className="w-5 h-5 text-primary" />
                   </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(prescription.status)}
-                      <span className="text-sm">{getStatusLabel(prescription.status)}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setViewModal(prescription.id)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      {prescription.status === "pending" && (
-                        <Button
-                          size="sm"
-                          onClick={() => setPaymentModal(prescription.id)}
-                          disabled={!isConnected}
-                          className="gap-2"
-                        >
-                          <CreditCard className="w-4 h-4" />
-                          Pay {prescription.amountSui} SUI
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Payment Modal */}
-      <Dialog open={!!paymentModal} onOpenChange={() => !processing && setPaymentModal(null)}>
-        <DialogContent className="glass-card border-border/50 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-xl">
-              Pay Prescription
-            </DialogTitle>
-            <DialogDescription>
-              Payment is processed on the Sui blockchain with 0.5% platform fee
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedPrescription && (
-            <div className="py-4 space-y-6">
-              <div className="p-4 rounded-xl bg-muted/50">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-primary/10">
-                    <Pill className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{selectedPrescription.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedPrescription.doctor}
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">{rx.medication}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {rx.doctor_name} • {rx.dosage} • {getFrequencyLabel(rx.frequency)}
                     </p>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground">Amount Due</p>
-                <div className="flex items-center justify-center gap-2">
-                  <img src={IotaLogo} alt="IOTA" className="w-8 h-8" />
-                  <span className="text-4xl font-heading font-bold">
-                    {selectedPrescription.amountSui}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    {getStatusIcon(rx.status)}
+                    <span className="text-sm">{getStatusLabel(rx.status)}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {format(new Date(rx.created_at), "MMM d, yyyy")}
                   </span>
-                  <span className="text-xl text-muted-foreground">IOTA</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Platform fee: {(selectedPrescription.amountSui * 0.005).toFixed(4)} IOTA (0.5%)
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  className="w-full h-14 gap-3"
-                  onClick={handleSelfPay}
-                  disabled={processing || isPending}
-                >
-                  {processing || isPending ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <img src={IotaLogo} alt="IOTA" className="w-5 h-5" />
-                      Pay with IOTA Wallet
-                    </>
-                  )}
-                </Button>
-
-                {selectedPrescription.hasInsurance && (
-                  <Button
-                    variant="glass"
-                    className="w-full h-14 gap-3"
-                    onClick={handleInsurancePay}
-                    disabled={processing || isPending}
-                  >
-                    {processing || isPending ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Shield className="w-5 h-5" />
-                        Pay with Insurance ({selectedPrescription.insuranceCoverage}% covered)
-                      </>
-                    )}
+                  <Button variant="ghost" size="icon" onClick={() => setViewModal(rx.id)}>
+                    <Eye className="w-4 h-4" />
                   </Button>
-                )}
+                </div>
               </div>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Funds transfer instantly to the pharmacy. Transaction is immutable on Sui.
-              </p>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          ))}
+        </div>
+      )}
 
       {/* View Prescription Modal */}
       <Dialog open={!!viewModal} onOpenChange={() => setViewModal(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Prescription Details</DialogTitle>
+            <DialogDescription>Issued by your doctor</DialogDescription>
           </DialogHeader>
           {viewPrescription && (
             <div className="space-y-4 py-4">
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Medication</span>
-                  <span className="font-medium">{viewPrescription.name}</span>
+                  <span className="font-medium">{viewPrescription.medication}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Dosage</span>
+                  <span className="font-medium">{viewPrescription.dosage}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Frequency</span>
+                  <span className="font-medium">{getFrequencyLabel(viewPrescription.frequency)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Duration</span>
+                  <span className="font-medium">{viewPrescription.duration}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Prescriber</span>
-                  <span className="font-medium">{viewPrescription.doctor}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date</span>
-                  <span className="font-medium">{viewPrescription.date}</span>
+                  <span className="font-medium">{viewPrescription.doctor_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
@@ -408,14 +229,26 @@ export const Prescriptions = ({ walletAddress }: PrescriptionsProps) => {
                   </Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount</span>
-                  <span className="font-medium">{viewPrescription.amountSui} SUI</span>
+                  <span className="text-muted-foreground">Date</span>
+                  <span className="font-medium">{format(new Date(viewPrescription.created_at), "MMM d, yyyy")}</span>
                 </div>
-                {viewPrescription.objectId && (
+                {viewPrescription.pharmacy_name && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">On-chain ID</span>
+                    <span className="text-muted-foreground">Pharmacy</span>
+                    <span className="font-medium">{viewPrescription.pharmacy_name}</span>
+                  </div>
+                )}
+                {viewPrescription.notes && (
+                  <div>
+                    <span className="text-muted-foreground text-sm">Notes</span>
+                    <p className="text-sm mt-1 bg-muted/50 p-3 rounded-lg">{viewPrescription.notes}</p>
+                  </div>
+                )}
+                {viewPrescription.tx_digest && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">On-chain TX</span>
                     <span className="font-mono text-xs">
-                      {viewPrescription.objectId.slice(0, 8)}...{viewPrescription.objectId.slice(-6)}
+                      {viewPrescription.tx_digest.slice(0, 8)}...{viewPrescription.tx_digest.slice(-6)}
                     </span>
                   </div>
                 )}

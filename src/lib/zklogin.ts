@@ -191,25 +191,11 @@ async function generateDeterministicMnemonic(googleSub: string): Promise<string>
   const seed = `${googleSub}:${STATIC_SALT}:mnemonic:v1`;
   const entropy = await sha256(seed);
   
-  // Use first 16 bytes (128 bits) for 12-word mnemonic
+  // Use first 16 bytes (128 bits) for a valid 12-word BIP-39 mnemonic
   const entropy16 = entropy.slice(0, 16);
   
-  // Convert entropy to mnemonic using BIP-39
-  // We need to convert the raw bytes to a mnemonic
-  const words: string[] = [];
-  
-  // BIP-39: 128 bits entropy = 12 words
-  // Each word = 11 bits from entropy + checksum
-  // For simplicity, we'll generate words deterministically from entropy
-  for (let i = 0; i < 12; i++) {
-    // Use 2 bytes per word index (more than enough for 2048 words)
-    const idx1 = entropy16[i % 16];
-    const idx2 = entropy16[(i + 1) % 16];
-    const wordIndex = ((idx1 << 8) | idx2) % 2048;
-    words.push(wordlist[wordIndex]);
-  }
-  
-  return words.join(' ');
+  // Use proper BIP-39 entropyToMnemonic which includes checksum
+  return bip39.entropyToMnemonic(entropy16, wordlist);
 }
 
 // ----------------------------------------------------------------------------

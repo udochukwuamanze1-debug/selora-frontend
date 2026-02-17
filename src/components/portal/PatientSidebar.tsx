@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
+  Stethoscope,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -24,6 +25,7 @@ const menuItems = [
   { id: "archive", label: "Records & Vault", icon: Archive },
   { id: "network", label: "Care Network", icon: Users },
   { id: "prescriptions", label: "Prescriptions", icon: Pill },
+  { id: "visit-reports", label: "Visit Reports", icon: Stethoscope },
   { id: "exchange", label: "Data Exchange", icon: ArrowLeftRight },
   { id: "assistant", label: "Selora AI", icon: Bot },
   { id: "profile", label: "Settings", icon: Settings },
