@@ -296,12 +296,17 @@ export function deleteNotification(id: string): void {
 // ==================== Wallet Creation Flow ====================
 
 /**
- * Generate and store a new wallet's mnemonic
- * Returns the mnemonic for display to user (one-time only)
+ * Generate and store a new wallet's mnemonic.
+ * Derives the IOTA address from the mnemonic for consistency.
+ * Returns { mnemonic, walletAddress }.
  */
 export async function generateAndStoreWalletMnemonic(walletAddress: string): Promise<string> {
   const mnemonic = generateMnemonic();
-  await storeKeyphraseInVault(walletAddress, mnemonic);
+  // Derive the real address from the mnemonic for consistency
+  const { Ed25519Keypair } = await import('@iota/iota-sdk/keypairs/ed25519');
+  const keypair = Ed25519Keypair.deriveKeypair(mnemonic);
+  const derivedAddress = keypair.getPublicKey().toIotaAddress();
+  await storeKeyphraseInVault(derivedAddress, mnemonic);
   return mnemonic;
 }
 

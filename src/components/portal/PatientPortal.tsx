@@ -13,6 +13,7 @@ import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { OnboardingTutorial } from "./OnboardingTutorial";
 import { PatientInbox } from "./PatientInbox";
 import { DoctorsDirectory } from "./DoctorsDirectory";
+import { PatientVisitReports } from "./PatientVisitReports";
 import { UserStatsProvider, useUserStats } from "@/hooks/useUserStats";
 import { XPRewardsProvider } from "@/hooks/useXPRewards";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ const TAB_META: Record<string, { title: string; subtitle: string }> = {
   archive: { title: "Health Archive", subtitle: "Browse and manage your uploaded health records" },
   vault: { title: "Secure Vault", subtitle: "Encrypted storage for your sensitive health documents" },
   prescriptions: { title: "Prescriptions", subtitle: "View and track your prescriptions" },
+  "visit-reports": { title: "Visit Reports", subtitle: "View reports from your doctors" },
   exchange: { title: "Data Exchange", subtitle: "Stake and monetize your anonymized health data" },
   coverage: { title: "Coverage & Analytics", subtitle: "Track your health coverage and insights" },
   network: { title: "Care Network", subtitle: "Find nearby doctors and manage your care team" },
@@ -74,9 +76,11 @@ const PatientPortalContent = ({ walletAddress, onSignOut }: PatientPortalProps) 
       case "vault":
         return <Vault walletAddress={walletAddress} externalSearchQuery={searchQuery} />;
       case "prescriptions":
-        return <Prescriptions />;
+        return <Prescriptions walletAddress={walletAddress} />;
       case "exchange":
         return <DataExchange />;
+      case "visit-reports":
+        return <PatientVisitReports walletAddress={walletAddress} />;
       case "coverage":
         return <AnalyticsDashboard walletAddress={walletAddress} />;
       case "network":
