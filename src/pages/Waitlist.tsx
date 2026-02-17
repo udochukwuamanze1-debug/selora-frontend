@@ -255,7 +255,7 @@ export default function Waitlist() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            Launching Soon on IOTA Mainnet
+            Countdown to IOTA Mainnet
           </div>
 
           <h1
@@ -308,15 +308,15 @@ export default function Waitlist() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                Be the first to know when we launch. No spam, ever.
+                Secure your spot on the waitlist.
               </p>
             </form>
           ) : (
             <div className="max-w-md mx-auto animate-fade-up glass-card p-6">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">You're on the list!</h3>
+              <h3 className="text-xl font-semibold mb-2">You're on the list. Welcome to the future of decentralized health.</h3>
               <p className="text-muted-foreground mb-4">
-                Share your referral link to move up the priority list:
+                "Want earlier access? Invite friends to join.
               </p>
               
               {/* Referral Stats */}
@@ -375,7 +375,7 @@ export default function Waitlist() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
-              Why <span className="text-primary">Selora</span>?
+              Why <span className="text-primary">Selora?</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               A new paradigm for health data ownership and privacy
@@ -470,7 +470,7 @@ export default function Waitlist() {
       >
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="font-heading text-2xl md:text-3xl font-bold mb-8">
-            Join Our <span className="text-primary">Community</span>
+            Join the <span className="text-primary">Selora</span> Network.
           </h2>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -484,7 +484,7 @@ export default function Waitlist() {
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                   </svg>
                   
-              <span className="text-foreground group-hover:text-primary transition-colors">X (Twitter)</span>
+              <span className="text-foreground group-hover:text-primary transition-colors">X</span>
             </a>
             <a
               href="https://discord.gg/XqZkcdhf2k"
