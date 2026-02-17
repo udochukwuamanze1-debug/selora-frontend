@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, X, Clock, Users } from "lucide-react";
+import { ArrowRight, X, Rocket, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -192,7 +192,7 @@ export function WaitlistCTA({ referralCode: initialReferralCode }: WaitlistCTAPr
           {/* Right - Countdown */}
           <div className="glass-card p-8 flex flex-col justify-center items-center text-center">
             <div className="flex items-center gap-2 mb-4">
-              <Clock className="w-5 h-5 text-primary" />
+              <Rocket className="w-5 h-5 text-primary" />
               <span className="text-sm text-primary font-medium">The Future of Decentralized Health is Coming.</span>
             </div>
             <h3 className="font-heading text-2xl md:text-3xl font-bold mb-6 text-foreground">
