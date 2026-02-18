@@ -377,12 +377,11 @@ export default function Waitlist() {
 
             <p className="text-foreground/80">
               What if the script was flipped? What if there was a sanctuary for 
-              your health? A place where your records travel with
-              <strong className="text-foreground">you</strong>, not the clinic. 
+              your health? A place where your records travel with <strong className="text-foreground">you</strong>, not the clinic. 
               A place where privacy isn't just a policy update, but a mathematical guarantee.
             </p>
 
-            <h2 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">Selora.</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-primary tracking-tight">Selora.</h2>
 
             <p className="text-foreground/80">
               This is our answer. We are building the first health platform designed for human dignity, not institutional profit.
@@ -403,8 +402,7 @@ export default function Waitlist() {
                 <br />
                 <span className="text-foreground/75">
                   Medical research needs data to cure diseases. Currently, they take 
-                  yours for free. On Selora, if you choose to share your anonymized data for research,
-                  <strong className="text-foreground">you get paid.</strong> You fuel the cure, and you share in the value.
+                  yours for free. On Selora, if you choose to share your anonymized data for research, <strong className="text-foreground">you get paid.</strong> You fuel the cure, and you share in the value.
                 </span>
               </p>
             </div>
@@ -435,7 +433,7 @@ export default function Waitlist() {
               </p>
 
               <p>
-                <a href="https://forms.gle/5aPWX1jJiKuKJcK96" className="text-primary underline underline-offset-4 hover:opacity-80 transition-opacity">
+                <a href="https://forms.gle/5aPWX1jJiKuKJcK96" className="inline-block mt-3 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity">
                   Take the 5-Minute Survey →
                 </a>
               </p>
