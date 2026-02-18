@@ -427,9 +427,11 @@ export default function Waitlist() {
           </p>
 
           
-          <p><a href="https://forms.gle/S7A6Hh2eWA3YyoYTA" className="text-primary">
-            Take the 5-Minute Survey →
-          </a>
+          <p>
+            <a href="https://forms.gle/S7A6Hh2eWA3YyoYTA" className="text-primary">
+              Take the 5-Minute Survey →
+            </a>
+          </p>
         </div>
 
         {/* Highlight Box */}
