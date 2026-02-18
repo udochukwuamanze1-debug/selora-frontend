@@ -373,9 +373,9 @@ export default function Waitlist() {
               You are the source of the data, but you are the last one to benefit from it.
             </p>
 
-            <p className="italic text-foreground/75">So we asked…</p>
+            <p className="text-lg italic text-foreground/75">So we asked…</p>
 
-            <p className="text-foreground/80">
+            <p className="text-lg text-foreground/80">
               What if the script was flipped? What if there was a sanctuary for 
               your health? A place where your records travel with <strong className="text-foreground">you</strong>, not the clinic. 
               A place where privacy isn't just a policy update, but a mathematical guarantee.
@@ -383,13 +383,13 @@ export default function Waitlist() {
 
             <h2 className="text-2xl md:text-3xl font-bold text-primary tracking-tight">Selora.</h2>
 
-            <p className="text-foreground/80">
+            <p className="text-lg text-foreground/80">
               This is our answer. We are building the first health platform designed for human dignity, not institutional profit.
             </p>
 
             <div className="space-y-4">
               <p>
-                <strong className="text-foreground">Your Data, Your Keys.</strong>
+                <strong className="text-lg text-foreground">Your Data, Your Keys.</strong>
                 <br />
                 <span className="text-lg text-foreground/80">
                   On Selora, your medical history lives in your encrypted wallet. You 
@@ -398,7 +398,7 @@ export default function Waitlist() {
               </p>
 
               <p>
-                <strong className="text-foreground">From "Patient" to "Partner."</strong>
+                <strong className="text-lg text-foreground">From "Patient" to "Partner."</strong>
                 <br />
                 <span className="text-lg text-foreground/80">
                   Medical research needs data to cure diseases. Currently, they take 
@@ -424,7 +424,7 @@ export default function Waitlist() {
 
             <div className="space-y-2">
               <p>
-                <strong className="text-foreground">Step 1: Shape the Foundation.</strong>
+                <strong className="text-lg text-foreground">Step 1: Shape the Foundation.</strong>
                 <br />
                 <span className="text-lg text-foreground/80">
                   We have created a short, anonymous survey. Tell us about your worst healthcare experiences. 
@@ -448,7 +448,7 @@ export default function Waitlist() {
                 you secure your spot as a <strong className="text-foreground">Founding Member</strong>.
               </p>
 
-              <p className="font-semibold text-foreground">Founding Members receive:</p>
+              <p className="font-semibold text-foreground text-lg">Founding Members receive:</p>
 
               <ul className="space-y-2 text-lg text-foreground/80 list-disc list-inside">
                 <li>
