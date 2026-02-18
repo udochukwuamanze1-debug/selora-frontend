@@ -427,10 +427,8 @@ export default function Waitlist() {
           </p>
 
           
-            href="#"
-            className="inline-block mt-3 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            Take the 2-Minute Survey →
+          <p><a href="https://forms.gle/S7A6Hh2eWA3YyoYTA" className="text-primary">
+            Take the 5-Minute Survey →
           </a>
         </div>
 
