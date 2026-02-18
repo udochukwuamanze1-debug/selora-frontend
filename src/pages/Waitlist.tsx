@@ -363,17 +363,17 @@ export default function Waitlist() {
               Yet, you don't own the book.
             </p>
 
-            <p className="text-foreground/75">
+            <p className="text-lg text-foreground/80">
               Hospitals lock it in silos. Insurance companies analyze it for risk. 
               Big Pharma buys it to build the next billion-dollar drug. And you? You are 
               left filling out the same clipboard forms, over and over again, every time you see a new doctor.
             </p>
 
-            <p className="text-foreground/75">
+            <p className="text-lg text-foreground/80">
               You are the source of the data, but you are the last one to benefit from it.
             </p>
 
-            <p className="italic text-foreground/60">So we asked…</p>
+            <p className="italic text-foreground/75">So we asked…</p>
 
             <p className="text-foreground/80">
               What if the script was flipped? What if there was a sanctuary for 
@@ -391,7 +391,7 @@ export default function Waitlist() {
               <p>
                 <strong className="text-foreground">Your Data, Your Keys.</strong>
                 <br />
-                <span className="text-foreground/75">
+                <span className="text-lg text-foreground/80">
                   On Selora, your medical history lives in your encrypted wallet. You 
                   grant access to doctors for seconds, not forever. No more begging for your own X-rays.
                 </span>
@@ -400,7 +400,7 @@ export default function Waitlist() {
               <p>
                 <strong className="text-foreground">From "Patient" to "Partner."</strong>
                 <br />
-                <span className="text-foreground/75">
+                <span className="text-lg text-foreground/80">
                   Medical research needs data to cure diseases. Currently, they take 
                   yours for free. On Selora, if you choose to share your anonymized data for research, <strong className="text-foreground">you get paid.</strong> You fuel the cure, and you share in the value.
                 </span>
@@ -413,12 +413,12 @@ export default function Waitlist() {
               We are building this for you, but we cannot build it without you.
             </h2>
 
-            <p className="text-foreground/75">
+            <p className="text-lg text-foreground/80">
               We refuse to be another tech company assuming we know what's 
               best for your health. We need to know your struggles, your fears, and your hopes.
             </p>
 
-            <p className="text-foreground/75">
+            <p className="text-lg text-foreground/80">
               Before we write a single line of code for our final launch, we want to hear your story.
             </p>
 
@@ -426,7 +426,7 @@ export default function Waitlist() {
               <p>
                 <strong className="text-foreground">Step 1: Shape the Foundation.</strong>
                 <br />
-                <span className="text-foreground/75">
+                <span className="text-lg text-foreground/80">
                   We have created a short, anonymous survey. Tell us about your worst healthcare experiences. 
                   Tell us what "trust" means to you. Help us build a platform that actually solves the pain.
                 </span>
@@ -443,14 +443,14 @@ export default function Waitlist() {
             <div className="rounded-xl border border-primary/25 bg-primary/5 dark:bg-primary/10 p-6 space-y-4">
               <p className="font-bold text-foreground text-lg">Step 2: Claim Your Sovereignty.</p>
 
-              <p className="text-foreground/75">
+              <p className="text-lg text-foreground/80">
                 We are launching soon on the IOTA Mainnet. If you join the waitlist today, 
                 you secure your spot as a <strong className="text-foreground">Founding Member</strong>.
               </p>
 
               <p className="font-semibold text-foreground">Founding Members receive:</p>
 
-              <ul className="space-y-2 text-foreground/75 list-disc list-inside">
+              <ul className="space-y-2 text-lg text-foreground/80 list-disc list-inside">
                 <li>
                   <strong className="text-foreground">Early Access:</strong> Be the first to claim your digital health identity.
                 </li>
@@ -462,7 +462,7 @@ export default function Waitlist() {
                 </li>
               </ul>
 
-              <p className="text-foreground/75">Scroll up and enter your email to join the movement.</p>
+              <p className="text-lg text-foreground/80">Scroll up and enter your email to join the movement.</p>
             </div>
 
             <div className="pt-2 space-y-1 text-foreground/70">
