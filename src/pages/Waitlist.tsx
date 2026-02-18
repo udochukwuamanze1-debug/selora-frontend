@@ -346,21 +346,129 @@ export default function Waitlist() {
             </div>
           )}
 
-          {/* Portal Preview Image - Hidden on mobile */}
-          <div className="mt-16 animate-fade-up hidden md:block" style={{ animationDelay: "0.4s" }}>
-            <div className="relative mx-auto max-w-4xl">
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-2xl blur-xl" />
-              <div className="relative glass-card p-2 rounded-2xl overflow-hidden">
-                <img
-                  src={resolvedTheme === "dark" ? patientPortalDark : patientPortalLight}
-                  alt="Selora Patient Portal Preview"
-                  className="w-full rounded-xl border border-border/50"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </div>
+          {/* Portal Content Section */}
+<div className="mt-16 animate-fade-up" style={{ animationDelay: "0.4s" }}>
+  <div className="relative mx-auto max-w-4xl">
+    {/* Neon glow effect */}
+    <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-2xl blur-xl" />
+
+    <div className="relative glass-card rounded-2xl overflow-hidden border border-primary/30 shadow-[0_0_30px_rgba(var(--primary-rgb),0.15)]">
+      <div className="p-8 md:p-12 space-y-6 text-base leading-relaxed text-foreground/90">
+
+        <p className="text-lg text-foreground/80">
+          Your health history is the most intimate story you possess. It is the record of your battles, your recoveries, and your vitality.
+        </p>
+
+        <p className="text-xl font-semibold text-foreground">
+          Yet, you don't own the book.
+        </p>
+
+        <p className="text-foreground/75">
+          Hospitals lock it in silos. Insurance companies analyze it for risk. Big Pharma buys it to build the next billion-dollar drug. And you? You are left filling out the same clipboard forms, over and over again, every time you see a new doctor.
+        </p>
+
+        <p className="text-foreground/75">
+          You are the source of the data, but you are the last one to benefit from it.
+        </p>
+
+        <p className="italic text-foreground/60">So we asked…</p>
+
+        <p className="text-foreground/80">
+          What if the script was flipped? What if there was a sanctuary for your health? A place where your records travel with{" "}
+          <strong className="text-foreground">you</strong>, not the clinic. A place where privacy isn't just a policy update, but a mathematical guarantee.
+        </p>
+
+        <h2 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">Selora.</h2>
+
+        <p className="text-foreground/80">
+          This is our answer. We are building the first health platform designed for human dignity, not institutional profit.
+        </p>
+
+        <div className="space-y-4">
+          <p>
+            <strong className="text-foreground">Your Data, Your Keys.</strong>
+            <br />
+            <span className="text-foreground/75">
+              On Selora, your medical history lives in your encrypted wallet. You grant access to doctors for seconds, not forever. No more begging for your own X-rays.
+            </span>
+          </p>
+
+          <p>
+            <strong className="text-foreground">From "Patient" to "Partner."</strong>
+            <br />
+            <span className="text-foreground/75">
+              Medical research needs data to cure diseases. Currently, they take yours for free. On Selora, if you choose to share your anonymized data for research,{" "}
+              <strong className="text-foreground">you get paid.</strong> You fuel the cure, and you share in the value.
+            </span>
+          </p>
         </div>
+
+        <hr className="border-border/40 my-2" />
+
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+          We are building this for you, but we cannot build it without you.
+        </h2>
+
+        <p className="text-foreground/75">
+          We refuse to be another tech company assuming we know what's best for your health. We need to know your struggles, your fears, and your hopes.
+        </p>
+
+        <p className="text-foreground/75">
+          Before we write a single line of code for our final launch, we want to hear your story.
+        </p>
+
+        <div className="space-y-2">
+          <p>
+            <strong className="text-foreground">Step 1: Shape the Foundation.</strong>
+            <br />
+            <span className="text-foreground/75">
+              We have created a short, anonymous survey. Tell us about your worst healthcare experiences. Tell us what "trust" means to you. Help us build a platform that actually solves the pain.
+            </span>
+          </p>
+
+          
+            href="#"
+            className="inline-block mt-3 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+          >
+            Take the 2-Minute Survey →
+          </a>
+        </div>
+
+        {/* Highlight Box */}
+        <div className="rounded-xl border border-primary/25 bg-primary/5 dark:bg-primary/10 p-6 space-y-4">
+          <p className="font-bold text-foreground text-lg">Step 2: Claim Your Sovereignty.</p>
+
+          <p className="text-foreground/75">
+            We are launching soon on the IOTA Mainnet. If you join the waitlist today, you secure your spot as a{" "}
+            <strong className="text-foreground">Founding Member</strong>.
+          </p>
+
+          <p className="font-semibold text-foreground">Founding Members receive:</p>
+
+          <ul className="space-y-2 text-foreground/75">
+            <li>
+              <strong className="text-foreground">Early Access:</strong> Be the first to claim your digital health identity.
+            </li>
+            <li>
+              <strong className="text-foreground">Higher Rewards:</strong> Unlock higher reward rates for future research contributions.
+            </li>
+            <li>
+              <strong className="text-foreground">Zero Fees:</strong> Your first 10 data transfers are on us.
+            </li>
+          </ul>
+
+          <p className="text-foreground/75">Scroll up and enter your email to join the movement.</p>
+        </div>
+
+        <div className="pt-2 space-y-1 text-foreground/70">
+          <p>See you on the inside,</p>
+          <p className="font-semibold text-foreground">The Selora Team</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
       </motion.section>
 
       {/* Features Section */}
