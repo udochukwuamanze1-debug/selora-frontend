@@ -103,7 +103,7 @@ function WaitlistInput({ id = "email" }: { id?: string }) {
           disabled={isSubmitting}
           autoComplete="email"
           className="
-            flex-1 h-12 px-4 rounded-lg
+            flex h-12 px-4 rounded-lg
             bg-background border border-border/60
             text-foreground text-sm
             placeholder:text-muted-foreground/50
@@ -532,7 +532,6 @@ export default function Waitlist() {
               bg-primary text-primary-foreground
               text-[10px] sm:text-xs font-bold tracking-wider uppercase
               hover:opacity-90 transition-opacity
-              whitespace-nowrap
             "
           >
             Join Waitlist
@@ -620,7 +619,7 @@ export default function Waitlist() {
             className="s-fade-up-5 mt-6 text-sm text-muted-foreground/55"
             style={{ fontFamily: "'Sora', sans-serif" }}
           >
-            Join a growing movement — <LiveCounter /> professionals already on the waitlist
+            Join a growing movement — hundreds of professionals already on the waitlist
           </p>
         </div>
 
