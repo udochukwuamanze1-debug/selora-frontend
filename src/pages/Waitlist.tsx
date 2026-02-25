@@ -531,7 +531,7 @@ export default function Waitlist() {
               px-3 sm:px-5 py-2 rounded-lg
               bg-primary text-primary-foreground
               text-[10px] sm:text-xs font-bold tracking-wider uppercase
-              hover:opacity-90 transition-opacity
+              hover:opacity-90 transition-opacity whitespace-normal
             "
           >
             Join Waitlist
