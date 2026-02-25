@@ -340,7 +340,7 @@ const faqs = [
   {
     question: "When will Selora launch?",
     answer:
-      "We are currently in the foundation phase — building the core app, encryption engine, and IOTA smart contracts. Public launch in Nigeria and the UK is targeted for Q3 2026. Join the waitlist for early access and 6 months of Premium completely free.",
+      "We are currently in the foundation phase — building the core app, encryption engine, and IOTA smart contracts. Public launch in Nigeria and the UK is targeted for Q1 2027. Join the waitlist for early access and 6 months of Premium completely free.",
   },
 ];
 
@@ -360,7 +360,7 @@ const roadmapPhases = [
     ],
   },
   {
-    tag: "Q3 2026",
+    tag: "Q1 2027",
     tagColor: "text-teal-400",
     title: "Phase 1 — Launch",
     current: false,
